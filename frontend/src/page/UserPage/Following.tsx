@@ -298,13 +298,13 @@ const Following: React.FC = () => {
             </p>
             <div className="flex justify-around">
               <button
-                className="px-4 py-2 bg-pic-primary text-white rounded-md opacity-50 hover:opacity-100 hover:brightness-110 transition duration-200"
+                className="px-4 py-2 bg-pic-primary text-white rounded-md  hover:brightness-110 transition duration-200"
                 onClick={handleConfirmUnfollow}
               >
                 팔로잉취소
               </button>
               <button
-                className="px-4 py-2 bg-pic-primary text-white rounded-md opacity-50 hover:opacity-100 hover:brightness-110 transition duration-200"
+                className="px-4 py-2 bg-pic-primary text-white rounded-md  hover:brightness-110 transition duration-200"
                 onClick={handleCloseModal}
               >
                 돌아가기
