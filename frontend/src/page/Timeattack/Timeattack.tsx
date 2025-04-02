@@ -20,9 +20,17 @@ const INDOOR_TOPICS = [
   "clock",
   "computer",
   "food",
-  "plant",
   "table",
-  "coffee",
+  "shoes",
+  "mouse",
+  "door",
+  "window",
+  "extinguisher",
+  "clothes",
+  "bag",
+  "phone",
+  "keyboard",
+  "Screen",
 ];
 
 const OUTDOOR_TOPICS = [
@@ -34,6 +42,8 @@ const OUTDOOR_TOPICS = [
   "mountain",
   "sky",
   "building",
+  "pavement",
+  "plant",
 ];
 
 // 주제 영어-한글 매핑
@@ -54,7 +64,17 @@ const TOPIC_TRANSLATIONS: Record<string, string> = {
   plant: "식물",
   table: "테이블",
   building: "건물",
-  coffee: "커피",
+  shoes: "신발",
+  pavement: "포장도로",
+  mouse: "마우스",
+  door: "문",
+  window: "창문",
+  extinguisher: "소화기",
+  clothes: "옷",
+  bag: "가방",
+  phone: "전화기",
+  keyboard: "키보드",
+  Screen: "스크린",
 };
 
 const translateTopic = (englishTopic: string): string => {

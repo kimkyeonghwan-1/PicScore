@@ -1,8 +1,12 @@
 import axios from "axios";
 import { useAuthStore } from "../store";
+import { captureException } from "../utils/sentry";
+import { useNavigate } from "react-router-dom";
 
+const getAuthStore = () => {
+  return useAuthStore.getState();
+};
 const baseURL = import.meta.env.VITE_BASE_URL;
-
 export const evalTestApi = axios.create({
   baseURL,
   headers: {
@@ -11,37 +15,41 @@ export const evalTestApi = axios.create({
   withCredentials: true,
 });
 
-// evalTestApi.interceptors.request.use((config) => {
-//   // 요청 시점에 스토어에서 최신 토큰 가져오기
-//   const accessToken = useAuthStore.getState().accessToken;
+evalTestApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      const errorStatus = error.response.status;
+      const errorData = error.response.data;
+      const requestUrl = error.config.url;
 
-//   // 토큰이 있으면 요청 헤더에 추가
-//   if (accessToken) {
-//     config.headers.Authorization = `Bearer ${accessToken}`;
-//   }
+      captureException(error, {
+        source: "eval-api",
+        type: "http-error",
+        status: errorStatus,
+        endpoint: requestUrl,
+        response: JSON.stringify(errorData).slice(0, 200),
+      });
+    } else if (error.request) {
+      captureException(error, {
+        source: "eval-api",
+        type: "network-error",
+        url: error.config?.url,
+      });
+    } else {
+      // 일반 클라이언트 오류 Sentry에 보고
+      captureException(error, {
+        source: "eval-api",
+        type: "client-error",
+        message: error.message,
+      });
 
-//   return config;
-// });
+      console.error("클라이언트 에러", error.message);
+    }
 
-// export const testApi = axios.create({
-//   baseURL,
-//   headers: {
-//     "Content-Type": "application/json",
-//   },
-// });
-
-// // 요청 인터셉터를 사용하여 매 요청마다 최신 토큰 사용
-// testApi.interceptors.request.use((config) => {
-//   // 요청 시점에 스토어에서 최신 토큰 가져오기
-//   const accessToken = useAuthStore.getState().accessToken;
-
-//   // 토큰이 있으면 요청 헤더에 추가
-//   if (accessToken) {
-//     config.headers.Authorization = `Bearer ${accessToken}`;
-//   }
-
-//   return config;
-// });
+    return Promise.reject(error);
+  }
+);
 
 export const testApi = axios.create({
   baseURL,
@@ -58,11 +66,22 @@ testApi.interceptors.response.use(
   (error) => {
     if (error.response) {
       const errorStatus = error.response.status;
-      console.error("서버 응답 에러:", errorStatus);
+      const errorData = error.response.data;
+      const requestUrl = error.config.url;
+      captureException(error, {
+        source: "api",
+        type: "http-error",
+        status: errorStatus,
+        endpoint: requestUrl,
+        response: JSON.stringify(errorData).slice(0, 200), // 너무 긴 응답은 자름
+      });
 
       switch (errorStatus) {
         case 401:
           console.error(`${errorStatus} Unauthorized: 인증 오류`);
+          const authStore = getAuthStore();
+          authStore.logout();
+          window.location.replace("/login");
           break;
         case 403:
           console.error(`${errorStatus} Forbidden: 권한 오류`);
@@ -79,10 +98,20 @@ testApi.interceptors.response.use(
           break;
       }
     } else if (error.request) {
-      console.log(axios);
       console.error("네트워크 에러:", error.request);
+
+      captureException(error, {
+        source: "api",
+        type: "network-error",
+        url: error.config?.url,
+      });
     } else {
       console.error("클라이언트 에러", error.message);
+      captureException(error, {
+        source: "api",
+        type: "client-error",
+        message: error.message,
+      });
     }
 
     return Promise.reject(error);

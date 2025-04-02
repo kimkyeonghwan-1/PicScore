@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@sentry/react": "^9.10.1",
+    "@sentry/tracing": "^7.120.3",
+    "@sentry/vite-plugin": "^3.2.4",
     "@tailwindcss/vite": "^4.0.13",
     "@tanstack/react-query": "^5.69.0",
     "axios": "^1.8.4",
@@ -26,6 +29,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@sentry/cli": "^2.43.0",
     "@types/node": "^22.13.11",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
