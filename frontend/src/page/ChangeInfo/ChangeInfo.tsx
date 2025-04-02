@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import imageCompression from "browser-image-compression";
+
 import ProfileSection from "./components/ProfileSection";
 import SettingsSection from "./components/SettingsSection";
 import NotificationSettings from "./components/NotificationSettings";
@@ -11,18 +13,56 @@ import {
 import { useMyProfile, useUpdateProfile } from "../../hooks/useUser";
 import { useAuthStore } from "../../store/authStore";
 
+const compressImageIfNeeded = async (file: File): Promise<File> => {
+  const FILE_SIZE_LIMIT = 5;
+  const TARGET_SIZE = 4;
+  const fileSizeMB = file.size / (1024 * 1024);
+
+  if (fileSizeMB < FILE_SIZE_LIMIT) {
+    console.log(
+      `압축 불필요 (프로필): 파일 크기 ${fileSizeMB.toFixed(2)}MB (5MB 미만)`
+    );
+    return file;
+  }
+
+  try {
+    const options = {
+      maxSizeMB: TARGET_SIZE,
+      maxWidthOrHeight: 1080,
+      useWebWorker: true,
+      initialQuality: 0.7,
+    };
+
+    console.log(
+      `압축 시작 (프로필): 원본 크기 ${fileSizeMB.toFixed(2)}MB (5MB 이상)`
+    );
+
+    const compressedFile = await imageCompression(file, options);
+    const compressedSizeMB = compressedFile.size / (1024 * 1024);
+
+    console.log(
+      `압축 완료 (프로필): ${compressedSizeMB.toFixed(2)}MB (${Math.round(
+        (compressedFile.size / file.size) * 100
+      )}% 크기)`
+    );
+
+    return compressedFile;
+  } catch (error) {
+    console.error("프로필 이미지 압축 실패:", error);
+    return file;
+  }
+};
+
 const ChangeInfoPage: React.FC = () => {
   const navigate = useNavigate();
   const { isLoggedIn } = useAuthStore((state) => state);
 
-  // 사용자 프로필 가져오기 hook
   const {
     data: profileData,
     isLoading: profileLoading,
     error: profileError,
   } = useMyProfile();
 
-  // 프로필 업데이트 hook
   const updateProfileMutation = useUpdateProfile();
 
   const [profile, setProfile] = useState<UserProfile>({
@@ -30,7 +70,7 @@ const ChangeInfoPage: React.FC = () => {
     nickname: "",
     bio: "",
     profileImage: null,
-    email: "user@example.com", // 기본값
+    email: "user@example.com",
     isPrivate: false,
     allowPhotoDownload: true,
     notificationSettings: {
@@ -46,7 +86,6 @@ const ChangeInfoPage: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  // API에서 가져온 프로필 데이터로 상태 업데이트
   useEffect(() => {
     if (profileData) {
       const userData = profileData.data;
@@ -54,11 +93,11 @@ const ChangeInfoPage: React.FC = () => {
 
       setProfile((prev) => ({
         ...prev,
-        userId: userData.userId ? String(userData.userId) : "", // number를 string으로 변환
-        nickname: userData.nickName || "", // API는 nickName으로 반환
-        bio: userData.message || "", // API는 message로 반환
+        userId: userData.userId ? String(userData.userId) : "",
+        nickname: userData.nickName || "",
+        // API에서 받아온 message가 "-" 이면 빈 문자열로 표시, 아니면 그대로 사용
+        bio: userData.message === "-" ? "" : userData.message || "",
         profileImage: userData.profileImage,
-        // 기존 값 유지
         email: prev.email,
         isPrivate: prev.isPrivate,
         allowPhotoDownload: prev.allowPhotoDownload,
@@ -69,12 +108,10 @@ const ChangeInfoPage: React.FC = () => {
     }
   }, [profileData]);
 
-  // 로딩 상태 관리
   useEffect(() => {
     setLoading(profileLoading);
   }, [profileLoading]);
 
-  // 오류 처리
   useEffect(() => {
     if (profileError) {
       console.error("프로필 로딩 오류:", profileError);
@@ -82,7 +119,6 @@ const ChangeInfoPage: React.FC = () => {
     }
   }, [profileError]);
 
-  // 로그인 확인
   useEffect(() => {
     if (!isLoggedIn) {
       navigate("/login");
@@ -98,7 +134,6 @@ const ChangeInfoPage: React.FC = () => {
       [name]: value,
     }));
 
-    // 해당 필드의 오류 지우기
     if (errors[name as keyof FormErrors]) {
       setErrors((prev: FormErrors) => ({
         ...prev,
@@ -129,7 +164,6 @@ const ChangeInfoPage: React.FC = () => {
       const file = e.target.files[0];
       setPreviewImage(URL.createObjectURL(file));
 
-      // 파일을 base64로 변환하여 profile.profileImage에 저장
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfile((prev) => ({
@@ -153,6 +187,7 @@ const ChangeInfoPage: React.FC = () => {
       isValid = false;
     }
 
+    // 상태 메시지 길이는 서버에서 "-" 로 처리하므로 클라이언트에서는 100자 제한만 검사
     if (profile.bio.length > 100) {
       newErrors.bio = "상태 메시지는 100자 이하로 입력해주세요";
       isValid = false;
@@ -168,12 +203,11 @@ const ChangeInfoPage: React.FC = () => {
     setIsSaving(true);
 
     try {
-      // FormData 객체 생성
       const formData = new FormData();
+      let fileToUpload: File | null = null;
 
-      // 프로필 이미지가 base64 문자열인 경우 파일로 변환
       if (profile.profileImage && profile.profileImage.startsWith("data:")) {
-        // Base64 문자열에서 실제 바이너리 데이터 추출
+        console.log("Base64 이미지 감지, 파일로 변환 시도...");
         const byteString = atob(profile.profileImage.split(",")[1]);
         const mimeString = profile.profileImage
           .split(",")[0]
@@ -181,34 +215,70 @@ const ChangeInfoPage: React.FC = () => {
           .split(";")[0];
         const ab = new ArrayBuffer(byteString.length);
         const ia = new Uint8Array(ab);
-
         for (let i = 0; i < byteString.length; i++) {
           ia[i] = byteString.charCodeAt(i);
         }
-
-        // Blob 생성 후 File 객체로 변환
         const blob = new Blob([ab], { type: mimeString });
-        const file = new File([blob], "profile-image.jpg", {
+        const originalFile = new File([blob], "profile-image.jpg", {
           type: mimeString,
         });
 
-        // FormData에 파일 추가
-        formData.append("profileImageFile", file);
+        console.log(
+          `원본 파일 크기 (변환됨): ${(
+            originalFile.size /
+            (1024 * 1024)
+          ).toFixed(2)} MB`
+        );
+        fileToUpload = await compressImageIfNeeded(originalFile);
+        console.log(
+          `압축된 파일 크기 (Base64 경로): ${(
+            fileToUpload.size /
+            (1024 * 1024)
+          ).toFixed(2)} MB`
+        );
       } else if (previewImage) {
-        // 이미 File 객체가 있는 경우 (input type="file"에서 선택한 경우)
+        console.log("Base64 이미지 없음, DOM에서 파일 찾기 시도...");
         const fileInput = document.querySelector(
           'input[type="file"]'
         ) as HTMLInputElement;
         if (fileInput && fileInput.files && fileInput.files[0]) {
-          formData.append("profileImageFile", fileInput.files[0]);
+          const originalFile = fileInput.files[0];
+          console.log(
+            `원본 파일 크기 (DOM): ${(
+              originalFile.size /
+              (1024 * 1024)
+            ).toFixed(2)} MB`
+          );
+          fileToUpload = await compressImageIfNeeded(originalFile);
+          console.log(
+            `압축된 파일 크기 (DOM 경로): ${(
+              fileToUpload.size /
+              (1024 * 1024)
+            ).toFixed(2)} MB`
+          );
+        } else {
+          console.warn(
+            "PreviewImage 존재하지만 DOM에서 파일 input/file을 찾을 수 없습니다."
+          );
         }
       }
 
-      // 나머지 필드 추가
-      formData.append("nickName", profile.nickname);
-      formData.append("message", profile.bio);
+      if (fileToUpload) {
+        formData.append("profileImageFile", fileToUpload, fileToUpload.name);
+        console.log("압축된 파일 FormData에 추가됨.");
+      } else {
+        console.log("업로드할 새 프로필 이미지가 없습니다.");
+      }
 
-      // API 호출 - FormData 전송을 위해 content-type을 multipart/form-data로 설정
+      formData.append("nickName", profile.nickname);
+
+      // --- 상태 메시지 처리 수정 ---
+      const messageToSend = profile.bio.trim() === "" ? "-" : profile.bio;
+      formData.append("message", messageToSend);
+      console.log("message로 전송될 값:", messageToSend);
+      // --- 수정 완료 ---
+
+      console.log("FormData 전송 시작...");
       updateProfileMutation.mutate(formData, {
         onSuccess: () => {
           setIsSaving(false);
@@ -217,7 +287,6 @@ const ChangeInfoPage: React.FC = () => {
         onError: (error) => {
           console.error("프로필 업데이트 실패:", error);
           setIsSaving(false);
-          // 오류 메시지 표시 (추가 구현 필요)
         },
       });
     } catch (error) {
@@ -227,7 +296,6 @@ const ChangeInfoPage: React.FC = () => {
   };
 
   const handleCancel = () => {
-    // 변경사항을 취소하고 마이페이지로 돌아가기
     navigate("/mypage");
   };
 
@@ -252,21 +320,15 @@ const ChangeInfoPage: React.FC = () => {
           onImageChange={handleImageChange}
         />
 
-        {/* <SettingsSection
-          isPrivate={profile.isPrivate}
-          allowPhotoDownload={profile.allowPhotoDownload}
-          onToggleChange={handleToggleChange}
-        />
-
-        <NotificationSettings
-          settings={profile.notificationSettings}
-          onChange={handleNotificationChange}
-        /> */}
+        {/* 주석 처리된 섹션 */}
+        {/* <SettingsSection ... /> */}
+        {/* <NotificationSettings ... /> */}
 
         <div className="flex mt-6 space-x-4">
           <button
             onClick={handleCancel}
             className="flex-1 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium"
+            disabled={isSaving || updateProfileMutation.isPending}
           >
             취소
           </button>
@@ -275,8 +337,8 @@ const ChangeInfoPage: React.FC = () => {
             disabled={isSaving || updateProfileMutation.isPending}
             className={`flex-1 py-3 rounded-lg text-white font-medium ${
               isSaving || updateProfileMutation.isPending
-                ? "bg-gray-400"
-                : "bg-green-500"
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-green-500 hover:bg-green-600"
             }`}
           >
             {isSaving || updateProfileMutation.isPending
