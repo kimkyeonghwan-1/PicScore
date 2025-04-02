@@ -68,6 +68,8 @@ testApi.interceptors.response.use(
       const errorStatus = error.response.status;
       const errorData = error.response.data;
       const requestUrl = error.config.url;
+      const authStore = getAuthStore();
+
       captureException(error, {
         source: "api",
         type: "http-error",
@@ -77,9 +79,13 @@ testApi.interceptors.response.use(
       });
 
       switch (errorStatus) {
+        case 400:
+          console.error(`${errorStatus} 오류`);
+          authStore.logout();
+          window.location.replace("/login");
+          break;
         case 401:
           console.error(`${errorStatus} Unauthorized: 인증 오류`);
-          const authStore = getAuthStore();
           authStore.logout();
           window.location.replace("/login");
           break;

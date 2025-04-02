@@ -202,7 +202,7 @@ function PhotoPost() {
           </div>
         )}
       </div>
-      <div className="">
+      <div className="max-h-[894px]">
         <img
           className="w-full h-auto border-b-1 border-gray-300"
           src={imageUrl}
