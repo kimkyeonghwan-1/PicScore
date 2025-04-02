@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { clearSentryUser, identifySentryUser } from "../utils/sentry";
 
 // export interface UserInfoState {
 //   userId: number;
@@ -39,9 +40,8 @@ import { persist } from "zustand/middleware";
 interface TestUserInfoState {
   isLoggedIn: boolean;
   userId: number;
-  login: () => void;
   logout: () => void;
-  setUserId: (userId: number) => void;
+  setUserId: (userId: number, nickname: string) => void;
 }
 
 export const useAuthStore = create<TestUserInfoState>()(
@@ -49,14 +49,14 @@ export const useAuthStore = create<TestUserInfoState>()(
     (set) => ({
       isLoggedIn: false,
       userId: 0,
-      login: () => {
-        set({ isLoggedIn: true });
-      },
       logout: () => {
-        set({ isLoggedIn: false });
+        clearSentryUser();
+        set({ isLoggedIn: false, userId: undefined });
+        localStorage.removeItem("auth");
       },
-      setUserId: (userId: number) => {
-        set({ userId: userId });
+      setUserId: (userId: number, username: string) => {
+        identifySentryUser({ id: userId, username: username });
+        set({ userId: userId, isLoggedIn: true });
       },
     }),
     { name: "auth" }
