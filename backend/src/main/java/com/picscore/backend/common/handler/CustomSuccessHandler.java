@@ -9,6 +9,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -22,6 +23,9 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final JWTUtil jwtUtil;
     private final RedisUtil redisUtil;
     private final UserRepository userRepository;
+
+    @Value("${LOGIN_SUCCESS}")
+    private String successURL;
 
     /**
      * OAuth2 인증 성공 시 호출됩니다.
@@ -63,7 +67,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.addCookie(createCookie("refresh", refresh));
 
          //인증 성공 후 리다이렉트
-        response.sendRedirect("https://picscore.net?loginSuccess=true");
+        response.sendRedirect(successURL);
+//        response.sendRedirect("https://picscore.net?loginSuccess=true");
 //         response.sendRedirect("https://j12b104.p.ssafy.io?loginSuccess=true");
 //        response.sendRedirect("http://localhost:5173?loginSuccess=true&access=" + access + "&refresh=" + refresh);
     }
