@@ -246,7 +246,7 @@ public class UserService {
      */
     @Transactional
     public void updateMyProfile(
-            Long userId, UpdateMyProfileRequest request, HttpServletResponse response
+            Long userId, HttpServletRequest httpRequest, UpdateMyProfileRequest request, HttpServletResponse response
     ) throws IOException {
 
         if (request.getNickName() == null || request.getNickName().trim().isEmpty()) {
@@ -275,7 +275,10 @@ public class UserService {
             profileImageUrl = photoService.uploadProfileFile(request.getProfileImageFile());
         }
 
-        String userKey = "refresh:" + userId;
+        // 기기 정보 가져오기
+        String userAgent = httpRequest.getHeader("User-Agent").toLowerCase();
+        String deviceType = getDeviceType(userAgent); // 기기 유형 판별
+        String userKey = "refresh:" + userId + ":" + deviceType;
 
         // 새로운 액세스 및 리프레시 토큰 생성
         String newAccess = jwtUtil.createJwt("access", request.getNickName(), 600000L); // 10분 유효
@@ -387,10 +390,23 @@ public class UserService {
     private Cookie createCookie(String key, String value) {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(60 * 60 * 24); // 1일 유지
-//        cookie.setSecure(true); // HTTPS에서만 전송 (배포 환경에서는 필수)
+        cookie.setSecure(true); // HTTPS에서만 전송 (배포 환경에서는 필수)
         cookie.setHttpOnly(true); // JavaScript에서 접근 불가
         cookie.setPath("/"); // 모든 경로에서 접근 가능
 
         return cookie;
+    }
+
+    /**
+     * User-Agent를 분석하여 기기 유형을 판별합니다.
+     *
+     * @param userAgent HTTP User-Agent 헤더 값
+     * @return "pc" 또는 "mobile"
+     */
+    private String getDeviceType(String userAgent) {
+        if (userAgent.contains("mobile") || userAgent.contains("android") || userAgent.contains("iphone")) {
+            return "mobile";
+        }
+        return "pc";
     }
 }

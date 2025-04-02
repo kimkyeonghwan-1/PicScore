@@ -52,6 +52,10 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         } else {
             nickName = customUserDetails.getName();
         }
+
+        // 기기 정보 가져오기
+        String userAgent = request.getHeader("User-Agent").toLowerCase();
+        String deviceType = getDeviceType(userAgent); // 기기 유형 판별
         
         // Access Token 및 Refresh Token 생성
         String access = jwtUtil.createJwt("access", nickName, 600000L); // 10분 유효
@@ -59,7 +63,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String refresh = jwtUtil.createJwt("refresh", nickName, 86400000L); // 1일 유효
 
         // Redis에 Refresh Token 저장
-        String userKey = "refresh:" + userRepository.findIdByNickName(nickName);
+//        String userKey = "refresh:" + userRepository.findIdByNickName(nickName);
+        String userKey = "refresh:" + userRepository.findIdByNickName(nickName) + ":" + deviceType;
         redisUtil.setex(userKey, refresh, 86400L); // 1일 TTL
 
         // 클라이언트에 Access Token 및 Refresh Token 쿠키로 설정
@@ -67,7 +72,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.addCookie(createCookie("refresh", refresh));
 
          //인증 성공 후 리다이렉트
-        response.sendRedirect(successURL);
+//        response.sendRedirect(successURL);
 //        response.sendRedirect("https://picscore.net?loginSuccess=true");
 //         response.sendRedirect("https://j12b104.p.ssafy.io?loginSuccess=true");
 //        response.sendRedirect("http://localhost:5173?loginSuccess=true&access=" + access + "&refresh=" + refresh);
@@ -83,11 +88,24 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private Cookie createCookie(String key, String value) {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(60 * 60 * 24); // 1일 유지
-//        cookie.setSecure(true); // HTTPS에서만 전송 (배포 환경에서는 필수)
+        cookie.setSecure(true); // HTTPS에서만 전송 (배포 환경에서는 필수)
         cookie.setHttpOnly(true); // JavaScript에서 접근 불가
         cookie.setPath("/"); // 모든 경로에서 접근 가능
     
         return cookie;
+    }
+
+    /**
+     * User-Agent를 분석하여 기기 유형을 판별합니다.
+     *
+     * @param userAgent HTTP User-Agent 헤더 값
+     * @return "pc" 또는 "mobile"
+     */
+    private String getDeviceType(String userAgent) {
+        if (userAgent.contains("mobile") || userAgent.contains("android") || userAgent.contains("iphone")) {
+            return "mobile";
+        }
+        return "pc";
     }
 }
 

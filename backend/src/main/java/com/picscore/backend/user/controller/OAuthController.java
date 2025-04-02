@@ -45,7 +45,7 @@ public class OAuthController {
             HttpServletRequest request, HttpServletResponse response) {
 
         Long userId = oAuthService.findIdByNickName(request);
-        oAuthService.deleteUser(userId, response);
+        oAuthService.deleteUser(userId, request, response);
 
         return ResponseEntity.ok(BaseResponse.withMessage("회원탈퇴 완료"));
     }

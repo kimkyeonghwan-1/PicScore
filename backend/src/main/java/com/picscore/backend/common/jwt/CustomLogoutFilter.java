@@ -83,7 +83,9 @@ public class CustomLogoutFilter extends GenericFilterBean {
 
         // 5. Redis에서 해당 사용자 키 조회 및 존재 여부 확인
         String nickName = jwtUtil.getNickName(refresh); // JWT 페이로드에서 닉네임 추출
-        String userKey = "refresh:" + userRepository.findIdByNickName(nickName); // Redis 키 생성
+        String userAgent = request.getHeader("User-Agent").toLowerCase();
+        String deviceType = getDeviceType(userAgent); // 기기 유형 판별
+        String userKey = "refresh:" + userRepository.findIdByNickName(nickName) + ":" + deviceType; // Redis 키 생성
 
         Boolean isExist = redisUtil.exists(userKey);
         if (!isExist) { // Redis에 해당 키가 없으면 400 Bad Request 반환
@@ -106,5 +108,18 @@ public class CustomLogoutFilter extends GenericFilterBean {
         cookie.setMaxAge(0); // 만료 시간 0으로 설정 (즉시 삭제)
         cookie.setPath("/"); // 쿠키의 경로 설정 (어플리케이션 전체에 적용)
         response.addCookie(cookie); // 응답에 쿠키 추가
+    }
+
+    /**
+     * User-Agent를 분석하여 기기 유형을 판별합니다.
+     *
+     * @param userAgent HTTP User-Agent 헤더 값
+     * @return "pc" 또는 "mobile"
+     */
+    private String getDeviceType(String userAgent) {
+        if (userAgent.contains("mobile") || userAgent.contains("android") || userAgent.contains("iphone")) {
+            return "mobile";
+        }
+        return "pc";
     }
 }

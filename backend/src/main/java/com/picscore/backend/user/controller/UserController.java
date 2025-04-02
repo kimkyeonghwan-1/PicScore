@@ -268,7 +268,7 @@ public class UserController {
     ) throws IOException {
 
         Long userId = oAuthService.findIdByNickName(request);
-        userService.updateMyProfile(userId, updateMyProfileRequest, response);
+        userService.updateMyProfile(userId, request, updateMyProfileRequest, response);
 
         return ResponseEntity.ok(BaseResponse.withMessage("프로필 수정 완료"));
     }
