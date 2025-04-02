@@ -74,6 +74,7 @@ function ImageUpload() {
   const tempImageMutation = usePostTempImage();
   const imageEval = useEvalImage(tempImage);
   const navigate = useNavigate();
+  const [isCompressing, setIsCompressing] = useState(false); // 이미지 압축 상태
   const modalOpen = () => {
     setModalState(true);
   };
@@ -104,6 +105,17 @@ function ImageUpload() {
     if (!event.target.files) return;
     const originalFile = event.target.files[0];
     if (originalFile) {
+      // 파일 크기 확인 (100MB 제한)
+      const fileSizeMB = originalFile.size / (1024 * 1024);
+      const MAX_FILE_SIZE = 100; // 100MB 제한
+      
+      if (fileSizeMB > MAX_FILE_SIZE) {
+        alert(`파일 크기가 너무 큽니다. (${fileSizeMB.toFixed(1)}MB)\n\n최대 ${MAX_FILE_SIZE}MB 크기의 이미지만 업로드 가능합니다.`);
+        // 파일 선택 초기화
+        if (event.target) event.target.value = "";
+        return;
+      }
+      
       // 원본 이미지 미리보기 설정 (압축 전)
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -116,7 +128,6 @@ function ImageUpload() {
       
       // 원본 파일 저장 (나중에 압축)
       setImageFile(originalFile);
-      const fileSizeMB = originalFile.size / (1024 * 1024);
       console.log(`원본 이미지 크기: ${fileSizeMB.toFixed(2)}MB`);
     }
   };
@@ -127,8 +138,14 @@ function ImageUpload() {
   const handleTempImagePost = async () => {
     if (imageFile) {
       try {
+        // 압축 시작 상태 설정
+        setIsCompressing(true);
+        
         // 이미지 크기 확인 및 필요시 압축 (5MB 이상일 경우만)
         const processedFile = await compressImageIfNeeded(imageFile);
+        
+        // 압축 완료 상태 설정
+        setIsCompressing(false);
         
         // 압축 완료 후 formData 생성 및 업로드
         const formData = new FormData();
@@ -147,6 +164,8 @@ function ImageUpload() {
         });
       } catch (error) {
         console.error("이미지 처리 중 오류:", error);
+        // 오류 발생 시 압축 상태 초기화
+        setIsCompressing(false);
       }
     }
   };
@@ -176,8 +195,7 @@ function ImageUpload() {
       className="flex flex-col w-full items-center justify-center"
       onClick={modalClose}
     >
-      {imageEval.isLoading && <Loading />}
-      {tempImageMutation.isPending && <Loading />}
+      {(imageEval.isLoading || tempImageMutation.isPending || isCompressing) && <Loading />}
       {/* 사진 촬영 / 업로드 모달창 */}
       {modalState && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -249,14 +267,22 @@ function ImageUpload() {
           </>
         )}
       </div>
+      {isCompressing && (
+        <div className="mb-4 text-sm text-pic-primary">
+          큰 이미지 파일 압축 중... 잠시만 기다려주세요.
+        </div>
+      )}
       <Button
         color={imageFile ? "green" : "gray"}
         width={32}
         height={12}
         textSize="lg"
         onClick={handleTempImagePost}
+        disabled={isCompressing || tempImageMutation.isPending || imageEval.isLoading}
       >
-        확인
+        {isCompressing ? "이미지 압축 중..." : 
+         tempImageMutation.isPending ? "업로드 중..." : 
+         imageEval.isLoading ? "분석 중..." : "확인"}
       </Button>
     </div>
   );
