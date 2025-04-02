@@ -16,6 +16,8 @@ import Contest from "../page/Contest/Contest";
 import Login from "../page/Login/Login";
 import TimeAttack from "../page/Timeattack/Timeattack";
 import TimeAttackResult from "../page/Timeattack/TimeAttackResult";
+// import Arena from "../page/Arena/Arena";
+// import ArenaResult from "../page/Arena/ArenaResult";
 import ImageUpload from "../page/ImageEval/ImageUpload";
 import ImageEvalResult from "../page/ImageEval/ImageEvalResult";
 import PrivateRouter from "./PrivateRouter";
@@ -34,15 +36,6 @@ const HomeRouter = () => {
   const [params] = useSearchParams();
   const loginSuccess = params.get("loginSuccess");
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-  const login = useAuthStore((state) => state.login);
-
-  // useEffect를 사용하여 렌더링 후에 상태 업데이트
-  useEffect(() => {
-    if (loginSuccess) {
-      login();
-      console.log(localStorage.getItem("auth")); // localStorage에서 확인 (accessToken이 아님)
-    }
-  }, [loginSuccess, login]);
 
   if (isLoggedIn || loginSuccess) {
     return <Home />;
@@ -96,6 +89,14 @@ const router = createBrowserRouter([
             path: "/time-attack/result",
             element: <TimeAttackResult />,
           },
+          // {
+          //   path: "/arena",
+          //   element: <Arena />,
+          // },
+          // {
+          //   path: "/arena/result",
+          //   element: <ArenaResult />,
+          // },
           {
             path: "/ranking",
             element: <RankingPage />,

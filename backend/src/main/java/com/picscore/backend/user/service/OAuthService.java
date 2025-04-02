@@ -67,7 +67,9 @@ public class OAuthService {
 
         // 닉네임 및 Redis 키 생성
         String nickName = jwtUtil.getNickName(refresh);
-        String userKey = "refresh:" + userRepository.findIdByNickName(nickName);
+        String userAgent = request.getHeader("User-Agent").toLowerCase();
+        String deviceType = getDeviceType(userAgent); // 기기 유형 판별
+        String userKey = "refresh:" + userRepository.findIdByNickName(nickName) + ":" + deviceType; // Redis 키 생성;
 
         // Redis에 저장된 리프레시 토큰 존재 여부 확인
         Boolean isExist = redisUtil.exists(userKey);
@@ -139,7 +141,7 @@ public class OAuthService {
      * @return ResponseEntity<BaseResponse<Void>> 삭제 결과를 포함한 응답
      */
     public void deleteUser(
-            Long userId, HttpServletResponse response) {
+            Long userId, HttpServletRequest request, HttpServletResponse response) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "해당 사용자를 찾을 수 없습니다. 사용자 ID: " + userId));
@@ -147,7 +149,9 @@ public class OAuthService {
         userRepository.delete(user);
 
         // Redis에서 Refresh Token 삭제
-        String userKey = "refresh:" + userId;
+        String userAgent = request.getHeader("User-Agent").toLowerCase();
+        String deviceType = getDeviceType(userAgent); // 기기 유형 판별
+        String userKey = "refresh:" + userId + ":" + deviceType;
         redisUtil.delete(userKey);
 
         // 쿠키에서 Access Token과 Refresh Token 삭제
@@ -166,7 +170,7 @@ public class OAuthService {
     private Cookie createCookie(String key, String value) {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(60 * 60 * 24); // 1일 유지
-//        cookie.setSecure(true); // HTTPS에서만 전송 (배포 환경에서는 필수)
+        cookie.setSecure(true); // HTTPS에서만 전송 (배포 환경에서는 필수)
         cookie.setHttpOnly(true); // JavaScript에서 접근 불가
         cookie.setPath("/"); // 모든 경로에서 접근 가능
 
@@ -185,6 +189,19 @@ public class OAuthService {
         cookie.setMaxAge(0); // 쿠키 만료 시간을 0으로 설정 (즉시 삭제)
         cookie.setPath("/"); // 쿠키 경로를 루트로 설정 (애플리케이션 전체에 적용)
         response.addCookie(cookie); // 응답에 삭제할 쿠키 추가
+    }
+
+    /**
+     * User-Agent를 분석하여 기기 유형을 판별합니다.
+     *
+     * @param userAgent HTTP User-Agent 헤더 값
+     * @return "pc" 또는 "mobile"
+     */
+    private String getDeviceType(String userAgent) {
+        if (userAgent.contains("mobile") || userAgent.contains("android") || userAgent.contains("iphone")) {
+            return "mobile";
+        }
+        return "pc";
     }
 }
 

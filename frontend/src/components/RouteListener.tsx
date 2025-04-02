@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import useLayoutStore from "../store/layoutStore";
 import { useGetPhoto } from "../hooks/useBoard";
+import { addBreadcrumb } from "@sentry/react";
 
 interface LayoutConfig {
   showNavBar: boolean;
@@ -81,6 +82,14 @@ function RouteListener() {
   );
 
   useEffect(() => {
+    //Sentry 브레드크럼 추가( 페이지 이동 추적)
+    addBreadcrumb({
+      message: `페이지 이동: ${location.pathname}`,
+      category: "navigation",
+      level: "info",
+      timestamp: Date.now() / 1000,
+    });
+
     // 현재 경로에 맞는 레이아웃 설정 찾기
     const currentPath = Object.keys(routeLayouts).find(
       (route) =>

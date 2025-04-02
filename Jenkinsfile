@@ -68,6 +68,31 @@ pipeline {
                                 dir('frontend') {
                                     sh "cp ../.env.front.dev .env.front"
                                     sh "docker build -t ${FRONTEND_IMAGE_DEV} ."
+
+                                    withCredentials([string(credentialsId: 'sentry-auth-token', variable: 'SENTRY_AUTH_TOKEN')]) {
+                                        dir('frontend') {
+                                            sh """
+                                                npm install -g @sentry/cli
+
+                                                export SENTRY_ORG=comp-6d
+                                                export SENTRY_PROJECT=picscore
+                                                export SENTRY_AUTH_TOKEN=\${SENTRY_AUTH_TOKEN}
+                                                export SENTRY_URL=https://sentry.io/ # 필요 시 변경
+
+                                                VERSION_TAG=\$(git rev-parse --short HEAD)
+                                                sentry-cli releases new picscore@\${VERSION_TAG}
+                                                sentry-cli releases set-commits picscore@\${VERSION_TAG} --auto --ignore-missing
+
+                                                # sourcemap 업로드
+                                                sentry-cli releases files picscore@\${VERSION_TAG} upload-sourcemaps dist/assets \
+                                                --url-prefix "~/assets" \
+                                                --validate \
+                                                --rewrite
+
+                                                sentry-cli releases finalize picscore@\${VERSION_TAG}
+                                            """
+                                        }
+                                    }
                                 }
                                 dir('backend') {
                                     sh "docker build -t ${BACKEND_IMAGE_DEV} ."
@@ -122,6 +147,31 @@ pipeline {
                                 dir('frontend') {
                                     sh "cp ../.env.front.prod .env.front"
                                     sh "docker build -t ${FRONTEND_IMAGE_PROD} ."
+
+                                    withCredentials([string(credentialsId: 'sentry-auth-token', variable: 'SENTRY_AUTH_TOKEN')]) {
+                                        dir('frontend') {
+                                            sh """
+                                                npm install -g @sentry/cli
+
+                                                export SENTRY_ORG=comp-6d
+                                                export SENTRY_PROJECT=picscore
+                                                export SENTRY_AUTH_TOKEN=\${SENTRY_AUTH_TOKEN}
+                                                export SENTRY_URL=https://sentry.io/ # 필요 시 변경
+
+                                                VERSION_TAG=\$(git rev-parse --short HEAD)
+                                                sentry-cli releases new picscore@\${VERSION_TAG}
+                                                sentry-cli releases set-commits picscore@\${VERSION_TAG} --auto --ignore-missing
+
+                                                # sourcemap 업로드
+                                                sentry-cli releases files picscore@\${VERSION_TAG} upload-sourcemaps dist/assets \
+                                                --url-prefix "~/assets" \
+                                                --validate \
+                                                --rewrite
+
+                                                sentry-cli releases finalize picscore@\${VERSION_TAG}
+                                            """
+                                        }
+                                    }
                                 }
                                 dir('backend') {
                                     sh "docker build -t ${BACKEND_IMAGE_PROD} ."

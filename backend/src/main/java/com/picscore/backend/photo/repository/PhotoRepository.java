@@ -24,8 +24,9 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
             "WHERE h.name LIKE CONCAT('%', :keyword, '%') AND p.isPublic = true")
     List<GetPhotosResponse> findPhotosByHashtagName(@Param("keyword") String keyword);
 
-    @Query("SELECT p FROM Photo p  WHERE p.user.id = :userId AND p.isPublic = :isPublic")
+    @Query("SELECT p FROM Photo p WHERE p.user.id = :userId AND p.isPublic = :isPublic ORDER BY p.createdAt DESC")
     List<Photo> findPhotosByUserId(@Param("userId") Long userId, @Param("isPublic") Boolean isPublic);
+
 
     Photo findPhotoById(Long id);
 

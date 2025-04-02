@@ -78,7 +78,7 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - redis-data:/data
+      - redis-data:/data 
     networks:
       - picscore-network
   

@@ -20,9 +20,16 @@ const INDOOR_TOPICS = [
   "clock",
   "computer",
   "food",
-  "plant",
   "table",
-  "coffee",
+  "shoes",
+  "mouse",
+  "door",
+  "window",
+  "clothes",
+  "bag",
+  "phone",
+  "keyboard",
+  "Screen",
 ];
 
 const OUTDOOR_TOPICS = [
@@ -34,6 +41,8 @@ const OUTDOOR_TOPICS = [
   "mountain",
   "sky",
   "building",
+  "pavement",
+  "plant",
 ];
 
 // 주제 영어-한글 매핑
@@ -54,7 +63,16 @@ const TOPIC_TRANSLATIONS: Record<string, string> = {
   plant: "식물",
   table: "테이블",
   building: "건물",
-  coffee: "커피",
+  shoes: "신발",
+  pavement: "포장도로",
+  mouse: "마우스",
+  door: "문",
+  window: "창문",
+  clothes: "옷",
+  bag: "가방",
+  phone: "전화기",
+  keyboard: "키보드",
+  Screen: "스크린",
 };
 
 const translateTopic = (englishTopic: string): string => {
@@ -231,8 +249,13 @@ const TimeAttack: React.FC = () => {
       setSelectedImageFile(file);
       // 사진 선택 시점의 남은 시간 기록
       setCaptureTimeLeft(timeLeft);
-      // Zustand에 선택된 이미지 파일 저장
-      setGameState({ selectedImageFile: file });
+      // 타이머 정지
+      setIsTimerActive(false);
+      // Zustand에 상태 업데이트
+      setGameState({ 
+        selectedImageFile: file,
+        isTimerActive: false 
+      });
     }
   };
 
@@ -240,6 +263,9 @@ const TimeAttack: React.FC = () => {
     if (!selectedImageFile) return;
 
     setIsLoading(true);
+    // 이미지 제출 시에도 타이머가 확실히 멈춰있도록 설정
+    setIsTimerActive(false);
+    setGameState({ isTimerActive: false });
 
     try {
       // 1. 이미지 파일 압축
