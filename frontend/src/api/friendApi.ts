@@ -1,4 +1,4 @@
-import { api, testApi } from "./api";
+import { testApi } from "./api";
 import { useAuthStore } from "../store/authStore";
 
 // 응답 인터페이스
@@ -48,93 +48,50 @@ interface ProfileBadge {
 export const friendApi = {
   // 내 팔로워 목록 조회
   getMyFollowers: () => {
-    const accessToken = useAuthStore.getState().accessToken;
     return testApi.get<BaseResponse<FollowerUser[]>>(
-      "/api/v1/user/follower/me",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+      "/api/v1/user/follower/me"
     );
   },
 
   // 내 팔로잉 목록 조회
   getMyFollowings: () => {
-    const accessToken = useAuthStore.getState().accessToken;
     return testApi.get<BaseResponse<FollowingUser[]>>(
-      "/api/v1/user/following/me",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+      "/api/v1/user/following/me"
     );
   },
 
   // 특정 사용자의 팔로워 목록 조회
   getUserFollowers: (userId: number) => {
-    const accessToken = useAuthStore.getState().accessToken;
     return testApi.get<BaseResponse<FollowerUser[]>>(
-      `/api/v1/user/follower/${userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+      `/api/v1/user/follower/${userId}`
     );
   },
 
   // 특정 사용자의 팔로잉 목록 조회
   getUserFollowings: (userId: number) => {
-    const accessToken = useAuthStore.getState().accessToken;
     return testApi.get<BaseResponse<FollowingUser[]>>(
-      `/api/v1/user/following/${userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+      `/api/v1/user/following/${userId}`
     );
   },
 
   // 특정 사용자의 프로필 정보 조회
   getUserProfile: (userId: number) => {
-    const accessToken = useAuthStore.getState().accessToken;
     return testApi.get<BaseResponse<UserProfile>>(
-      `/api/v1/user/profile/${userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+      `/api/v1/user/profile/${userId}`
     );
   },
 
   // 팔로우/언팔로우 토글
   toggleFollow: (followingId: number) => {
-    const accessToken = useAuthStore.getState().accessToken;
-    return testApi.post<BaseResponse<void>>(
-      "/api/v1/user/following/me",
-      { followingId },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    return testApi.post<BaseResponse<void>>("/api/v1/user/following/me", {
+      followingId,
+    });
   },
 
   // 팔로워 삭제 (차단)
   deleteFollower: (userId: number) => {
-    const accessToken = useAuthStore.getState().accessToken;
     return testApi.delete<BaseResponse<void>>(
-      `/api/v1/user/follower/${userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+      `/api/v1/user/follower/${userId}`
     );
   },
 

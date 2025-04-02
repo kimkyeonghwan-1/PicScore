@@ -19,9 +19,6 @@ function Board() {
   const photos = data?.pages.flatMap((page) => page.photos) || [];
   const totalPage = data?.pages[0].totalPages || 0;
 
-  if (isLoading && !data) {
-    <FadeLoader color="#a4e857" height={12} radius={8} />;
-  }
   if (error) {
     console.log(error);
     <div>에러 났어요</div>;
@@ -45,7 +42,12 @@ function Board() {
     <div className="w-full h-screen flex flex-col">
       <SearchBar />
 
-      <div className="overflow-y-auto flex-1 mb-16">
+      <div
+        className={`overflow-y-auto flex-1 mb-16 ${
+          isLoading && "pt-16 flex flex-col items-center justify-center"
+        }`}
+      >
+        {isLoading && <FadeLoader color="#a4e857" height={12} radius={8} />}
         {Array.from({ length: totalPage * 8 }, (_, rowIndex) => (
           <div key={rowIndex} className="flex w-full ">
             {photos

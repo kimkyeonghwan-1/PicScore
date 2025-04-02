@@ -19,20 +19,18 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => (
         color="text-gray-800"
       />
       <StatsCard
-        title="컨테스트"
-        value={`상위 ${stats.contestRank}%`}
-        color="text-green-500"
-      />
-      <StatsCard
         title="타임어택"
         value={`${stats.timeAttackRank}위`}
         color="text-green-500"
       />
-      <StatsCard
-        title="아레나"
-        value={`상위 ${stats.arenaRank}%`}
-        color="text-green-500"
-      />
+      <div className="col-span-2">
+        <div className="bg-white p-4 rounded-lg border border-gray-200">
+          <div className="text-gray-500 text-center">
+            <p className="font-bold mb-1">컨테스트 & 아레나</p>
+            <p className="text-sm">추후 공개 예정</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 );

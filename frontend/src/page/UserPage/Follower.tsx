@@ -79,6 +79,26 @@ const Follower: React.FC = () => {
     }
   };
 
+  // 맞팔로우 처리
+  const handleFollowBack = async (userId: number) => {
+    try {
+      await friendApi.toggleFollow(userId);
+      // 팔로우 상태 업데이트
+      setFollowers((prev) =>
+        prev.map((user) =>
+          user.userId === userId ? { ...user, isFollowing: true } : user
+        )
+      );
+      setFilteredFollowers((prev) =>
+        prev.map((user) =>
+          user.userId === userId ? { ...user, isFollowing: true } : user
+        )
+      );
+    } catch (error) {
+      console.error("맞팔로우 실패:", error);
+    }
+  };
+
   // 버튼 클릭 시 동작
   const handleButtonClick = (user: FollowerUser) => {
     setSelectedUserId(user.userId);
@@ -206,12 +226,22 @@ const Follower: React.FC = () => {
                     <p className="font-medium">{user.nickName}</p>
                   </div>
                 </div>
-                <button
-                  className="px-4 py-1.5 rounded-md text-sm font-medium bg-pic-primary text-white"
-                  onClick={() => handleButtonClick(user)}
-                >
-                  삭제
-                </button>
+                <div className="flex gap-2">
+                  {!user.isFollowing && (
+                    <button
+                      className="px-3 py-1.5 rounded-md text-sm font-medium bg-white border border-pic-primary text-pic-primary"
+                      onClick={() => handleFollowBack(user.userId)}
+                    >
+                      맞팔로우
+                    </button>
+                  )}
+                  <button
+                    className="px-3 py-1.5 rounded-md text-sm font-medium bg-pic-primary text-white"
+                    onClick={() => handleButtonClick(user)}
+                  >
+                    삭제
+                  </button>
+                </div>
               </div>
             ))
           ) : (

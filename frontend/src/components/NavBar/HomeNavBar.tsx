@@ -3,7 +3,7 @@ import { Bell } from "lucide-react";
 
 const HomeNavBar = () => {
   return (
-    <nav className="fixed max-w-md w-full top-0 bg-white shadow-sm py-3 px-6">
+    <nav className="max-w-md w-full top-0 bg-white shadow-sm py-3 px-6">
       <div className="flex justify-center items-center ">
         {/* 로고 */}
         <Link to="/" className="text-3xl font-logo">

@@ -1,5 +1,5 @@
 // api/followApi.ts
-import { api, testApi } from "./api";
+import { testApi } from "./api";
 
 // 응답 인터페이스
 interface BaseResponse<T> {

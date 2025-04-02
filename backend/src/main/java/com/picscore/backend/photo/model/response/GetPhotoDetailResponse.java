@@ -25,12 +25,12 @@ public class GetPhotoDetailResponse {
 
     // 기타 정보
     public int likeCnt;          // 좋아요 수
-    public boolean isLike;
-    public boolean isPublic;
+    public Boolean isLike;
+    public Boolean isPublic;
     public List<String> hashTag; // 해시태그 리스트
 
     public GetPhotoDetailResponse(
-            User user, Photo photo, int likeCnt, List<String> hashTag, boolean isLike) {
+            User user, Photo photo, int likeCnt, List<String> hashTag, Boolean isLike) {
         // User 정보 설정
         this.userId = user.getId();
         this.nickName = user.getNickName();

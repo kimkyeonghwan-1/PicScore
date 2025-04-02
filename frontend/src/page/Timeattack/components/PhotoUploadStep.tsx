@@ -81,14 +81,18 @@ const PhotoUploadStep: React.FC<PhotoUploadStepProps> = ({
                     </svg>
                   </div>
                   <p className="text-gray-500 text-center font-medium">
-                    사진을 촬영하거나 업로드하세요
+                    모바일 카메라로 사진을 촬영하세요
                   </p>
                   <p className="text-gray-400 text-xs text-center mt-1">
-                    주제 "{translatedTopic}"에 맞는 사진을 찾아보세요!
+                    주제 "{translatedTopic}"에 맞는 사진을 찍어보세요!
+                  </p>
+                  <p className="text-gray-400 text-xs text-center mt-1">
+                    (타임어택은 모바일 기기의 카메라로만 가능합니다)
                   </p>
                   <input
                     type="file"
                     accept="image/*"
+                    capture="environment"
                     onChange={onImageUpload}
                     className="hidden"
                   />

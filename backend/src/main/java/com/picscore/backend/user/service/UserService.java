@@ -5,6 +5,7 @@ import com.picscore.backend.badge.model.entity.Badge;
 import com.picscore.backend.badge.model.entity.UserBadge;
 import com.picscore.backend.badge.repository.UserBadgeRepository;
 import com.picscore.backend.common.exception.CustomException;
+import com.picscore.backend.common.model.response.BaseResponse;
 import com.picscore.backend.common.utill.RedisUtil;
 import com.picscore.backend.photo.service.PhotoService;
 import com.picscore.backend.timeattack.model.entity.TimeAttack;
@@ -13,24 +14,30 @@ import com.picscore.backend.timeattack.model.response.GetUserStaticResponse;
 import com.picscore.backend.timeattack.repository.TimeAttackRepository;
 import com.picscore.backend.common.jwt.JWTUtil;
 import com.picscore.backend.user.model.entity.User;
+import com.picscore.backend.user.model.entity.UserFeedback;
+import com.picscore.backend.user.model.request.SaveFeedbackRequest;
 import com.picscore.backend.user.model.request.UpdateMyProfileRequest;
 import com.picscore.backend.user.model.response.GetMyProfileResponse;
 import com.picscore.backend.user.model.response.GetUserProfileResponse;
 import com.picscore.backend.user.model.response.LoginInfoResponse;
 import com.picscore.backend.user.model.response.SearchUsersResponse;
 import com.picscore.backend.user.repository.FollowRepository;
+import com.picscore.backend.user.repository.UserFeedbackRepository;
 import com.picscore.backend.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -45,6 +52,7 @@ public class UserService {
     private final FollowRepository followRepository;
     private final UserBadgeRepository userBadgeRepository;
     private final TimeAttackRepository timeAttackRepository;
+    private final UserFeedbackRepository userFeedbackRepository;
 
     private final JWTUtil jwtUtil;
     private final RedisUtil redisUtil;
@@ -62,29 +70,29 @@ public class UserService {
     public LoginInfoResponse LoginInfo(
             HttpServletRequest request) {
 
-//        // 쿠키에서 AccessToken 찾기
-//        Optional<Cookie> accessTokenCookie = Arrays.stream(request.getCookies())
-//                .filter(cookie -> "access".equals(cookie.getName()))
-//                .findFirst();
-//
-//        // AccessToken 쿠키가 없는 경우
-//        if (accessTokenCookie.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                    .body(BaseResponse.error("AccessToken 쿠키 없음"));
-//        }
-//
-//        // JWT에서 닉네임(유저 식별자) 추출
-//        String accessToken = accessTokenCookie.get().getValue();
-        // 헤더에서 Authorization 값 추출
-        String authHeader = request.getHeader("Authorization");
+        // 쿠키에서 AccessToken 찾기
+        Optional<Cookie> accessTokenCookie = Arrays.stream(request.getCookies())
+                .filter(cookie -> "access".equals(cookie.getName()))
+                .findFirst();
 
-        // Authorization 헤더가 없거나 'Bearer '로 시작하지 않는 경우
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new CustomException(HttpStatus.BAD_REQUEST, "유효한 Authorization 헤더 없음");
+        // AccessToken 쿠키가 없는 경우
+        if (accessTokenCookie.isEmpty()) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "AccessToken 쿠키 없음");
         }
 
-        // 'Bearer ' 접두사 제거하여 실제 토큰 추출
-        String accessToken = authHeader.substring(7);
+        // JWT에서 닉네임(유저 식별자) 추출
+        String accessToken = accessTokenCookie.get().getValue();
+
+//        // 헤더에서 Authorization 값 추출
+//        String authHeader = request.getHeader("Authorization");
+//
+//        // Authorization 헤더가 없거나 'Bearer '로 시작하지 않는 경우
+//        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//            throw new CustomException(HttpStatus.BAD_REQUEST, "유효한 Authorization 헤더 없음");
+//        }
+//
+//        // 'Bearer ' 접두사 제거하여 실제 토큰 추출
+//        String accessToken = authHeader.substring(7);
 
 //        responses.addCookie(createCookie("access", accessToken));
         // 여기까지 개발 환경
@@ -202,7 +210,7 @@ public class UserService {
         int followerCnt = followRepository.countByFollowingId(userId);
         int followingCnt = followRepository.countByFollowerId(userId);
 
-        boolean isFollowing = followRepository.existsByFollowerIdAndFollowingId(myId, userId);
+        Boolean isFollowing = followRepository.existsByFollowerIdAndFollowingId(myId, userId);
 
         List<UserBadge> userBadgeList = userBadgeRepository.findByUserId(userId);
         List<ProfileBadgeDto> profileBadgeList =
@@ -274,7 +282,7 @@ public class UserService {
         String newRefresh = jwtUtil.createJwt("refresh", request.getNickName(), 86400000L); // 1일 유효
 
         // Redis에 새 리프레시 토큰 저장
-        redisUtil.setex(userKey, newRefresh, 86400000L);
+        redisUtil.setex(userKey, newRefresh, 86400L);
 
         // 클라이언트에 새 토큰 쿠키로 설정
         response.addCookie(createCookie("access", newAccess));
@@ -344,6 +352,28 @@ public class UserService {
         );
 
         return response;
+    }
+
+    @Transactional
+    public void saveFeedback(
+            SaveFeedbackRequest request) {
+
+        if (request == null) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "요청 객체가 비어 있습니다.");
+        }
+
+        if (request.getPhoneNumber() == null || request.getPhoneNumber().trim().isEmpty()) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "전화번호(phoneNumber)는 필수 입력값입니다.");
+        }
+
+        if (request.getMessage() == null || request.getMessage().trim().isEmpty()) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "메시지(message)는 필수 입력값입니다.");
+        }
+
+        UserFeedback userFeedback = new UserFeedback(
+                request.getPhoneNumber(), request.getMessage()
+        );
+        userFeedbackRepository.save(userFeedback);
     }
 
 

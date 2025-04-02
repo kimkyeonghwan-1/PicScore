@@ -23,7 +23,7 @@ function Login() {
       </div>
       <div className="flex flex-col gap-2">
         <GoogleLoginBtn />
-        <KakaoLoginBtn />
+        {/* <KakaoLoginBtn /> */}
       </div>
     </div>
   );

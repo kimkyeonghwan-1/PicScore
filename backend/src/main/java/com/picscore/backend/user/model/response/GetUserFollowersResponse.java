@@ -10,5 +10,5 @@ public class GetUserFollowersResponse {
     private Long userId;
     private String profileImage;
     private String nickName;
-    private boolean isFollowing;
+    private Boolean isFollowing;
 }

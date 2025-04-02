@@ -18,6 +18,6 @@ public class GetUserProfileResponse {
     private int experience;
     private int followerCnt;
     private int followingCnt;
-    private boolean isFollowing;
+    private Boolean isFollowing;
     private List<ProfileBadgeDto> badgeList;
 }

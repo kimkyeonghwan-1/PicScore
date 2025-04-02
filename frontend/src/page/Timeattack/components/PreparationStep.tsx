@@ -38,7 +38,7 @@ const PreparationStep: React.FC<PreparationStepProps> = ({ countdown }) => {
           <div className="text-left">
             <h3 className="text-yellow-500 font-bold mb-1">주의!</h3>
             <p className="text-gray-700">
-              주제 공개 후 15초 이내에 주어진 주제의 사진을 촬영해주세요.
+              주제 공개 후 20초 이내에 주어진 주제의 사진을 촬영해주세요.
             </p>
           </div>
         </div>

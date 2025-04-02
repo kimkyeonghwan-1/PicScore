@@ -40,7 +40,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
         
         String socialId = customUserDetails.getSocialId();
-        boolean isExist = userRepository.existsBySocialId(socialId);
+        Boolean isExist = userRepository.existsBySocialId(socialId);
         
         String nickName = null;
         if (isExist) {
@@ -50,21 +50,22 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         }
         
         // Access Token 및 Refresh Token 생성
-//        String access = jwtUtil.createJwt("access", nickName, 600000L); // 10분 유효
-        String access = jwtUtil.createJwt("access", nickName, 86400000L); // 1일 유효
+        String access = jwtUtil.createJwt("access", nickName, 600000L); // 10분 유효
+//        String access = jwtUtil.createJwt("access", nickName, 86400000L); // 1일 유효
         String refresh = jwtUtil.createJwt("refresh", nickName, 86400000L); // 1일 유효
 
         // Redis에 Refresh Token 저장
         String userKey = "refresh:" + userRepository.findIdByNickName(nickName);
-        redisUtil.setex(userKey, refresh, 86400000L); // 1일 TTL
+        redisUtil.setex(userKey, refresh, 86400L); // 1일 TTL
 
         // 클라이언트에 Access Token 및 Refresh Token 쿠키로 설정
         response.addCookie(createCookie("access", access));
         response.addCookie(createCookie("refresh", refresh));
 
          //인증 성공 후 리다이렉트
+        response.sendRedirect("https://picscore.net?loginSuccess=true");
 //         response.sendRedirect("https://j12b104.p.ssafy.io?loginSuccess=true");
-        response.sendRedirect("http://localhost:5173?loginSuccess=true&access=" + access + "&refresh=" + refresh);
+//        response.sendRedirect("http://localhost:5173?loginSuccess=true&access=" + access + "&refresh=" + refresh);
     }
 
     /**

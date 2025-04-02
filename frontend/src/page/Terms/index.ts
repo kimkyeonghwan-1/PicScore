@@ -1,3 +1,3 @@
-import TermsAgreement from './TermsAgreement';
+// import TermsAgreement from './TermsAgreement';
 
-export { TermsAgreement };
+// export { TermsAgreement };

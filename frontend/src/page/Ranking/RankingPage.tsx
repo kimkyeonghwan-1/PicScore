@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { timeAttackApi } from "../../api/timeAttackApi";
+import ContentNavBar from "../../components/NavBar/ContentNavBar";
 
 // Import medal images
 import goldTrophy from "../../assets/gold.png";
@@ -29,7 +30,17 @@ const TOPIC_TRANSLATIONS: Record<string, string> = {
   plant: "식물",
   table: "테이블",
   building: "건물",
-  coffee: "커피",
+  shoes: "신발",
+  pavement: "포장도로",
+  mouse: "마우스",
+  door: "문",
+  window: "창문",
+  extinguisher: "소화기",
+  clothes: "옷",
+  bag: "가방",
+  phone: "전화기",
+  keyboard: "키보드",
+  Screen: "스크린",
 };
 
 // 주제 번역 함수
@@ -405,7 +416,7 @@ const RankingPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col w-full max-w-md bg-gray-50">
+    <div className="flex flex-col w-full max-w-md bg-gray-50 pb-16">
       {/* 랭킹 유형 탭 */}
       <div className="flex border-b bg-white mb-2 shadow-sm">
         <button

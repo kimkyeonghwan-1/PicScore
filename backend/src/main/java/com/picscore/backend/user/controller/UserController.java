@@ -1,10 +1,12 @@
 package com.picscore.backend.user.controller;
 
+import ch.qos.logback.core.model.processor.PhaseIndicator;
 import com.picscore.backend.common.model.response.BaseResponse;
 import com.picscore.backend.photo.service.PhotoService;
 import com.picscore.backend.timeattack.model.response.GetMyStaticResponse;
 import com.picscore.backend.timeattack.model.response.GetUserStaticResponse;
 import com.picscore.backend.common.jwt.JWTUtil;
+import com.picscore.backend.user.model.request.SaveFeedbackRequest;
 import com.picscore.backend.user.model.request.UpdateMyProfileRequest;
 import com.picscore.backend.user.model.response.GetMyFollowersResponse;
 import com.picscore.backend.user.model.response.GetMyFollowingsResponse;
@@ -140,8 +142,8 @@ public class UserController {
      * 특정 사용자의 팔로워 목록을 조회하는 엔드포인트
      *
      * @param request HTTP 요청 객체 (현재 사용자 인증 정보 포함)
-     * @param userId 팔로워를 조회할 사용자의 ID
-     * @return ResponseEntity<BaseResponse<List<GetUserFollowersResponse>>> 팔로워 목록 응답
+     * @param userId  팔로워를 조회할 사용자의 ID
+     * @return ResponseEntity<BaseResponse < List < GetUserFollowersResponse>>> 팔로워 목록 응답
      */
     @GetMapping("/follower/{userId}")
     public ResponseEntity<BaseResponse<List<GetUserFollowersResponse>>> getUserFollowers(
@@ -159,8 +161,8 @@ public class UserController {
      * 특정 사용자의 팔로잉 목록을 조회하는 엔드포인트
      *
      * @param request HTTP 요청 객체 (현재 사용자 인증 정보 포함)
-     * @param userId 팔로잉을 조회할 사용자의 ID
-     * @return ResponseEntity<BaseResponse<List<GetUserFollowingsResponse>>> 팔로잉 목록 응답
+     * @param userId  팔로잉을 조회할 사용자의 ID
+     * @return ResponseEntity<BaseResponse < List < GetUserFollowingsResponse>>> 팔로잉 목록 응답
      */
     @GetMapping("/following/{userId}")
     public ResponseEntity<BaseResponse<List<GetUserFollowingsResponse>>> getUserFollowings(
@@ -179,8 +181,8 @@ public class UserController {
      * 현재 사용자의 팔로워를 삭제하는 엔드포인트
      *
      * @param request HTTP 요청 객체 (현재 사용자 인증 정보 포함)
-     * @param userId 삭제할 팔로워의 ID
-     * @return ResponseEntity<BaseResponse<Void>> 삭제 결과 응답
+     * @param userId  삭제할 팔로워의 ID
+     * @return ResponseEntity<BaseResponse < Void>> 삭제 결과 응답
      */
     @DeleteMapping("/follower/{userId}")
     public ResponseEntity<BaseResponse<Void>> deleteMyFollower(
@@ -199,7 +201,7 @@ public class UserController {
      * 사용자를 검색하는 엔드포인트
      *
      * @param searchText 검색어 텍스트
-     * @return ResponseEntity<BaseResponse<List<SearchUsersResponse>>> 검색 결과 응답
+     * @return ResponseEntity<BaseResponse < List < SearchUsersResponse>>> 검색 결과 응답
      */
     @GetMapping("/search/{searchText}")
     public ResponseEntity<BaseResponse<List<SearchUsersResponse>>> searchUser(
@@ -216,7 +218,7 @@ public class UserController {
      * 현재 사용자의 프로필 정보를 조회하는 엔드포인트
      *
      * @param request HTTP 요청 객체 (현재 사용자 인증 정보 포함)
-     * @return ResponseEntity<BaseResponse<GetMyProfileResponse>> 현재 사용자 프로필 정보 응답
+     * @return ResponseEntity<BaseResponse < GetMyProfileResponse>> 현재 사용자 프로필 정보 응답
      */
     @GetMapping("/profile/me")
     public ResponseEntity<BaseResponse<GetMyProfileResponse>> getMyProfile(
@@ -234,8 +236,8 @@ public class UserController {
      * 특정 사용자의 프로필 정보를 조회하는 엔드포인트
      *
      * @param request HTTP 요청 객체 (현재 사용자 인증 정보 포함)
-     * @param userId 프로필을 조회할 사용자의 ID
-     * @return ResponseEntity<BaseResponse<GetUserProfileResponse>> 사용자 프로필 정보 응답
+     * @param userId  프로필을 조회할 사용자의 ID
+     * @return ResponseEntity<BaseResponse < GetUserProfileResponse>> 사용자 프로필 정보 응답
      */
     @GetMapping("/profile/{userId}")
     public ResponseEntity<BaseResponse<GetUserProfileResponse>> getUserProfile(
@@ -253,10 +255,10 @@ public class UserController {
     /**
      * 현재 사용자의 프로필 정보를 수정하는 엔드포인트
      *
-     * @param response HTTP 응답 객체
-     * @param request HTTP 요청 객체 (현재 사용자 인증 정보 포함)
+     * @param response               HTTP 응답 객체
+     * @param request                HTTP 요청 객체 (현재 사용자 인증 정보 포함)
      * @param updateMyProfileRequest 수정할 프로필 정보
-     * @return ResponseEntity<BaseResponse<Void>> 수정 결과 응답
+     * @return ResponseEntity<BaseResponse < Void>> 수정 결과 응답
      */
     @PatchMapping("/profile")
     public ResponseEntity<BaseResponse<Void>> updateMyProfile(
@@ -276,7 +278,7 @@ public class UserController {
      * 현재 사용자의 통계 정보를 조회하는 엔드포인트
      *
      * @param request HTTP 요청 객체 (현재 사용자 인증 정보 포함)
-     * @return ResponseEntity<BaseResponse<GetMyStaticResponse>> 현재 사용자 통계 정보 응답
+     * @return ResponseEntity<BaseResponse < GetMyStaticResponse>> 현재 사용자 통계 정보 응답
      */
     @GetMapping("/static/me")
     public ResponseEntity<BaseResponse<GetMyStaticResponse>> getMyStatic(
@@ -294,7 +296,7 @@ public class UserController {
      * 특정 사용자의 통계 정보를 조회하는 엔드포인트
      *
      * @param userId 통계를 조회할 사용자의 ID
-     * @return ResponseEntity<BaseResponse<GetUserStaticResponse>> 사용자 통계 정보 응답
+     * @return ResponseEntity<BaseResponse < GetUserStaticResponse>> 사용자 통계 정보 응답
      */
     @GetMapping("/static/{userId}")
     public ResponseEntity<BaseResponse<GetUserStaticResponse>> getUserStatic(
@@ -306,4 +308,12 @@ public class UserController {
         return ResponseEntity.ok(BaseResponse.success("유저의 통계 조회 성공", getUserStaticResponse));
     }
 
+    @PostMapping("/chicken/request")
+    public ResponseEntity<BaseResponse<Void>> saveFeedback(
+            @RequestBody SaveFeedbackRequest request) {
+
+        userService.saveFeedback(request);
+
+        return ResponseEntity.ok(BaseResponse.withMessage("피드백 저장 완료"));
+    }
 }

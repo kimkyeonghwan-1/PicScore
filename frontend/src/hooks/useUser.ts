@@ -1,9 +1,11 @@
-import { api, testApi } from "../api/api";
+import { testApi } from "../api/api";
 import { useAuthStore } from "../store/authStore";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { userApi } from "../api/userApi";
 import axios from "axios";
+
+const baseURL = import.meta.env.VITE_BASE_URL;
 
 // Profile hooks
 export const useMyProfile = () => {
@@ -181,18 +183,11 @@ export const useDeleteAccount = () => {
 };
 
 export const useLogout = () => {
-  const accessToken = useAuthStore((state) => state.accessToken);
-
   return useMutation({
     mutationFn: async () => {
       const response = await testApi.post(
-        "https://j12b104.p.ssafy.io/api/v1/user/logout",
-        {}, // 빈 객체 또는 필요한 데이터
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
+        `${baseURL}/api/v1/user/logout`,
+        {} // 빈 객체 또는 필요한 데이터
       );
       return response;
     },

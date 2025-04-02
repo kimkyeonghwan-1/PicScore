@@ -20,7 +20,7 @@ public class ImageAnalysisController {
     @GetMapping("/analyze")
     public ResponseEntity<BaseResponse<Map<String, Object>>> analyze(@RequestParam String imageUrl)
             throws IOException {
-        return openAiImageService.analyzeImage(imageUrl);
+        return openAiImageService.analyzeImage(imageUrl, 0);
     }
 }
 

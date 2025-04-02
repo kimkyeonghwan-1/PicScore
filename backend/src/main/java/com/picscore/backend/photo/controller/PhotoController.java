@@ -3,12 +3,9 @@ package com.picscore.backend.photo.controller;
 import com.picscore.backend.common.model.response.BaseResponse;
 import com.picscore.backend.photo.model.request.GetPhotosRequest;
 import com.picscore.backend.photo.model.request.SearchPhotoRequest;
-import com.picscore.backend.photo.model.response.GetPhotoDetailResponse;
-import com.picscore.backend.photo.model.response.GetPhotoTop5Response;
-import com.picscore.backend.photo.model.response.GetPhotosResponse;
+import com.picscore.backend.photo.model.response.*;
 import com.picscore.backend.photo.model.request.UploadPhotoRequest;
 import com.picscore.backend.photo.service.PhotoService;
-import com.picscore.backend.photo.model.response.UploadPhotoResponse;
 import com.picscore.backend.user.model.entity.User;
 import com.picscore.backend.user.repository.UserRepository;
 import com.picscore.backend.user.service.OAuthService;
@@ -53,8 +50,8 @@ public class PhotoController {
      * @return ResponseEntity<BaseResponse<HttpStatus>> 업로드 결과 응답
      */
     @PostMapping("/photo/save")
-    public ResponseEntity<BaseResponse<HttpStatus>> uploadFile(HttpServletRequest request,
-                                                               @RequestBody UploadPhotoRequest payload) {
+    public ResponseEntity<BaseResponse<SavePhotoResponse>> uploadFile(HttpServletRequest request,
+                                                                      @RequestBody UploadPhotoRequest payload) {
 
         System.out.println("hashTag = " + payload.getHashTag());
         // 토큰에서 사용자 정보 추출
@@ -165,7 +162,14 @@ public class PhotoController {
     public ResponseEntity<BaseResponse<GetPhotoDetailResponse>> getPhotoDetail(
             HttpServletRequest request, @PathVariable Long photoId) {
 
-        Long userId = oAuthService.findIdByNickName(request);
+        Long userId = null; // 기본값 설정 (비회원)
+
+        try {
+            userId = oAuthService.findIdByNickName(request);
+        } catch (Exception e) {
+            System.out.printf("쿠키에서 userId 추출 실패: {}", e.getMessage()); // 예외 로깅
+        }
+
         GetPhotoDetailResponse getPhotoDetailResponse = photoService.getPhotoDetail(userId, photoId);
 
         return ResponseEntity.ok(BaseResponse.success("사진 상세 조회 성공", getPhotoDetailResponse));

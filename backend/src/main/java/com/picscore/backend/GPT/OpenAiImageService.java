@@ -14,11 +14,13 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,9 +35,11 @@ public class OpenAiImageService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
-    public ResponseEntity<BaseResponse<Map<String,Object>>> analyzeImage(String originalImageUrl) throws IOException {
+    public ResponseEntity<BaseResponse<Map<String,Object>>> analyzeImage(String originalImageUrl, int retryCount) throws IOException {
+        final int maxRetry = 2; // 최대 2번 재시도
+
         // ✅ 1. 원본 이미지 다운로드 후 리사이징
-        byte[] resizedImage = resizeImage(originalImageUrl, 500, 500); // 500X500 >> 250X250 >> 200X200
+        byte[] resizedImage = resizeImage(originalImageUrl, 500, 500);
 
         // ✅ 2. 리사이징된 이미지를 S3에 업로드하고 새 URL 반환
         String resizedImageUrl = uploadToS3(resizedImage);
@@ -46,12 +50,11 @@ public class OpenAiImageService {
                 "messages", List.of(
                         Map.of("role", "system", "content", "당신은 30년 경력의 사진작가이며 NIMA(Neural Image Assessment)모델을 학습하여 이미지를 분석하고 수치화 할 수 있습니다."),
                         Map.of("role", "user", "content", List.of(
-                                Map.of("type", "image_url", "image_url", Map.of("url", resizedImageUrl)), // ✅ 리사이징된 이미지 URL 사용
+                                Map.of("type", "image_url", "image_url", Map.of("url", resizedImageUrl)),
                                 Map.of("type", "text", "text", "출력을 반드시 한국어로 하세요. " +
                                         "1. 다음 여섯 가지 기준에 따라 이미지를 각각 100점 만점으로 평가하세요: " +
                                         "구도, 선명도, 노이즈, 노출, 화이트밸런스, 다이나믹 레인지. 각 기준의 점수를 '기준: 점수: 한 줄 피드백' 형식으로 표현하세요. " +
-                                        "2. 이미지와 관련된 주제를 '주제: 주제1, 주제2' 형식으로 출력하세요."
-)
+                                        "2. 이미지와 관련된 주제를 '주제: 주제1, 주제2' 형식으로 출력하세요.")
                         ))
                 ),
                 "max_tokens", 500
@@ -74,8 +77,9 @@ public class OpenAiImageService {
             );
 
             if (response.getStatusCode() == HttpStatus.OK) {
-//                System.out.printf("###분석 내용="+response.getBody());
-                return parseGPTResponse(response.getBody());
+                // ✅ 응답 파싱
+                ResponseEntity<BaseResponse<Map<String, Object>>> result = parseGPTResponse(response.getBody(), originalImageUrl, retryCount);
+                return result;
             } else {
                 throw new RuntimeException("OpenAI API 요청 실패: HTTP " + response.getStatusCode());
             }
@@ -85,19 +89,32 @@ public class OpenAiImageService {
         }
     }
 
+
     public byte[] resizeImage(String imageUrl, int width, int height) throws IOException {
         // ✅ 안전한 이미지 다운로드
         BufferedImage originalImage = downloadImage(imageUrl);
 
-        // ✅ 이미지 리사이징 (해상도 낮추기)
+        // 1️⃣ Thumbnails로 해상도 리사이징
         BufferedImage resizedImage = Thumbnails.of(originalImage)
                 .size(width, height)
-                .outputQuality(0.8) //0.7 >> 0.5 >> 0.3
+                .outputQuality(0.8) // 품질 설정 (0.0 ~ 1.0)
                 .asBufferedImage();
+
+        // 2️⃣ PNG의 알파 채널을 제거하고 RGB로 변환 (JPG 저장 가능하도록)
+        BufferedImage convertedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = convertedImage.createGraphics();
+
+        // 3️⃣ 배경을 흰색으로 설정 (투명도 제거)
+        g2d.setColor(Color.WHITE);
+        g2d.fillRect(0, 0, width, height);
+
+        // 4️⃣ 리사이징된 이미지를 복사 (투명 부분은 흰색으로 채워짐)
+        g2d.drawImage(resizedImage, 0, 0, width, height, null);
+        g2d.dispose();
 
         // ✅ 압축된 이미지 변환 (Byte 배열로 변환하여 API로 전달 가능)
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(resizedImage, "jpg", baos);
+        ImageIO.write(convertedImage, "jpg", baos);
         return baos.toByteArray();
     }
 
@@ -154,7 +171,7 @@ public class OpenAiImageService {
                 fileName);
     }
 
-    public ResponseEntity<BaseResponse<Map<String, Object>>> parseGPTResponse(String gptApiResponse) {
+    public ResponseEntity<BaseResponse<Map<String, Object>>> parseGPTResponse(String gptApiResponse, String originalImageUrl, int retryCount) throws IOException {
         try {
             // JSON 파싱
             ObjectMapper objectMapper = new ObjectMapper();
@@ -162,6 +179,7 @@ public class OpenAiImageService {
 
             // GPT 응답에서 "choices.message.content" 부분 추출
             String content = root.path("choices").get(0).path("message").path("content").asText();
+//            System.out.println("분석 결과!!! " + content);
 
             // 점수를 저장할 Map
             Map<String, Integer> scores = new HashMap<>();
@@ -191,6 +209,13 @@ public class OpenAiImageService {
                 avgScore = Math.round((float) totalScore / count);
             }
 
+            // ✅ "score"가 0점이면 재요청 실행
+            final int maxRetry = 2; // 최대 2번 재시도
+            if (avgScore == 0 && retryCount < maxRetry) {
+                System.out.println("⚠️ 점수가 0점으로 나왔습니다. API 재요청을 수행합니다. (재시도 횟수: " + (retryCount + 1) + ")");
+                return analyzeImage(originalImageUrl, retryCount + 1); // 재요청
+            }
+
             // 2️⃣ 정규식을 사용해 theme(주제) 추출 -> 리스트로 변환
             Pattern themePattern = Pattern.compile("주제:\\s*(.+)");
             Matcher themeMatcher = themePattern.matcher(content);
@@ -208,6 +233,7 @@ public class OpenAiImageService {
             return ResponseEntity.badRequest().body(BaseResponse.error(e.getMessage()));
         }
     }
+
 
 
     /**

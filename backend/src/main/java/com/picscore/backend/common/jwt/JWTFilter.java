@@ -11,6 +11,7 @@ import com.picscore.backend.user.service.OAuthService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,10 @@ public class JWTFilter extends OncePerRequestFilter {
         return path.equals("/")
                 || path.equals("/actuator/health")
                 || (path.equals("/api/v1/user") && "GET".equalsIgnoreCase(method))
-                || path.matches("/api/v1/user/photo/\\d+");
+                || (path.equals("/api/v1/photo") && "POST".equalsIgnoreCase(method))
+                || (path.equals("/api/v1/image/analyze") && "GET".equalsIgnoreCase(method))
+                || (path.matches("/api/v1/user/photo/\\d+") && "GET".equalsIgnoreCase(method))
+                || (path.matches("/api/v1/photo/\\d+") && "GET".equalsIgnoreCase(method));
     }
 
 
@@ -56,21 +60,21 @@ public class JWTFilter extends OncePerRequestFilter {
         try {
             // 쿠키에서 액세스 토큰 추출
             String accessToken = null;
-//            Cookie[] cookies = request.getCookies();
-//            if (cookies != null) {
-//                for (Cookie cookie : cookies) {
-//                    if (cookie.getName().equals("access")) {
-//                        accessToken = cookie.getValue();
-//                        break;
-//                    }
-//                }
-//            }
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if (cookie.getName().equals("access")) {
+                        accessToken = cookie.getValue();
+                        break;
+                    }
+                }
+            }
 
             // 개발 환경 임시 방편
-            String authorizationHeader = request.getHeader("Authorization");
-            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-                accessToken = authorizationHeader.substring(7); // "Bearer " 이후의 토큰을 추출
-            }
+//            String authorizationHeader = request.getHeader("Authorization");
+//            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+//                accessToken = authorizationHeader.substring(7); // "Bearer " 이후의 토큰을 추출
+//            }
 
             // 액세스 토큰이 없으면 다음 필터로 진행
             if (accessToken == null) {

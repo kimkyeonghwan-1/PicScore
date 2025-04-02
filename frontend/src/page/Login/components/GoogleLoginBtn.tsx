@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import googleLoginBtn from "../../../assets/Login/google-login-btn.svg";
 
+const baseURL = import.meta.env.VITE_BASE_URL;
+
 function GoogleLoginBtn() {
   const locateGoogleLogin = () => {
-    window.location.href = `https://j12b104.p.ssafy.io/api/v1/user`;
+    window.location.href = `${baseURL}/api/v1/user`;
   };
   return (
     <button onClick={locateGoogleLogin}>

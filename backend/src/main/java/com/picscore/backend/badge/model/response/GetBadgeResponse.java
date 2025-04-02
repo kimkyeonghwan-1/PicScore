@@ -11,5 +11,5 @@ public class GetBadgeResponse {
     private String name;
     private String image;
     private String obtainCondition;
-    private boolean isObtain;
+    private Boolean isObtain;
 }

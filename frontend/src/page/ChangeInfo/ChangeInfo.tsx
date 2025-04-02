@@ -252,7 +252,7 @@ const ChangeInfoPage: React.FC = () => {
           onImageChange={handleImageChange}
         />
 
-        <SettingsSection
+        {/* <SettingsSection
           isPrivate={profile.isPrivate}
           allowPhotoDownload={profile.allowPhotoDownload}
           onToggleChange={handleToggleChange}
@@ -261,7 +261,7 @@ const ChangeInfoPage: React.FC = () => {
         <NotificationSettings
           settings={profile.notificationSettings}
           onChange={handleNotificationChange}
-        />
+        /> */}
 
         <div className="flex mt-6 space-x-4">
           <button

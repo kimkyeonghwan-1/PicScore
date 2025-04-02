@@ -16,6 +16,8 @@ import Contest from "../page/Contest/Contest";
 import Login from "../page/Login/Login";
 import TimeAttack from "../page/Timeattack/Timeattack";
 import TimeAttackResult from "../page/Timeattack/TimeAttackResult";
+// import Arena from "../page/Arena/Arena";
+// import ArenaResult from "../page/Arena/ArenaResult";
 import ImageUpload from "../page/ImageEval/ImageUpload";
 import ImageEvalResult from "../page/ImageEval/ImageEvalResult";
 import PrivateRouter from "./PrivateRouter";
@@ -32,20 +34,10 @@ import SearchResult from "../page/Board/SearchResult";
 
 const HomeRouter = () => {
   const [params] = useSearchParams();
-  const accessToken = params.get("access");
   const loginSuccess = params.get("loginSuccess");
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-  const login = useAuthStore((state) => state.login);
 
-  // useEffect를 사용하여 렌더링 후에 상태 업데이트
-  useEffect(() => {
-    if (loginSuccess && accessToken) {
-      login(accessToken);
-      console.log(localStorage.getItem("auth")); // localStorage에서 확인 (accessToken이 아님)
-    }
-  }, [loginSuccess, accessToken, login]);
-
-  if (isLoggedIn || (loginSuccess && accessToken)) {
+  if (isLoggedIn || loginSuccess) {
     return <Home />;
   }
   // 그 외에는 Welcome으로
@@ -79,6 +71,10 @@ const router = createBrowserRouter([
         element: <ImageUpload />,
       },
       {
+        path: "/photo/:number",
+        element: <PhotoPost />,
+      },
+      {
         element: <PrivateRouter />,
         children: [
           {
@@ -93,6 +89,14 @@ const router = createBrowserRouter([
             path: "/time-attack/result",
             element: <TimeAttackResult />,
           },
+          // {
+          //   path: "/arena",
+          //   element: <Arena />,
+          // },
+          // {
+          //   path: "/arena/result",
+          //   element: <ArenaResult />,
+          // },
           {
             path: "/ranking",
             element: <RankingPage />,
@@ -125,10 +129,6 @@ const router = createBrowserRouter([
           {
             path: "/search/:search",
             element: <SearchResult />,
-          },
-          {
-            path: "/photo/:number",
-            element: <PhotoPost />,
           },
 
           {

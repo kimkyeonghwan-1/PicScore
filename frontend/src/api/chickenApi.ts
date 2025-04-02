@@ -1,4 +1,4 @@
-import { chickenApi, testApi } from "./api";
+import { testApi } from "./api";
 
 // 치킨받기 요청에 필요한 타입 정의
 interface ChickenRequestDto {

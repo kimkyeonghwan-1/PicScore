@@ -3,6 +3,7 @@ import { useSearchPhotos } from "../../hooks/useBoard";
 import SearchBar from "./components/SearchBar";
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import BottomBar from "../../components/BottomBar/BottomBar";
 
 interface PostType {
   id: string;

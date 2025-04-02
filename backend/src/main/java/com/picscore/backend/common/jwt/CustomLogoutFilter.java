@@ -43,60 +43,60 @@ public class CustomLogoutFilter extends GenericFilterBean {
             return;
         }
 
-//        String requestMethod = request.getMethod();
-//        if (!requestMethod.equals("POST")) { // HTTP 메서드가 POST가 아닌 경우 다음 필터로 전달
-//            filterChain.doFilter(request, response);
-//            return;
-//        }
-//
-//        // 2. 쿠키에서 Refresh 토큰 추출
-//        String refresh = null;
-//        Cookie[] cookies = request.getCookies();
-//        if (cookies != null) {
-//            for (Cookie cookie : cookies) {
-//                if (cookie.getName().equals("refresh")) { // 쿠키 이름이 "refresh"인 경우 값 추출
-//                    refresh = cookie.getValue();
-//                }
-//            }
-//        }
-//
-//        // Refresh 토큰이 없는 경우 400 Bad Request 반환
-//        if (refresh == null) {
-//            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//            return;
-//        }
-//
-//        // 3. Refresh 토큰 만료 여부 확인
-//        try {
-//            jwtUtil.isExpired(refresh); // 만료된 경우 예외 발생
-//        } catch (ExpiredJwtException e) {
-//            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 만료된 토큰에 대해 400 Bad Request 반환
-//            return;
-//        }
-//
-//        // 4. Refresh 토큰 유형 확인 (JWT 페이로드에서 "category" 값 확인)
-//        String category = jwtUtil.getCategory(refresh);
-//        if (!category.equals("refresh")) { // "refresh" 유형이 아닌 경우 400 Bad Request 반환
-//            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//            return;
-//        }
-//
-//        // 5. Redis에서 해당 사용자 키 조회 및 존재 여부 확인
-//        String nickName = jwtUtil.getNickName(refresh); // JWT 페이로드에서 닉네임 추출
-//        String userKey = "refresh:" + userRepository.findIdByNickName(nickName); // Redis 키 생성
-//
-//        Boolean isExist = redisUtil.exists(userKey);
-//        if (!isExist) { // Redis에 해당 키가 없으면 400 Bad Request 반환
-//            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//            return;
-//        }
-//
-//        // 6. 로그아웃 처리: Redis에서 Refresh 토큰 삭제 및 쿠키 제거
-//        redisUtil.delete(userKey); // Redis에서 Refresh 토큰 삭제
-//
-//        // 7. 쿠키 삭제
-//        deleteCookie(response, "access");
-//        deleteCookie(response, "refresh");
+        String requestMethod = request.getMethod();
+        if (!requestMethod.equals("POST")) { // HTTP 메서드가 POST가 아닌 경우 다음 필터로 전달
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 2. 쿠키에서 Refresh 토큰 추출
+        String refresh = null;
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("refresh")) { // 쿠키 이름이 "refresh"인 경우 값 추출
+                    refresh = cookie.getValue();
+                }
+            }
+        }
+
+        // Refresh 토큰이 없는 경우 400 Bad Request 반환
+        if (refresh == null) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        // 3. Refresh 토큰 만료 여부 확인
+        try {
+            jwtUtil.isExpired(refresh); // 만료된 경우 예외 발생
+        } catch (ExpiredJwtException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 만료된 토큰에 대해 400 Bad Request 반환
+            return;
+        }
+
+        // 4. Refresh 토큰 유형 확인 (JWT 페이로드에서 "category" 값 확인)
+        String category = jwtUtil.getCategory(refresh);
+        if (!category.equals("refresh")) { // "refresh" 유형이 아닌 경우 400 Bad Request 반환
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        // 5. Redis에서 해당 사용자 키 조회 및 존재 여부 확인
+        String nickName = jwtUtil.getNickName(refresh); // JWT 페이로드에서 닉네임 추출
+        String userKey = "refresh:" + userRepository.findIdByNickName(nickName); // Redis 키 생성
+
+        Boolean isExist = redisUtil.exists(userKey);
+        if (!isExist) { // Redis에 해당 키가 없으면 400 Bad Request 반환
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        // 6. 로그아웃 처리: Redis에서 Refresh 토큰 삭제 및 쿠키 제거
+        redisUtil.delete(userKey); // Redis에서 Refresh 토큰 삭제
+
+        // 7. 쿠키 삭제
+        deleteCookie(response, "access");
+        deleteCookie(response, "refresh");
 
         response.setStatus(HttpServletResponse.SC_OK); // 로그아웃 성공 상태 코드 설정
     }

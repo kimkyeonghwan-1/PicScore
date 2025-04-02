@@ -17,7 +17,7 @@ interface TimeAttackStore {
 
 const initialGameState: TimeAttackState = {
   currentStep: 1,
-  timeLeft: 15,
+  timeLeft: 20,
   isTimerActive: false,
   challengeTopic: "",
   selectedImageFile: null,

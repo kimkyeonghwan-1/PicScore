@@ -48,6 +48,11 @@ public class FollowService {
             throw new CustomException(HttpStatus.BAD_REQUEST, "유효하지 않은 팔로잉 ID입니다.");
         }
 
+        // 팔로워와 팔로잉 ID가 같은 경우 예외 처리
+        if (followerId.equals(followingId)) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "자신을 팔로우할 수 없습니다.");
+        }
+
         User follower = userRepository.findById(followerId)
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "팔로워 사용자를 찾을 수 없습니다. 사용자 ID: " + followerId));
 
@@ -98,7 +103,7 @@ public class FollowService {
                         .map(follow -> {
                             User follower = follow.getFollower();
                             // 현재 사용자가 해당 팔로워를 팔로우하고 있는지 확인
-                            boolean isFollowing = followRepository.existsByFollowerIdAndFollowingId(
+                            Boolean isFollowing = followRepository.existsByFollowerIdAndFollowingId(
                                     userId, follower.getId()
                             );
 
@@ -172,7 +177,7 @@ public class FollowService {
                         .map(follow -> {
                             User follower = follow.getFollower();
                             // 현재 로그인한 사용자가 이 팔로워를 팔로우하고 있는지 확인
-                            boolean isFollowing = followRepository.existsByFollowerIdAndFollowingId(
+                            Boolean isFollowing = followRepository.existsByFollowerIdAndFollowingId(
                                     myId, follower.getId()
                             );
                             // DTO 생성 및 반환
@@ -212,7 +217,7 @@ public class FollowService {
                         .map(follow -> {
                             User following = follow.getFollowing();
                             // 현재 로그인한 사용자가 이 팔로잉을 팔로우하고 있는지 확인
-                            boolean isFollowing = followRepository.existsByFollowerIdAndFollowingId(
+                            Boolean isFollowing = followRepository.existsByFollowerIdAndFollowingId(
                                     myId, following.getId()
                             );
                             // DTO 생성 및 반환

@@ -26,6 +26,9 @@ import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.IsoFields;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -162,9 +165,9 @@ public class TimeAttackService {
                     AzureVisionResponse.class
             );
 
-            float time = 15f;
+            float time = 20f;
             time = Float.parseFloat(request.getTime());
-            final float adjustedTime = time / 15f;
+            final float adjustedTime = time / 18f;
 
             // API 응답에서 태그 정보 추출 및 변환
             List<AnalysisPhotoResponse> analysisResults = response.getBody().getTags().stream()
@@ -247,6 +250,8 @@ public class TimeAttackService {
         String activityImageUrl = photoService.getFileUrl(activityFolder, request.getImageName());
 
         // 타임어택 정보를 DB에 저장
+        String activityWeek = getCurrentGameWeek();
+        System.out.printf("이번 게임 주차는!!!=="+activityWeek);
         TimeAttack timeAttack = new TimeAttack(
                 user, activityImageUrl, request.getTopic(), 1, request.getScore()
         );
@@ -257,6 +262,13 @@ public class TimeAttackService {
         user.updateExperience(plusExperience);
         user.updateLevel(plusExperience);
         userRepository.save(user);
+    }
+    // ✅ 현재 주차의 게임 ID 가져오기
+    public String getCurrentGameWeek() {
+        LocalDate now = LocalDate.now(ZoneId.of("UTC"));
+        int year = now.getYear();
+        int week = now.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+        return String.format("%d%02d", year, week);
     }
 }
 

@@ -1,4 +1,4 @@
-import { api, testApi } from "./api";
+import { testApi } from "./api";
 
 // 공통 API 응답 타입 정의
 interface BaseResponse<T> {

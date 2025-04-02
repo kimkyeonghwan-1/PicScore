@@ -1,4 +1,4 @@
-import { api, testApi } from "./api";
+import { testApi } from "./api";
 
 export interface PostRequest {
   imageUrl: string;

@@ -122,22 +122,24 @@ function ImageEvalResult() {
         )}
       </div>
 
-      <div className="flex  gap-10 mt-8 mb-5">
+      <div className="flex gap-10 mt-8 mb-5">
         <Button color="white" width={30} height={10} onClick={openModal}>
           <MagnifyingGlassIcon width={15} />
           <div className="ml-2">자세히</div>
         </Button>
-        <Button
-          color="green"
-          width={30}
-          height={10}
-          onClick={() => {
-            handleImagePost(evalData);
-          }}
-        >
-          <ArrowUpTrayIcon width={15} />
-          <div className="ml-2">업로드</div>
-        </Button>
+        {isLoggedIn && (
+          <Button
+            color="green"
+            width={30}
+            height={10}
+            onClick={() => {
+              handleImagePost(evalData);
+            }}
+          >
+            <ArrowUpTrayIcon width={15} />
+            <div className="ml-2">업로드</div>
+          </Button>
+        )}
       </div>
       {/* <button className="cursor-pointer flex justify-center items-center gap-1 w-30  border border-pic-primary rounded-2xl text-pic-primary mb-5">
         <ShareIcon width={15} />

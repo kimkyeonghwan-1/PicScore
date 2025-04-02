@@ -6,6 +6,41 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useTimeAttackStore } from "../../store/timeAttackStore";
 import { useAchievementCheck } from "../../hooks/useAchievement";
 
+// 주제 영어-한글 매핑
+const TOPIC_TRANSLATIONS: Record<string, string> = {
+  dog: "강아지",
+  cat: "고양이",
+  flower: "꽃",
+  car: "자동차",
+  tree: "나무",
+  food: "음식",
+  mountain: "산",
+  sky: "하늘",
+  book: "책",
+  cup: "컵",
+  chair: "의자",
+  clock: "시계",
+  computer: "컴퓨터",
+  plant: "식물",
+  table: "테이블",
+  building: "건물",
+  shoes: "신발",
+  pavement: "포장도로",
+  mouse: "마우스",
+  door: "문",
+  window: "창문",
+  extinguisher: "소화기",
+  clothes: "옷",
+  bag: "가방",
+  phone: "전화기",
+  keyboard: "키보드",
+  Screen: "스크린",
+};
+
+const translateTopic = (englishTopic: string): string => {
+  return TOPIC_TRANSLATIONS[englishTopic] || englishTopic; // 매핑이 없으면 원래 값 반환
+};
+
 // 컴포넌트 임포트
 import Container from "./components/Container";
 import LoadingState from "./components/LoadingState";
@@ -261,13 +296,7 @@ const TimeAttackResult: React.FC = () => {
   const AchievementModal = () => (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
       <div className="bg-white/10 backdrop-blur-md rounded-xl p-8 text-center max-w-sm mx-auto animate-fadeIn">
-        <div className="mb-4 flex justify-center">
-          <img
-            src="/path/to/badge7.png"
-            alt="첫 타임어택 90점 업적"
-            className="w-24 h-24 object-contain"
-          />
-        </div>
+        <div className="mb-4 flex justify-center"></div>
         <h2 className="text-2xl font-bold mb-4 text-white">업적 달성!</h2>
         <p className="text-xl text-yellow-300 mb-6">{achievementMessage}</p>
         <button
@@ -298,11 +327,20 @@ const TimeAttackResult: React.FC = () => {
           message={
             localResult?.message ||
             `주제 "${
-              localResult?.translatedTopic || localResult?.topic || ""
+              localResult?.translatedTopic || localResult?.topic || "알 수 없음"
             }"에 맞는 항목을 찾지 못했습니다.`
           }
-          topic={localResult?.topic}
-          translatedTopic={localResult?.translatedTopic}
+          topic={
+            localResult?.topic ||
+            useTimeAttackStore.getState().gameState.challengeTopic ||
+            "알 수 없음"
+          }
+          translatedTopic={
+            localResult?.translatedTopic ||
+            translateTopic(
+              useTimeAttackStore.getState().gameState.challengeTopic || ""
+            )
+          }
           image={localResult?.image} // 이미지 전달
         />
       ) : (

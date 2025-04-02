@@ -1,5 +1,5 @@
 // api/achievementApi.ts
-import { api, testApi } from "./api";
+import { testApi } from "./api";
 import { useAuthStore } from "../store/authStore";
 
 // 기본 응답 인터페이스
@@ -13,30 +13,14 @@ interface BaseResponse<T> {
 export const achievementApi = {
   // 특정 업적 완료 처리
   completeBadge: (badgeId: number) => {
-    const accessToken = useAuthStore.getState().accessToken;
-    return testApi.post(
-      "/api/v1/badge/complete",
-      { badgeId },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    return testApi.post("/api/v1/badge/complete", { badgeId });
   },
 
   // 업적 달성 조건 확인 및 자동 달성 처리
   checkAchievements: async () => {
-    const accessToken = useAuthStore.getState().accessToken;
-    if (!accessToken) return;
-
     try {
       // 사용자 정보 가져오기
-      const userResponse = await testApi.get("/api/v1/user/profile/me", {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const userResponse = await testApi.get("/api/v1/user/profile/me", {});
 
       const userData = userResponse.data.data;
 
@@ -55,11 +39,7 @@ export const achievementApi = {
       }
 
       // 사진 평가 관련 통계 가져오기
-      const statsResponse = await testApi.get("/api/v1/user/static/me", {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const statsResponse = await testApi.get("/api/v1/user/static/me", {});
 
       const statsData = statsResponse.data.data;
 
@@ -72,11 +52,7 @@ export const achievementApi = {
       }
 
       // 사용자 활동 데이터 가져오기
-      const activityResponse = await testApi.get("/api/v1/user/activity", {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const activityResponse = await testApi.get("/api/v1/user/activity", {});
 
       const activityData = activityResponse.data.data;
 
@@ -152,8 +128,6 @@ export const achievementApi = {
    */
   submitTimeAttackScore: async (score: number) => {
     try {
-      const accessToken = useAuthStore.getState().accessToken;
-
       const response = await testApi.post(
         "/api/v1/badge/time-attack/score",
         { score },

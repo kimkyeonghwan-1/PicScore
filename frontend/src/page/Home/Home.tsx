@@ -6,29 +6,60 @@ import time from "../../assets/time.png";
 import board from "../../assets/board.png";
 import ranking from "../../assets/ranking.png";
 import camera from "../../assets/camera.png";
+// import arena from "../../assets/arena.png"; // 아레나 아이콘 (이미지 필요)
 import { useAuthStore } from "../../store/authStore";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import HomeNavBar from "../../components/NavBar/HomeNavBar";
 import axios from "axios";
 import { useLogout, useMyProfile } from "../../hooks/useUser";
 import { chickenService } from "../../api/chickenApi";
+import { testApi } from "../../api/api";
+import { sendUserFeedback } from "../../utils/sentry";
 
 function Home() {
   // 치킨받기 모달 관리
   const [showChickenModal, setShowChickenModal] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [message, setMessage] = useState("");
-
-  // 경험치 퍼센티지 계산 결과 저장
+  const logout = useAuthStore((state) => state.logout);
+  const navigate = useNavigate();
+  const setUserId = useAuthStore((state) => state.setUserId);
   const [expPercentage, setExpPercentage] = useState(0);
+  const logoutMutation = useLogout();
+  const params = new URLSearchParams(window.location.search);
+  const loginSuccess = params.get("loginSuccess");
 
-  // 서버에 치킨받기 요청을 전송하는 mutation 생성
+  const {
+    isLoading: profileLoading,
+    isError: profileError,
+    data: profileData,
+  } = useMyProfile();
+
+  const useUserData = () => {
+    return useQuery({
+      queryKey: ["userData"],
+      queryFn: async () => {
+        const response = await testApi.get("/api/v1/user/info");
+        return response.data;
+      },
+    });
+  };
+
+  // 기존 useUserData는 유지 (userId 설정 등 필요)
+  const {
+    isLoading: userDataLoading,
+    isError: userDataError,
+    data: userData,
+  } = useUserData();
+
   const chickenMutation = useMutation({
     mutationFn: (data: { phoneNumber: string; message: string }) => {
+      sendUserFeedback(userData.nickName, data.message);
       return chickenService.requestChicken(data);
     },
     onSuccess: () => {
       // 요청 성공 시 실행할 코드
+
       setShowChickenModal(false);
       setPhoneNumber("");
       setMessage("");
@@ -41,10 +72,17 @@ function Home() {
     },
   });
 
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        logout();
+        navigate("/login");
+      },
+    });
+  };
   // 폼 제출 처리
   const handleChickenSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     // 백엔드 API로 데이터 전송
     chickenMutation.mutate({ phoneNumber, message });
   };
@@ -52,9 +90,7 @@ function Home() {
   /*
   원래 로직
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-  const login = useAuthStore((state) => state.login);
-  const params = new URLSearchParams(window.location.search);
-  const loginSuccess = params.get("loginSuccess");
+
 
   const { isLoading, isError, data } = useQuery({
     queryKey: ["user"],
@@ -65,12 +101,7 @@ function Home() {
     enabled: !!loginSuccess, // loginSuccess가 true일 때만 쿼리 실행
   });
 
-   useEffect(() => {
-    if (data) {
-      login(data);
-    }
-  }, [data]);
-  
+   
   if (isLoading) {
     return <>로딩중..</>;
   }
@@ -80,9 +111,6 @@ function Home() {
   */
 
   /* 테스트 로직 */
-  const logout = useAuthStore((state) => state.logout);
-  const navigate = useNavigate();
-  const setUserId = useAuthStore((state) => state.setUserId);
 
   // 경험치 퍼센티지 계산 함수 - 백엔드 로직과 정확히 일치하도록 적용
   const calcExpPercentage = (
@@ -111,48 +139,15 @@ function Home() {
   };
 
   // 마이페이지와 동일한 사용자 프로필 정보 API 사용
-  const {
-    isLoading: profileLoading,
-    isError: profileError,
-    data: profileData,
-  } = useMyProfile();
 
   // 기존 유저 데이터 API 유지 (userId 설정 필요)
-  const useUserData = () => {
-    const accessToken = useAuthStore((state) => state.accessToken);
 
-    return useQuery({
-      queryKey: ["userData"],
-      queryFn: async () => {
-        const response = await axios.get(
-          "https://j12b104.p.ssafy.io/api/v1/user/info",
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-        return response.data;
-      },
-    });
-  };
-
-  const logoutMutation = useLogout();
-  const handleLogout = () => {
-    logoutMutation.mutate(undefined, {
-      onSuccess: () => {
-        logout();
-        navigate("/login");
-      },
-    });
-  };
-
-  // 기존 useUserData는 유지 (userId 설정 등 필요)
-  const {
-    isLoading: userDataLoading,
-    isError: userDataError,
-    data: userData,
-  } = useUserData();
+  useEffect(() => {
+    // userId 설정 유지
+    if (userData && loginSuccess) {
+      setUserId(userData.data.userId, userData.data.nickName);
+    }
+  }, [userData, loginSuccess]);
 
   // 프로필 데이터가 로딩되면 한 번만 경험치 계산
   useEffect(() => {
@@ -176,10 +171,6 @@ function Home() {
     return <>에러입니다</>;
   }
 
-  // userId 설정 유지
-  if (userData) {
-    setUserId(userData.data.userId);
-  }
   return (
     <>
       <div className="flex flex-col w-full items-center justify-center">
@@ -293,6 +284,24 @@ function Home() {
               </span>
             </div>
           </Link>
+
+          {/* 아레나
+          <Link to="/arena">
+            <div className="bg-white rounded-xl p-5 flex flex-col items-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
+              <div className="absolute inset-0 bg-white rounded-xl shadow-xl"></div>
+              <div className="relative mb-2 z-10">
+                <div className="absolute -inset-[0.625rem] rounded-full bg-pic-primary opacity-40 blur-sm -z-10 transition-opacity duration-300 group-hover:opacity-60"></div>
+                <div className="w-20 h-20 rounded-full bg-pic-primary flex items-center justify-center shadow-sm relative transition-transform duration-300 hover:scale-105">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                  </svg>
+                </div>
+              </div>
+              <span className="font-bold text-gray-700 relative z-10">
+                아레나
+              </span>
+            </div>
+          </Link> */}
         </div>
 
         {/* 치킨받기 가로로 긴 버튼 */}

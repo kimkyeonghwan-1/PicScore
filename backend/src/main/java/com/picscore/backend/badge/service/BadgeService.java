@@ -46,7 +46,7 @@ public class BadgeService {
                 badgeList.stream()
                         .map(badge -> {
                             // 사용자가 해당 배지를 획득했는지 확인
-                            boolean isObtain = userBadgeRepository.existsByUserIdAndBadgeId(
+                            Boolean isObtain = userBadgeRepository.existsByUserIdAndBadgeId(
                                     userId, badge.getId()
                             );
                             // 배지 정보와 획득 여부를 포함한 응답 객체 생성
@@ -84,7 +84,7 @@ public class BadgeService {
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "뱃지를 찾을 수 없음: badge7"));
 
         // 이미 뱃지를 획득했는지 확인
-        boolean isObtain = userBadgeRepository.existsByUserIdAndBadgeId(userId, badge.getId());
+        Boolean isObtain = userBadgeRepository.existsByUserIdAndBadgeId(userId, badge.getId());
 
         if (isObtain) {
             return "타임 어택 점수 뱃지 이미 달성";

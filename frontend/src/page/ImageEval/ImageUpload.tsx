@@ -5,7 +5,7 @@ import Button from "../../components/Button";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "../../api/api";
+
 import { boardApi } from "../../api/boardApi";
 import { evalApi } from "../../api/evalApi";
 import {

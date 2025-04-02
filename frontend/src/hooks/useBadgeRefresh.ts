@@ -10,12 +10,9 @@ import { useAuthStore } from "../store/authStore";
  */
 export const useBadgeRefresh = (refreshOnMount: boolean = true) => {
   const queryClient = useQueryClient();
-  const { accessToken } = useAuthStore();
 
   // 배지 데이터 리프레시 함수
   const refreshBadges = async () => {
-    if (!accessToken) return;
-
     try {
       console.log("배지 데이터 리프레시 시작...");
 

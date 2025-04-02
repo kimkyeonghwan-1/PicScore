@@ -66,6 +66,7 @@ pipeline {
                         stage('Build Docker Images - Dev') {
                             steps {
                                 dir('frontend') {
+                                    sh "cp ../.env.front.dev .env.front"
                                     sh "docker build -t ${FRONTEND_IMAGE_DEV} ."
                                 }
                                 dir('backend') {
@@ -119,6 +120,7 @@ pipeline {
                         stage('Build Docker Images - Prod') {
                             steps {
                                 dir('frontend') {
+                                    sh "cp ../.env.front.prod .env.front"
                                     sh "docker build -t ${FRONTEND_IMAGE_PROD} ."
                                 }
                                 dir('backend') {

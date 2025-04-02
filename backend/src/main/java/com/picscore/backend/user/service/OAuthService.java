@@ -32,24 +32,24 @@ public class OAuthService {
 
         // 쿠키에서 리프레시 토큰 추출
         String refresh = null;
-//        Cookie[] cookies = request.getCookies();
-//        if (cookies != null) {
-//            for (Cookie cookie : cookies) {
-//                if ("refresh".equals(cookie.getName())) {
-//                    refresh = cookie.getValue();
-//                }
-//            }
-//        }
-        String cookieHeader = request.getHeader("Cookie");
-        if (cookieHeader != null) {
-            String[] cookies = cookieHeader.split(";");
-            for (String cookie : cookies) {
-                if (cookie.trim().startsWith("refresh=")) {
-                    refresh = cookie.substring(cookie.indexOf('=') + 1);
-                    break;
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refresh".equals(cookie.getName())) {
+                    refresh = cookie.getValue();
                 }
             }
         }
+//        String cookieHeader = request.getHeader("Cookie");
+//        if (cookieHeader != null) {
+//            String[] cookies = cookieHeader.split(";");
+//            for (String cookie : cookies) {
+//                if (cookie.trim().startsWith("refresh=")) {
+//                    refresh = cookie.substring(cookie.indexOf('=') + 1);
+//                    break;
+//                }
+//            }
+//        }
 
         if (refresh == null) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "RefreshToken 쿠키 없음");
@@ -87,7 +87,7 @@ public class OAuthService {
         String newRefresh = jwtUtil.createJwt("refresh", nickName, 86400000L); // 1일 유효
 
         // Redis에 새 리프레시 토큰 저장
-        redisUtil.setex(userKey, newRefresh, 86400000L);
+        redisUtil.setex(userKey, newRefresh, 86400L);
 
         // 클라이언트에 새 토큰 쿠키로 설정
         response.addCookie(createCookie("access", newAccess));
@@ -106,21 +106,21 @@ public class OAuthService {
     public Long findIdByNickName(HttpServletRequest request) {
         // 쿠키에서 AccessToken 추출
         String access = null;
-//        Cookie[] cookies = request.getCookies();
-//        if (cookies != null) {
-//            for (Cookie cookie : cookies) {
-//                if ("access".equals(cookie.getName())) {
-//                    access = cookie.getValue();
-//                    break; // AccessToken을 찾았으므로 루프 종료
-//                }
-//            }
-//        }
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("access".equals(cookie.getName())) {
+                    access = cookie.getValue();
+                    break; // AccessToken을 찾았으므로 루프 종료
+                }
+            }
+        }
 
         // 개발 환경 임시 방편
-        String authorizationHeader = request.getHeader("Authorization");
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            access = authorizationHeader.substring(7); // "Bearer " 이후의 토큰을 추출
-        }
+//        String authorizationHeader = request.getHeader("Authorization");
+//        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+//            access = authorizationHeader.substring(7); // "Bearer " 이후의 토큰을 추출
+//        }
 
         // JWT에서 닉네임 추출
         String nickName = jwtUtil.getNickName(access);

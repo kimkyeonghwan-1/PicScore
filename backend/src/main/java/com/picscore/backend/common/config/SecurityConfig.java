@@ -60,7 +60,8 @@ public class SecurityConfig {
 
                         configuration.setAllowedOrigins(List.of(
                                 "http://localhost:5173",
-                                "https://j12b104.p.ssafy.io"
+                                "https://j12b104.p.ssafy.io",
+                                "https://picscore.net"
                         ));
                         configuration.setAllowedMethods(Collections.singletonList("*"));
                         configuration.setAllowCredentials(true);
@@ -104,7 +105,9 @@ public class SecurityConfig {
         // URL 별 접근 권한 설정
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/", "/api/v1/user","/api/v1/user/photo/{userId}", "/api/v1/user/info").permitAll()
+                        .requestMatchers("/", "/api/v1/user", "/api/v1/photo", "/api/v1/image/analyze").permitAll()
+                        .requestMatchers("/api/v1/user/photo/{userId}").permitAll()
+                        .requestMatchers("/api/v1/photo/{photoId}").permitAll()
                         .anyRequest().authenticated());
 
         // 세션 관리 정책 설정

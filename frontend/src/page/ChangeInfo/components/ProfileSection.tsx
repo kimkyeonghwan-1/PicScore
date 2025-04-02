@@ -30,7 +30,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
-      <h2 className="font-bold text-lg mb-4">프로필 정보</h2>
+      <h2 className="font-bold text-lg mb-4">프로필 수정</h2>
 
       <div className="flex items-center mb-6">
         <div
@@ -122,7 +122,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         )}
       </div>
 
-      <div className="mb-2">
+      {/* <div className="mb-2">
         <label
           htmlFor="email"
           className="block text-sm font-medium text-gray-700 mb-1"
@@ -139,7 +139,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         <p className="text-gray-500 text-xs mt-1">
           이메일은 변경할 수 없습니다.
         </p>
-      </div>
+      </div> */}
     </div>
   );
 };

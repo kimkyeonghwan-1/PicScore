@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { testApi } from "../../api/api";
+import ContentNavBar from "../../components/NavBar/ContentNavBar";
 
 // 컴포넌트 임포트
 import BadgeGrid from "./components/BadgeGrid";
@@ -40,7 +41,7 @@ const BADGE_DESCRIPTION_MAPPING: Record<string, string> = {
   badge4: "30회 이상의 사진 평가를 완료했습니다.",
   badge5: "첫 번째 게시글을 작성했습니다.",
   badge6: "20개 이상의 게시글을 작성했습니다.",
-  badge7: "타임어택에서 90점 이상을 달성했습니다.",
+  badge7: "타임어택 90점 이상 달성",
   badge8: "20회 이상의 타임어택에 참여했습니다.",
   badge9: "사진 평가에서 77점 이상을 달성했습니다.",
   badge10: "타임어택에서 1위를 달성했습니다.",
@@ -51,7 +52,7 @@ const BADGE_DESCRIPTION_MAPPING: Record<string, string> = {
 // API 응답을 배지 객체로 변환하는 함수 수정
 const formatBadgeFromApi = (apiData: ApiBadge): Badge => {
   const badgeId = apiData.badgeId.toString();
-  const isAchieved = apiData.obtain === true;
+  const isAchieved = apiData.isObtain === true;
 
   // 이름 매핑 적용 (API에서 받은 이름 또는 매핑된 이름)
   const displayName = BADGE_NAME_MAPPING[apiData.name] || apiData.name;
@@ -88,7 +89,7 @@ interface ApiBadge {
   name: string;
   image: string;
   obtainCondition: string;
-  obtain: boolean; // isObtain이 아닌 obtain 속성이 API에서 반환됨
+  isObtain: boolean; // isObtain이 아닌 obtain 속성이 API에서 반환됨
 }
 
 // 기본 카테고리 정의
@@ -142,7 +143,6 @@ const AchievementPage: React.FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const accessToken = useAuthStore((state) => state.accessToken);
 
   // URL 상태 확인 - 선택 모드인지 체크
   useEffect(() => {
@@ -199,7 +199,7 @@ const AchievementPage: React.FC = () => {
     };
 
     fetchBadges();
-  }, [accessToken, activeCategory]);
+  }, [activeCategory]);
 
   // 카테고리 변경 시 필터링
   useEffect(() => {

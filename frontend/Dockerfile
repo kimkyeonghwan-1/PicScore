@@ -15,6 +15,9 @@ RUN npm ci
 # 전체 소스 복사
 COPY . .
 
+# 환경 변수 복사
+COPY .env.front .env
+
 # React 빌드
 RUN npm run build
 

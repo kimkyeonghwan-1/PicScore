@@ -4,13 +4,10 @@ import com.picscore.backend.common.exception.CustomException;
 import com.picscore.backend.common.model.response.BaseResponse;
 import com.picscore.backend.photo.model.entity.Photo;
 import com.picscore.backend.photo.model.entity.PhotoLike;
-import com.picscore.backend.photo.model.response.GetPhotoDetailResponse;
-import com.picscore.backend.photo.model.response.GetPhotoTop5Response;
-import com.picscore.backend.photo.model.response.GetPhotosResponse;
+import com.picscore.backend.photo.model.response.*;
 import com.picscore.backend.photo.repository.PhotoHashtagRepository;
 import com.picscore.backend.photo.repository.PhotoLikeRepository;
 import com.picscore.backend.photo.repository.PhotoRepository;
-import com.picscore.backend.photo.model.response.UploadPhotoResponse;
 import com.picscore.backend.user.model.entity.User;
 import com.picscore.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -60,7 +57,7 @@ public class PhotoService {
      * @return ResponseEntity<BaseResponse<HttpStatus>> 저장 결과
      */
     @Transactional
-    public ResponseEntity<BaseResponse<HttpStatus>> savePhoto(Long userId, String imageName, Float score,
+    public ResponseEntity<BaseResponse<SavePhotoResponse>> savePhoto(Long userId, String imageName, Float score,
                                                               Map<String, Integer> analysisChart, Map<String, String> analysisText,
                                                               Boolean isPublic, String photoType, List hashtags) {
         String tempFolder = "temp/";
@@ -80,25 +77,13 @@ public class PhotoService {
         // mySQL에 저장
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID의 유저 없음; " + userId));
-        Photo photo = new Photo(user, imageName, score,  isPublic, photoType, analysisChart, analysisText);
+        Photo photo = new Photo(user, permanImageUrl, score,  isPublic, photoType, analysisChart, analysisText);
         photoRepository.save(photo);
-
+        SavePhotoResponse response = new SavePhotoResponse(photo.getId());
         // 해시태그 저장은 HashtagService에 위임
         hashtagService.saveHashtags(photo, hashtags);
 
-        // ✅ analysisChart가 null이면 빈 Map으로 초기화
-//        if (analysisChart == null) {
-//            photo.setAnalysisChart(new HashMap<>());
-//        } else {
-//            photo.setAnalysisChart(analysisChart);
-//        }
-//        // ✅ analysisText가 null이면 빈 Map으로 초기화
-//        if (analysisText == null) {
-//            photo.setAnalysisText(new HashMap<>());
-//        } else {photo.setAnalysisText(analysisText);
-//        }
-//        photoRepository.save(photo);
-        return ResponseEntity.ok(BaseResponse.success("사진 업로드 완료", HttpStatus.CREATED));
+        return ResponseEntity.ok(BaseResponse.success("사진 업로드 완료", response));
     }
 
 
@@ -112,7 +97,7 @@ public class PhotoService {
     @Transactional
     public ResponseEntity<BaseResponse<UploadPhotoResponse>> uploadFile(MultipartFile file) throws IOException {
         // UUID를 사용하여 고유한 파일명 생성
-        String fileName = UUID.randomUUID() + "." + getFileExtension(file.getOriginalFilename());
+        String fileName = UUID.randomUUID() + getFileExtension(file.getOriginalFilename());
 
         String tempFolder = "temp/";
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
@@ -299,17 +284,13 @@ public class PhotoService {
 
 
     /**
-     * 특정 사진의 상세 정보를 조회하는 메서드
+     * 특정 사진의 상세 정보를 조회하는 메서드 (비회원도 접근 가능)
      *
+     * @param userId  요청한 사용자 ID (비회원일 경우 null)
      * @param photoId 조회할 사진의 ID
-     * @return ResponseEntity<BaseResponse<GetPhotoDetailResponse>> 사진 상세 정보
+     * @return 사진 상세 정보 응답 DTO
      */
-    public GetPhotoDetailResponse getPhotoDetail(
-            Long userId, Long photoId) {
-
-        if (userId == null || userId <= 0) {
-            throw new CustomException(HttpStatus.BAD_REQUEST, "유효하지 않은 사용자 ID입니다.");
-        }
+    public GetPhotoDetailResponse getPhotoDetail(Long userId, Long photoId) {
 
         if (photoId == null || photoId <= 0) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "유효하지 않은 사진 ID입니다.");
@@ -325,7 +306,13 @@ public class PhotoService {
         // 좋아요 수 조회
         int likeCnt = photoLikeRepository.countByPhotoId(photoId);
 
-        boolean isLike = photoLikeRepository.existsByPhotoIdAndUserId(photoId, userId);
+        // 기본적으로 비회원의 경우 isLike = false
+        Boolean isLike = false;
+
+        // 회원이라면 좋아요 여부 조회
+        if (userId != null && userId > 0) {
+            isLike = photoLikeRepository.existsByPhotoIdAndUserId(photoId, userId);
+        }
 
         // 해시태그 조회
         List<String> hashTags = photoHashtagRepository.findByPhotoId(photoId)
@@ -334,10 +321,9 @@ public class PhotoService {
                 .collect(Collectors.toList());
 
         // DTO에 데이터 설정
-        GetPhotoDetailResponse response = new GetPhotoDetailResponse(user, photo, likeCnt, hashTags, isLike);
-
-        return response;
+        return new GetPhotoDetailResponse(user, photo, likeCnt, hashTags, isLike);
     }
+
 
 
     /**
@@ -539,7 +525,7 @@ public class PhotoService {
      * @param key 파일 키 (폴더명 + 파일명)
      * @return boolean 파일이 존재하면 true, 없으면 false
      */
-    public boolean doesFileExist(String key) {
+    public Boolean doesFileExist(String key) {
         try {
             HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
                     .bucket(bucketName)
