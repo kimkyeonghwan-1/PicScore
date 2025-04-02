@@ -6,6 +6,7 @@ import time from "../../assets/time.png";
 import board from "../../assets/board.png";
 import ranking from "../../assets/ranking.png";
 import camera from "../../assets/camera.png";
+// import arena from "../../assets/arena.png"; // 아레나 아이콘 (이미지 필요)
 import { useAuthStore } from "../../store/authStore";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import HomeNavBar from "../../components/NavBar/HomeNavBar";
@@ -285,6 +286,24 @@ function Home() {
               </span>
             </div>
           </Link>
+
+          {/* 아레나
+          <Link to="/arena">
+            <div className="bg-white rounded-xl p-5 flex flex-col items-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
+              <div className="absolute inset-0 bg-white rounded-xl shadow-xl"></div>
+              <div className="relative mb-2 z-10">
+                <div className="absolute -inset-[0.625rem] rounded-full bg-pic-primary opacity-40 blur-sm -z-10 transition-opacity duration-300 group-hover:opacity-60"></div>
+                <div className="w-20 h-20 rounded-full bg-pic-primary flex items-center justify-center shadow-sm relative transition-transform duration-300 hover:scale-105">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                  </svg>
+                </div>
+              </div>
+              <span className="font-bold text-gray-700 relative z-10">
+                아레나
+              </span>
+            </div>
+          </Link> */}
         </div>
 
         {/* 치킨받기 가로로 긴 버튼 */}

@@ -26,7 +26,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => (
       <div className="col-span-2">
         <div className="bg-white p-4 rounded-lg border border-gray-200">
           <div className="text-gray-500 text-center">
-            <p className="font-bold mb-1">콘테스트 & 아레나</p>
+            <p className="font-bold mb-1">컨테스트 & 아레나</p>
             <p className="text-sm">추후 공개 예정</p>
           </div>
         </div>
