@@ -21,7 +21,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => (
       <StatsCard
         title="타임어택"
         value={`${stats.timeAttackRank}위`}
-        color="text-green-500"
+        color="text-[#8bc34a]"
       />
       <div className="col-span-2">
         <div className="bg-white p-4 rounded-lg border border-gray-200">

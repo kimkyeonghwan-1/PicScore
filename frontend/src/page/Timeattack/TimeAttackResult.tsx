@@ -108,7 +108,7 @@ const AnimationModal: React.FC<AnimationModalProps> = ({
             <p className="text-5xl font-bold text-white">{score}</p>
           </div>
           <div className="mb-8">
-            <p className="text-xl text-green-300">경험치 획득</p>
+            <p className="text-xl text-pic-primary">경험치 획득</p>
             <div className="flex items-center justify-center">
               <span className="text-5xl font-bold text-white">+{xpGained}</span>
               <span className="text-xl text-white ml-1">XP</span>

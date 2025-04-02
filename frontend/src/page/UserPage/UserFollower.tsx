@@ -19,6 +19,7 @@ const UserFollowerPage: React.FC = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const myId = useAuthStore((state) => state.userId);
 
   // 팔로워 목록 불러오기
   useEffect(() => {
@@ -251,16 +252,20 @@ const UserFollowerPage: React.FC = () => {
                     <p className="font-medium">{user.nickName}</p>
                   </div>
                 </div>
-                <button
-                  className={`px-4 py-1.5 rounded-md text-sm font-medium ${
-                    user.isFollowing
-                      ? "bg-pic-primary text-white"
-                      : "border border-pic-primary text-pic-primary"
-                  }`}
-                  onClick={() => handleConfirmUnfollow(user.userId)}
-                >
-                  {user.isFollowing ? "팔로잉" : "팔로우"}
-                </button>
+                {userId && parseInt(userId) === myId ? (
+                  <></>
+                ) : (
+                  <button
+                    className={`px-4 py-1.5 rounded-md text-sm font-medium ${
+                      user.isFollowing
+                        ? "bg-pic-primary text-white"
+                        : "border border-pic-primary text-pic-primary"
+                    }`}
+                    onClick={() => handleConfirmUnfollow(user.userId)}
+                  >
+                    {user.isFollowing ? "팔로잉" : "팔로우"}
+                  </button>
+                )}
               </div>
             ))
           ) : (

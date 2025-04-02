@@ -19,7 +19,7 @@ const UserFollowingPage: React.FC = () => {
   const [followingCount, setFollowingCount] = useState<number>(0);
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-
+  const myId = useAuthStore((state) => state.userId);
   const navigate = useNavigate();
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
 
@@ -256,16 +256,20 @@ const UserFollowingPage: React.FC = () => {
                     <p className="font-medium">{user.nickName}</p>
                   </div>
                 </div>
-                <button
-                  className={`px-4 py-1.5 rounded-md text-sm font-medium ${
-                    user.isFollowing
-                      ? "bg-pic-primary text-white"
-                      : "border border-pic-primary text-pic-primary"
-                  }`}
-                  onClick={() => handleConfirmUnfollow(user.userId)}
-                >
-                  {user.isFollowing ? "팔로잉" : "팔로우"}
-                </button>
+                {userId && parseInt(userId) === myId ? (
+                  <></>
+                ) : (
+                  <button
+                    className={`px-4 py-1.5 rounded-md text-sm font-medium ${
+                      user.isFollowing
+                        ? "bg-pic-primary text-white"
+                        : "border border-pic-primary text-pic-primary"
+                    }`}
+                    onClick={() => handleConfirmUnfollow(user.userId)}
+                  >
+                    {user.isFollowing ? "팔로잉" : "팔로우"}
+                  </button>
+                )}
               </div>
             ))
           ) : (
