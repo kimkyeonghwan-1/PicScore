@@ -82,12 +82,12 @@ testApi.interceptors.response.use(
         case 400:
           console.error(`${errorStatus} 오류`);
           authStore.logout();
-          window.location.replace("/login");
+          window.location.replace("/");
           break;
         case 401:
           console.error(`${errorStatus} Unauthorized: 인증 오류`);
           authStore.logout();
-          window.location.replace("/login");
+          window.location.replace("/");
           break;
         case 403:
           console.error(`${errorStatus} Forbidden: 권한 오류`);
@@ -96,6 +96,9 @@ testApi.interceptors.response.use(
           console.error(
             `${errorStatus} Not Found: 요청한 리소스가 서버에 없음`
           );
+          break;
+        case 413:
+          console.error(`${errorStatus} 파일크기가 너무 커요`);
           break;
         case 422:
           console.error(
