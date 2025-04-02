@@ -249,8 +249,13 @@ const TimeAttack: React.FC = () => {
       setSelectedImageFile(file);
       // 사진 선택 시점의 남은 시간 기록
       setCaptureTimeLeft(timeLeft);
-      // Zustand에 선택된 이미지 파일 저장
-      setGameState({ selectedImageFile: file });
+      // 타이머 정지
+      setIsTimerActive(false);
+      // Zustand에 상태 업데이트
+      setGameState({ 
+        selectedImageFile: file,
+        isTimerActive: false 
+      });
     }
   };
 
@@ -258,6 +263,9 @@ const TimeAttack: React.FC = () => {
     if (!selectedImageFile) return;
 
     setIsLoading(true);
+    // 이미지 제출 시에도 타이머가 확실히 멈춰있도록 설정
+    setIsTimerActive(false);
+    setGameState({ isTimerActive: false });
 
     try {
       // 1. 이미지 파일 압축
