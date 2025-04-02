@@ -35,7 +35,6 @@ const TOPIC_TRANSLATIONS: Record<string, string> = {
   mouse: "마우스",
   door: "문",
   window: "창문",
-  extinguisher: "소화기",
   clothes: "옷",
   bag: "가방",
   phone: "전화기",
