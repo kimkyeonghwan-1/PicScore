@@ -16,8 +16,8 @@ import Contest from "../page/Contest/Contest";
 import Login from "../page/Login/Login";
 import TimeAttack from "../page/Timeattack/Timeattack";
 import TimeAttackResult from "../page/Timeattack/TimeAttackResult";
-// import Arena from "../page/Arena/Arena";
-// import ArenaResult from "../page/Arena/ArenaResult";
+import Arena from "../page/Arena/Arena";
+import ArenaResult from "../page/Arena/ArenaResult";
 import ImageUpload from "../page/ImageEval/ImageUpload";
 import ImageEvalResult from "../page/ImageEval/ImageEvalResult";
 import PrivateRouter from "./PrivateRouter";
@@ -89,14 +89,14 @@ const router = createBrowserRouter([
             path: "/time-attack/result",
             element: <TimeAttackResult />,
           },
-          // {
-          //   path: "/arena",
-          //   element: <Arena />,
-          // },
-          // {
-          //   path: "/arena/result",
-          //   element: <ArenaResult />,
-          // },
+          {
+            path: "/arena",
+            element: <Arena />,
+          },
+          {
+            path: "/arena/result",
+            element: <ArenaResult />,
+          },
           {
             path: "/ranking",
             element: <RankingPage />,
