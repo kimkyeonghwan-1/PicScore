@@ -28,6 +28,11 @@ const routeLayouts: { [key: string]: LayoutConfig } = {
     showBottomBar: true,
     content: "분석 결과",
   },
+  "": {
+    showNavBar: false,
+    showBottomBar: true,
+    content: "홈페이지",
+  },
   "/welcome": {
     showNavBar: false,
     showBottomBar: false,
@@ -72,6 +77,11 @@ const routeLayouts: { [key: string]: LayoutConfig } = {
     showNavBar: false,
     showBottomBar: true,
     content: "검색",
+  },
+  "/time-attack": {
+    showNavBar: true,
+    showBottomBar: false,
+    content: "타임어택",
   },
 };
 
