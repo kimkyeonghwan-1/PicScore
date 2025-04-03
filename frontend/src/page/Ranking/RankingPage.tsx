@@ -191,10 +191,10 @@ const RankingPage: React.FC = () => {
 
   useEffect(() => {
     const fromTimeAttackResult = location.state?.from === "timeattack-result";
-
+    console.log(fromTimeAttackResult);
     if (fromTimeAttackResult) {
       const handleReplaceHistory = () => {
-        navigate("/timeattack", { replace: true });
+        navigate("/time-attack", { replace: true });
       };
 
       window.addEventListener("popstate", handleReplaceHistory);

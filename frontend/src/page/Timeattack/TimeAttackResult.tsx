@@ -127,7 +127,7 @@ const AnimationModal: React.FC<AnimationModalProps> = ({
             onClick={() => {
               onClose();
               if (destination === "ranking") {
-                navigate("/ranking");
+                navigate("/ranking", { state: { from: "timeattack-result" } });
               } else {
                 navigate("/time-attack");
               }
