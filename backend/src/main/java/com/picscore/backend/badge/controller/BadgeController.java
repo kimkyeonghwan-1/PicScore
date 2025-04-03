@@ -68,8 +68,8 @@ public class BadgeController {
 
         // 업적 정보 응답 객체 생성
         CompleteCheckResponse response = new CompleteCheckResponse(
-                badge1, badge2, badge5, badge6, badge7,
-                badge8, badge9, badge10, badge11, badge12
+                badge1, badge2, "미달성", "미달성", badge5, badge6,
+                badge7, badge8, badge9, badge10, badge11, badge12
         );
 
         // 업적 달성 상태를 포함한 응답 반환
