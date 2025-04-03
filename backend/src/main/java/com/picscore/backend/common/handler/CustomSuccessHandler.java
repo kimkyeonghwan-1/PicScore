@@ -72,7 +72,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.addCookie(createCookie("refresh", refresh));
 
          //인증 성공 후 리다이렉트
-        response.sendRedirect(successURL);
+//        response.sendRedirect(successURL);
 //        response.sendRedirect("https://picscore.net?loginSuccess=true");
 //         response.sendRedirect("https://j12b104.p.ssafy.io?loginSuccess=true");
 //        response.sendRedirect("http://localhost:5173?loginSuccess=true&access=" + access + "&refresh=" + refresh);
