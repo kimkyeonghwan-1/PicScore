@@ -269,8 +269,8 @@ function Home() {
             </div>
           </Link>
 
-          {/* 랭킹 */}
-          <Link to="/ranking">
+          {/* 아레나나 */}
+          <Link to="/arena">
             <div className="bg-white rounded-xl p-5 flex flex-col items-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
               <div className="absolute inset-0 bg-white rounded-xl shadow-xl"></div>
               <div className="relative mb-2 z-10">
@@ -280,7 +280,7 @@ function Home() {
                 </div>
               </div>
               <span className="font-bold text-gray-700 relative z-10">
-                랭킹
+                아레나
               </span>
             </div>
           </Link>
