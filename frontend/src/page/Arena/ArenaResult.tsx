@@ -141,16 +141,18 @@ const ArenaResultPage: React.FC = () => {
     const storedResult = sessionStorage.getItem("arenaResult");
 
     if (!storedResult) {
-      // 결과 데이터가 없으면 게임 페이지로 리다이렉트
-      navigate("/arena");
-      return;
+    // 결과 데이터가 없으면 게임 페이지로 리다이렉트
+    navigate("/arena");
+    return;
     }
 
     try {
-      const parsedResult = JSON.parse(storedResult);
+    const parsedResult = JSON.parse(storedResult);
+    
+    // 결과 데이터 설정
       setResultData(parsedResult);
-      setIsLoading(false);
-    } catch (error) {
+        setIsLoading(false);
+      } catch (error) {
       console.error("결과 데이터 파싱 오류:", error);
       navigate("/arena");
     }
@@ -165,9 +167,8 @@ const ArenaResultPage: React.FC = () => {
 
       // 백엔드에 결과 전송
       const requestData: SaveArenaResultRequest = {
-        correctCount: resultData.correctCount, // 정확히 맞춘 개수 (0 또는 1)
+        correct: resultData.partialCorrectCount, // 맞은 개수 (0~4)
         time: resultData.remainingTime, // 남은 시간
-        score: resultData.score, // 계산된 점수
       };
 
       const response = await arenaApi.saveArenaResult(requestData);

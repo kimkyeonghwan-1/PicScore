@@ -26,22 +26,22 @@ interface ArenaResult {
 interface ArenaStore {
   gameState: ArenaGameState;
   result: ArenaResult | null;
-  
+
   // 게임 상태 설정 액션
   setGameState: (state: Partial<ArenaGameState>) => void;
-  
+
   // 사진 순서 추가 액션
   addToUserOrder: (photoId: number) => void;
-  
+
   // 사진 순서 삭제 액션
   removeFromUserOrder: (index: number) => void;
-  
+
   // 사진 순서 리셋 액션
   resetUserOrder: () => void;
-  
+
   // 결과 설정 액션
   setResult: (result: ArenaResult) => void;
-  
+
   // 모든 상태 리셋 액션
   resetAll: () => void;
 }
@@ -60,7 +60,7 @@ const initialGameState: ArenaGameState = {
 export const useArenaStore = create<ArenaStore>((set) => ({
   gameState: initialGameState,
   result: null,
-  
+
   // 게임 상태 설정
   setGameState: (state) =>
     set((prev) => ({
@@ -69,7 +69,7 @@ export const useArenaStore = create<ArenaStore>((set) => ({
         ...state,
       },
     })),
-  
+
   // 사용자 순서에 사진 추가
   addToUserOrder: (photoId) =>
     set((prev) => {
@@ -77,17 +77,17 @@ export const useArenaStore = create<ArenaStore>((set) => ({
       if (prev.gameState.userOrder.includes(photoId)) {
         return prev;
       }
-      
+
       // 최대 4개까지만 추가
       if (prev.gameState.userOrder.length >= 4) {
         return prev;
       }
-      
+
       const newUserOrder = [...prev.gameState.userOrder, photoId];
-      
+
       // 모든 사진이 선택되었는지 확인
       const completed = newUserOrder.length === 4;
-      
+
       return {
         gameState: {
           ...prev.gameState,
@@ -96,13 +96,13 @@ export const useArenaStore = create<ArenaStore>((set) => ({
         },
       };
     }),
-  
+
   // 사용자 순서에서 사진 제거
   removeFromUserOrder: (index) =>
     set((prev) => {
       const newUserOrder = [...prev.gameState.userOrder];
       newUserOrder.splice(index, 1);
-      
+
       return {
         gameState: {
           ...prev.gameState,
@@ -111,7 +111,7 @@ export const useArenaStore = create<ArenaStore>((set) => ({
         },
       };
     }),
-  
+
   // 사용자 순서 리셋
   resetUserOrder: () =>
     set((prev) => ({
@@ -121,10 +121,10 @@ export const useArenaStore = create<ArenaStore>((set) => ({
         completed: false,
       },
     })),
-  
+
   // 결과 설정
   setResult: (result) => set(() => ({ result })),
-  
+
   // 모든 상태 리셋
   resetAll: () =>
     set(() => ({

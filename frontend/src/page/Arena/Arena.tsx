@@ -9,8 +9,6 @@ import ExplanationStep from "./components/ExplanationStep";
 import PreparationStep from "./components/PreparationStep";
 import GameStep from "./components/GameStep";
 import LoadingState from "./components/LoadingState";
-import ContentNavBar from "../../components/NavBar/ContentNavBar";
-import BottomBar from "../../components/BottomBar/BottomBar";
 import Modal from "../../components/Modal";
 
 // 게임 상태 인터페이스
@@ -27,19 +25,20 @@ const Arena: React.FC = () => {
   const navigate = useNavigate();
   const [gameState, setGameState] = useState<GameState>({
     isActive: false,
-    timeLeft: 30,
+    timeLeft: 20,
     photos: [],
     userOrder: [],
     completed: false,
   });
   const [step, setStep] = useState<number>(1); // 1: Explanation, 2: Preparation, 3: Game
-  const [timeLeft, setTimeLeft] = useState<number>(30); // Countdown timer
+  const [timeLeft, setTimeLeft] = useState<number>(20); // Countdown timer
   const [countdown, setCountdown] = useState<number>(3); // Countdown for preparation
   const [isTimerActive, setIsTimerActive] = useState<boolean>(false);
   const [photos, setPhotos] = useState<ArenaPhoto[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
+  const [correctOrder, setCorrectOrder] = useState<number[]>([]);
 
   // Handle timer countdown
   useEffect(() => {
@@ -70,24 +69,33 @@ const Arena: React.FC = () => {
       const response = await arenaApi.getRandomPhotos();
       const data = response.data.data;
 
-      if (!data || !data.photos || data.photos.length !== 4) {
+      if (!data || !data.photos || data.photos.length !== 4 || !data.answer) {
         throw new Error("사진 데이터를 가져오지 못했습니다");
       }
 
-      // 사진 설정
-      const photosData = data.photos;
+      // 배열 형태로 전달된 사진 데이터를 ArenaPhoto 형태로 변환
+      const photosData: ArenaPhoto[] = data.photos.map(photo => ({
+        id: photo[0],      // photo_id
+        score: photo[1],   // score
+        imageUrl: photo[2]  // imageUrl
+      }));
+      
       setPhotos(photosData);
+      
+      // 백엔드에서 전달된 정답 순서 저장
+      setCorrectOrder(data.answer);
 
       // 게임 상태 업데이트
       setGameState({
         isActive: true,
-        timeLeft: 30,
+        timeLeft: 20,
         photos: photosData,
         userOrder: [],
         completed: false,
       });
 
       console.log("가져온 사진:", photosData);
+      console.log("정답 순서:", data.answer);
 
       return true;
     } catch (error) {
@@ -128,7 +136,7 @@ const Arena: React.FC = () => {
       setStep(3);
       // 타이머 시작
       setIsTimerActive(true);
-      setTimeLeft(30);
+      setTimeLeft(20);
     } else {
       // 오류 시 처음 단계로 돌아가기
       setStep(1);
@@ -198,11 +206,6 @@ const Arena: React.FC = () => {
   const calculateResult = (): ArenaResultData => {
     const { userOrder, photos, timeLeft } = gameState;
 
-    // 점수 순서대로 정렬된 정답 배열 계산
-    const correctOrder = [...photos]
-      .sort((a, b) => b.score - a.score)
-      .map((photo) => photo.id);
-
     // 전체 정답 여부 확인 (0 또는 1)
     let correctCount = 0;
 
@@ -223,8 +226,8 @@ const Arena: React.FC = () => {
       }
     }
 
-    // 소요 시간 계산 (30초에서 남은 시간 빼기)
-    const timeSpent = timeLeft > 0 ? 30 - timeLeft : 30;
+    // 소요 시간 계산 (20초에서 남은 시간 빼기)
+    const timeSpent = timeLeft > 0 ? 20 - timeLeft : 20;
 
     // 점수 계산 (정확한 로직은 백엔드와 일치해야 함)
     // 예시: 모두 맞추면 최대 점수 + 남은 시간 보너스, 아니면 부분 점수
@@ -284,9 +287,7 @@ const Arena: React.FC = () => {
 
   return (
     <Container>
-      {step !== 1 && <ContentNavBar content="사진 점수 맞추기" />}
       <main className="flex-1 flex flex-col">{renderStep()}</main>
-      {step !== 1 && <BottomBar />}
 
       {/* 에러 모달 */}
       <Modal

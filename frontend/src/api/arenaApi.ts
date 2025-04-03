@@ -9,21 +9,23 @@ interface BaseResponse<T> {
   data: T;
 }
 
-// 아레나 사진 응답 인터페이스
-export interface ArenaPhoto extends Photo {
+// 아레나 사진 인터페이스
+export interface ArenaPhoto {
+  id: number;
   score: number;
+  imageUrl: string;
 }
 
 // 랜덤 사진 응답 인터페이스
 export interface RandomPhotosResponse {
-  photos: ArenaPhoto[]; // 사진 목록
+  answer: number[];  // 정답 순서
+  photos: [number, number, string][]; // [photo_id, score, imageUrl] 형태의 배열
 }
 
 // 아레나 결과 저장 요청 인터페이스
 export interface SaveArenaResultRequest {
   time: number; // 남은 시간
-  score: number; // 점수
-  correctCount: number; // 정확히 맞춘 개수
+  correct: number; // 맞은 개수 (0~4)
 }
 
 // 아레나 결과 응답 인터페이스
