@@ -9,6 +9,8 @@ public class CompleteCheckResponse {
 
     private String badge1;
     private String badge2;
+    private String badge3;
+    private String badge4;
     private String badge5;
     private String badge6;
     private String badge7;
