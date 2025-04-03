@@ -1,8 +1,7 @@
 // page/Arena/Arena.tsx
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useArenaStore } from "../../store/arenaStore";
-import { arenaApi, ArenaPhoto } from "../../api/arenaApi";
+import { arenaApi, ArenaPhoto, ArenaResultData } from "../../api/arenaApi";
 
 // 컴포넌트 임포트
 import Container from "./components/Container";
@@ -14,88 +13,45 @@ import ContentNavBar from "../../components/NavBar/ContentNavBar";
 import BottomBar from "../../components/BottomBar/BottomBar";
 import Modal from "../../components/Modal";
 
-const Arena: React.FC = () => {
-  // Zustand store 사용
-  const {
-    gameState,
-    setGameState,
-    addToUserOrder,
-    removeFromUserOrder,
-    resetUserOrder,
-    setResult,
-    resetAll,
-  } = useArenaStore();
+// 게임 상태 인터페이스
+interface GameState {
+  isActive: boolean;
+  timeLeft: number;
+  photos: ArenaPhoto[];
+  userOrder: number[];
+  completed: boolean;
+}
 
+const Arena: React.FC = () => {
   // Local state 관리
   const navigate = useNavigate();
+  const [gameState, setGameState] = useState<GameState>({
+    isActive: false,
+    timeLeft: 30,
+    photos: [],
+    userOrder: [],
+    completed: false,
+  });
   const [step, setStep] = useState<number>(1); // 1: Explanation, 2: Preparation, 3: Game
   const [timeLeft, setTimeLeft] = useState<number>(30); // Countdown timer
   const [countdown, setCountdown] = useState<number>(3); // Countdown for preparation
   const [isTimerActive, setIsTimerActive] = useState<boolean>(false);
   const [photos, setPhotos] = useState<ArenaPhoto[]>([]);
-  const [correctOrder, setCorrectOrder] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
 
-  // 결과 계산 및 저장
-  const calculateAndSaveResult = useCallback((): void => {
-    const { userOrder, correctOrder } = gameState;
-
-    // 맞은 개수 계산
-    let correctCount = 0;
-    for (let i = 0; i < userOrder.length; i++) {
-      if (userOrder[i] === correctOrder[i]) {
-        correctCount++;
-      }
-    }
-
-    // 점수 계산
-    let score = 0;
-    if (correctCount === 4) {
-      // 모두 맞춘 경우: 100점 + 남은 시간 보너스
-      score = 100 + timeLeft * 10;
-    } else {
-      // 일부만 맞춘 경우: 맞은 개수 * 25점
-      score = correctCount * 25;
-    }
-
-    // 경험치 계산
-    const xpEarned = Math.floor(score * 1.2);
-
-    // 소요 시간 계산 (30초에서 남은 시간 빼기)
-    const timeSpent = timeLeft > 0 ? 30 - timeLeft : 30;
-
-    // 결과 저장
-    setResult({
-      score,
-      correctCount,
-      timeSpent,
-      xpEarned,
-    });
-
-    // API 호출은 결과 페이지에서 처리
-  }, [gameState, timeLeft, setResult]);
-
-  const handleTimeUp = useCallback((): void => {
-    setIsTimerActive(false);
-    setGameState({ isActive: false });
-
-    // 결과 계산 및 저장
-    calculateAndSaveResult();
-
-    // 결과 페이지로 이동
-    navigate("/arena/result");
-  }, [setGameState, navigate, calculateAndSaveResult]);
-
-  // 타이머 카운트다운 처리
+  // Handle timer countdown
   useEffect(() => {
     let timer: number | undefined;
     if (isTimerActive && timeLeft > 0) {
       timer = window.setTimeout(() => {
-        setTimeLeft(timeLeft - 1);
-        // Zustand에도 현재 시간 업데이트
-        setGameState({ timeLeft: timeLeft - 1 });
+        setTimeLeft((prevTime) => prevTime - 1);
+        // 게임 상태와 timeLeft 동기화
+        setGameState((prev) => ({
+          ...prev,
+          timeLeft: timeLeft - 1,
+        }));
       }, 1000);
     } else if (timeLeft === 0 && isTimerActive) {
       handleTimeUp();
@@ -104,42 +60,34 @@ const Arena: React.FC = () => {
     return () => {
       if (timer) window.clearTimeout(timer);
     };
-  }, [timeLeft, isTimerActive, setGameState, handleTimeUp]);
-
-  // 컴포넌트 언마운트 시 모든 상태 초기화
-  useEffect(() => {
-    return () => {
-      resetAll();
-    };
-  }, [resetAll]);
+  }, [timeLeft, isTimerActive]);
 
   // 랜덤 사진 가져오기
-  const fetchRandomPhotos = useCallback(async () => {
+  const fetchRandomPhotos = async () => {
     try {
       setIsLoading(true);
+      // api/v2/arena/random 엔드포인트 호출
       const response = await arenaApi.getRandomPhotos();
-      const fetchedPhotos = response.data.data;
+      const data = response.data.data;
 
-      if (!fetchedPhotos || fetchedPhotos.length !== 4) {
-        throw new Error("4장의 사진을 가져오지 못했습니다");
+      if (!data || !data.photos || data.photos.length !== 4) {
+        throw new Error("사진 데이터를 가져오지 못했습니다");
       }
 
       // 사진 설정
-      setPhotos(fetchedPhotos);
+      const photosData = data.photos;
+      setPhotos(photosData);
 
-      // 정답 순서 계산 (점수 높은 순서)
-      const sortedIds = [...fetchedPhotos]
-        .sort((a, b) => b.score - a.score)
-        .map((photo) => photo.id);
-
-      setCorrectOrder(sortedIds);
-
-      // Zustand 상태 업데이트
+      // 게임 상태 업데이트
       setGameState({
-        photos: fetchedPhotos,
-        correctOrder: sortedIds,
         isActive: true,
+        timeLeft: 30,
+        photos: photosData,
+        userOrder: [],
+        completed: false,
       });
+
+      console.log("가져온 사진:", photosData);
 
       return true;
     } catch (error) {
@@ -150,40 +98,9 @@ const Arena: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [setGameState]);
+  };
 
-  // 비동기 처리 최적화
-  const startGameWithTimeout = useCallback((onComplete: () => void) => {
-    // requestAnimationFrame 사용하여 성능 향상
-    requestAnimationFrame(() => {
-      setTimeout(onComplete, 0);
-    });
-  }, []);
-
-  // 게임 시작 - 사진 가져오기 및 게임 진행
-  const startGame = useCallback(async () => {
-    // 사진 불러오기
-    const success = await fetchRandomPhotos();
-
-    if (success) {
-      // 게임 단계로 진행
-      setStep(3);
-      // 타이머 시작
-      setIsTimerActive(true);
-      setTimeLeft(30);
-
-      // Zustand 상태 업데이트
-      setGameState({
-        isActive: true,
-        timeLeft: 30,
-      });
-    } else {
-      // 오류 시 처음 단계로 돌아가기
-      setStep(1);
-    }
-  }, [fetchRandomPhotos, setGameState]);
-
-  const handleStartGame = useCallback(async (): Promise<void> => {
+  const handleStartGame = async (): Promise<void> => {
     // 게임 시작 로직
     setStep(2);
     setCountdown(3);
@@ -194,36 +111,148 @@ const Arena: React.FC = () => {
         if (prevCount <= 1) {
           clearInterval(countdownInterval);
           // 사진 불러오기 및 게임 시작
-          startGameWithTimeout(startGame);
+          startGame();
           return 0;
         }
         return prevCount - 1;
       });
     }, 1000);
-  }, [startGame, startGameWithTimeout]);
+  };
 
-  const handlePhotoSelect = useCallback((photoId: number): void => {
-    addToUserOrder(photoId);
-  }, [addToUserOrder]);
+  const startGame = async () => {
+    // 사진 불러오기
+    const success = await fetchRandomPhotos();
 
-  const handleRemoveSelection = useCallback((index: number): void => {
-    removeFromUserOrder(index);
-  }, [removeFromUserOrder]);
+    if (success) {
+      // 게임 단계로 진행
+      setStep(3);
+      // 타이머 시작
+      setIsTimerActive(true);
+      setTimeLeft(30);
+    } else {
+      // 오류 시 처음 단계로 돌아가기
+      setStep(1);
+    }
+  };
 
-  const handleSubmit = useCallback((): void => {
+  const handleTimeUp = (): void => {
+    setIsTimerActive(false);
+    setGameState((prev) => ({
+      ...prev,
+      isActive: false,
+    }));
+
+    // 결과 계산 및 결과 페이지로 이동
+    const result = calculateResult();
+    navigateToResult(result);
+  };
+
+  const handlePhotoSelect = (photoId: number): void => {
+    // 이미 선택된 사진이면 추가하지 않음
+    if (gameState.userOrder.includes(photoId)) {
+      return;
+    }
+
+    // 최대 4개까지만 추가
+    if (gameState.userOrder.length >= 4) {
+      return;
+    }
+
+    const newUserOrder = [...gameState.userOrder, photoId];
+
+    // 모든 사진이 선택되었는지 확인
+    const completed = newUserOrder.length === 4;
+
+    setGameState({
+      ...gameState,
+      userOrder: newUserOrder,
+      completed,
+    });
+  };
+
+  const handleRemoveSelection = (index: number): void => {
+    const newUserOrder = [...gameState.userOrder];
+    newUserOrder.splice(index, 1);
+
+    setGameState({
+      ...gameState,
+      userOrder: newUserOrder,
+      completed: false,
+    });
+  };
+
+  const handleSubmit = (): void => {
     // 타이머 중지
     setIsTimerActive(false);
-    setGameState({ isActive: false });
+    setGameState((prev) => ({
+      ...prev,
+      isActive: false,
+    }));
 
-    // 결과 계산 및 저장
-    calculateAndSaveResult();
+    // 결과 계산 및 결과 페이지로 이동
+    const result = calculateResult();
+    navigateToResult(result);
+  };
+
+  // 결과 계산
+  const calculateResult = (): ArenaResultData => {
+    const { userOrder, photos, timeLeft } = gameState;
+
+    // 점수 순서대로 정렬된 정답 배열 계산
+    const correctOrder = [...photos]
+      .sort((a, b) => b.score - a.score)
+      .map((photo) => photo.id);
+
+    // 전체 정답 여부 확인 (0 또는 1)
+    let correctCount = 0;
+
+    // 사용자 선택과 정답 순서 일치 여부 확인
+    const isFullyCorrect =
+      userOrder.length === correctOrder.length &&
+      userOrder.every((id, index) => id === correctOrder[index]);
+
+    if (isFullyCorrect) {
+      correctCount = 1;
+    }
+
+    // 부분적으로 맞은 개수 계산 (UI 표시용)
+    let partialCorrectCount = 0;
+    for (let i = 0; i < userOrder.length && i < correctOrder.length; i++) {
+      if (userOrder[i] === correctOrder[i]) {
+        partialCorrectCount++;
+      }
+    }
+
+    // 소요 시간 계산 (30초에서 남은 시간 빼기)
+    const timeSpent = timeLeft > 0 ? 30 - timeLeft : 30;
+
+    // 점수 계산 (정확한 로직은 백엔드와 일치해야 함)
+    // 예시: 모두 맞추면 최대 점수 + 남은 시간 보너스, 아니면 부분 점수
+    const score =
+      correctCount === 1 ? 100 + timeLeft * 10 : partialCorrectCount * 25;
+
+    return {
+      correctCount, // 전체 정답 여부 (0 또는 1)
+      partialCorrectCount, // 부분 정답 개수 (0~4)
+      timeSpent,
+      remainingTime: timeLeft,
+      photos: gameState.photos,
+      userOrder: gameState.userOrder,
+      score,
+    };
+  };
+
+  // 결과 페이지로 이동
+  const navigateToResult = (result: ArenaResultData) => {
+    // 세션 스토리지에 결과 저장 (페이지 전환 시 데이터 유지를 위해)
+    sessionStorage.setItem("arenaResult", JSON.stringify(result));
 
     // 결과 페이지로 이동
     navigate("/arena/result");
-  }, [setGameState, navigate, calculateAndSaveResult]);
+  };
 
-  // 렌더링 함수 최적화
-  const renderStep = useCallback((): React.ReactNode => {
+  // Render different steps of the Arena feature
+  const renderStep = (): React.ReactNode => {
     if (isLoading && step !== 1) {
       return <LoadingState />;
     }
@@ -251,29 +280,7 @@ const Arena: React.FC = () => {
       default:
         return <div>에러가 발생했습니다.</div>;
     }
-  }, [step, isLoading, countdown, timeLeft, photos, gameState.userOrder, gameState.completed, 
-      handleStartGame, handlePhotoSelect, handleRemoveSelection, handleSubmit]);
-
-  // 컨테이너 및 모달 UI 추가 최적화
-  const renderModal = useMemo(() => (
-    <Modal
-      isOpen={showErrorModal}
-      onClose={() => setShowErrorModal(false)}
-      title="오류"
-      description={
-        <div className="text-gray-600">
-          <p>{error}</p>
-        </div>
-      }
-      buttons={[
-        {
-          label: "확인",
-          textColor: "black",
-          onClick: () => setShowErrorModal(false),
-        },
-      ]}
-    />
-  ), [showErrorModal, error]);
+  };
 
   return (
     <Container>
@@ -282,7 +289,23 @@ const Arena: React.FC = () => {
       {step !== 1 && <BottomBar />}
 
       {/* 에러 모달 */}
-      {renderModal}
+      <Modal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title="오류"
+        description={
+          <div className="text-gray-600">
+            <p>{error}</p>
+          </div>
+        }
+        buttons={[
+          {
+            label: "확인",
+            textColor: "gray",
+            onClick: () => setShowErrorModal(false),
+          },
+        ]}
+      />
     </Container>
   );
 };

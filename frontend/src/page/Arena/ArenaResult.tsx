@@ -1,8 +1,11 @@
 // page/Arena/ArenaResult.tsx
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useArenaStore } from "../../store/arenaStore";
-import { arenaApi } from "../../api/arenaApi";
+import {
+  arenaApi,
+  ArenaResultData,
+  SaveArenaResultRequest,
+} from "../../api/arenaApi";
 
 // 컴포넌트 임포트
 import Container from "./components/Container";
@@ -10,13 +13,14 @@ import LoadingState from "./components/LoadingState";
 import ArenaResult from "./components/ArenaResult";
 import ContentNavBar from "../../components/NavBar/ContentNavBar";
 import BottomBar from "../../components/BottomBar/BottomBar";
+import Modal from "../../components/Modal";
 
 // 애니메이션 모달 컴포넌트
 interface AnimationModalProps {
   isOpen: boolean;
   onClose: () => void;
   correctCount: number;
-  score: number;
+  partialCorrectCount: number;
   xpGained: number;
   destination: "ranking" | "arena";
 }
@@ -25,7 +29,7 @@ const AnimationModal: React.FC<AnimationModalProps> = ({
   isOpen,
   onClose,
   correctCount,
-  score,
+  partialCorrectCount,
   xpGained,
   destination,
 }) => {
@@ -66,12 +70,16 @@ const AnimationModal: React.FC<AnimationModalProps> = ({
         <div className="bg-white/10 backdrop-blur-md rounded-xl p-8 text-center animate-fadeIn">
           <h2 className="text-3xl font-bold mb-4 text-white">축하합니다!</h2>
           <div className="mb-6">
-            <p className="text-xl text-yellow-300">정답 개수</p>
-            <p className="text-5xl font-bold text-white">{correctCount}/4</p>
+            <p className="text-xl text-yellow-300">정답 판정</p>
+            <p className="text-5xl font-bold text-white">
+              {correctCount > 0 ? "정답!" : "오답"}
+            </p>
           </div>
           <div className="mb-6">
-            <p className="text-xl text-yellow-300">획득 점수</p>
-            <p className="text-5xl font-bold text-white">{score}</p>
+            <p className="text-xl text-yellow-300">맞은 개수</p>
+            <p className="text-5xl font-bold text-white">
+              {partialCorrectCount}/4
+            </p>
           </div>
           <div className="mb-8">
             <p className="text-xl text-green-300">경험치 획득</p>
@@ -110,132 +118,156 @@ const AnimationModal: React.FC<AnimationModalProps> = ({
 
 const ArenaResultPage: React.FC = () => {
   const navigate = useNavigate();
-  
-  // Zustand store 사용
-  const { gameState, result, resetAll } = useArenaStore();
-  
+
+  // 결과 데이터 상태
+  const [resultData, setResultData] = useState<ArenaResultData | null>(null);
+
   // Local state 관리
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  
+  const [xpEarned, setXpEarned] = useState<number>(0);
+  const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
+
   // 애니메이션 모달 상태
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [modalDestination, setModalDestination] = useState<"ranking" | "arena">("ranking");
+  const [modalDestination, setModalDestination] = useState<"ranking" | "arena">(
+    "ranking"
+  );
 
   // 컴포넌트 마운트 시 데이터 확인
   useEffect(() => {
-    // 결과 또는 게임 상태가 없으면 게임 페이지로 리다이렉트
-    if (!result || !gameState.photos || gameState.photos.length === 0) {
+    // 세션 스토리지에서 결과 데이터 가져오기
+    const storedResult = sessionStorage.getItem("arenaResult");
+
+    if (!storedResult) {
+      // 결과 데이터가 없으면 게임 페이지로 리다이렉트
       navigate("/arena");
       return;
     }
-    
-    setIsLoading(false);
-  }, [result, gameState, navigate]);
+
+    try {
+      const parsedResult = JSON.parse(storedResult);
+      setResultData(parsedResult);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("결과 데이터 파싱 오류:", error);
+      navigate("/arena");
+    }
+  }, [navigate]);
 
   // 결과 저장
-  const saveResult = useCallback(async () => {
+  const saveResult = async () => {
     try {
-      if (!result) return;
-      
+      if (!resultData) return;
+
       setIsSaving(true);
-      
-      // 1. 아레나 결과 저장 API 호출
-      await arenaApi.saveArenaResult({
-        time: result.timeSpent,
-        score: result.score,
-        correctCount: result.correctCount,
-      });
-      
-      // 여기서는 정답 개수를 기준으로 랭킹에 저장합니다.
-      console.log(`정답 개수: ${result.correctCount}개, 소요 시간: ${result.timeSpent}초, 점수: ${result.score}점`);
-      
+
+      // 백엔드에 결과 전송
+      const requestData: SaveArenaResultRequest = {
+        correctCount: resultData.correctCount, // 정확히 맞춘 개수 (0 또는 1)
+        time: resultData.remainingTime, // 남은 시간
+        score: resultData.score, // 계산된 점수
+      };
+
+      const response = await arenaApi.saveArenaResult(requestData);
+
+      // 백엔드에서 계산된 경험치 저장
+      const responseData = response.data.data;
+      setXpEarned(responseData.xp);
+
+      console.log("저장 결과:", responseData);
+
       // 애니메이션 모달 표시 (저장 성공 후)
       setModalDestination("ranking");
       setShowModal(true);
     } catch (error) {
       console.error("결과 저장 실패:", error);
-      setError("결과 저장 중 오류가 발생했습니다.");
+      setError("결과 저장 중 오류가 발생했습니다. 다시 시도해 주세요.");
+      setShowErrorModal(true);
     } finally {
       setIsSaving(false);
     }
-  }, [result]);
+  };
 
   // 다시 도전하기 핸들러
-  const handlePlayAgain = useCallback(() => {
-    resetAll();
+  const handlePlayAgain = () => {
+    sessionStorage.removeItem("arenaResult");
     navigate("/arena");
-  }, [resetAll, navigate]);
+  };
 
   // 랭킹 보기 핸들러
-  const handleViewRanking = useCallback(async () => {
+  const handleViewRanking = async () => {
     await saveResult();
-  }, [saveResult]);
+  };
 
   // 모달 닫기 핸들러
-  const handleCloseModal = useCallback(() => {
+  const handleCloseModal = () => {
     setShowModal(false);
-  }, []);
+  };
 
-  // 메모이제이션된 렌더링 컨텐츠
-  const renderContent = useMemo(() => {
-    if (isLoading) {
-      return (
-        <Container>
-          <LoadingState />
-        </Container>
-      );
-    }
-
+  // 로딩 중이면 로딩 화면 표시
+  if (isLoading) {
     return (
       <Container>
-        <ContentNavBar content="아레나 결과" />
-        <main className="flex-1">
-          {result && gameState.photos && gameState.photos.length > 0 && (
-            <ArenaResult
-              score={result.score}
-              userOrder={gameState.userOrder}
-              correctOrder={gameState.correctOrder}
-              photos={gameState.photos}
-              timeSpent={result.timeSpent}
-              correctCount={result.correctCount}
-              xpEarned={result.xpEarned}
-              onPlayAgain={handlePlayAgain}
-              onViewRanking={handleViewRanking}
-              isSaving={isSaving}
-            />
-          )}
-        </main>
-        <BottomBar />
+        <LoadingState />
       </Container>
     );
-  }, [
-    isLoading, 
-    result, 
-    gameState, 
-    handlePlayAgain, 
-    handleViewRanking, 
-    isSaving
-  ]);
-
-  // 애니메이션 모달 렌더링
-  const renderModal = useMemo(() => (
-    <AnimationModal
-      isOpen={showModal}
-      onClose={handleCloseModal}
-      correctCount={result?.correctCount || 0}
-      score={result?.score || 0}
-      xpGained={result?.xpEarned || 0}
-      destination={modalDestination}
-    />
-  ), [showModal, handleCloseModal, result, modalDestination]);
+  }
 
   return (
-    <>
-      {renderContent}
-      {renderModal}
-    </>
+    <Container>
+      <ContentNavBar content="아레나 결과" />
+      <main className="flex-1">
+        {resultData && (
+          <ArenaResult
+            score={resultData.score}
+            userOrder={resultData.userOrder}
+            correctOrder={resultData.photos
+              .sort((a, b) => b.score - a.score)
+              .map((photo) => photo.id)}
+            photos={resultData.photos}
+            timeSpent={resultData.timeSpent}
+            correctCount={resultData.correctCount}
+            partialCorrectCount={resultData.partialCorrectCount}
+            xpEarned={xpEarned}
+            onPlayAgain={handlePlayAgain}
+            onViewRanking={handleViewRanking}
+            isSaving={isSaving}
+          />
+        )}
+      </main>
+      <BottomBar />
+
+      {/* 애니메이션 모달 */}
+      <AnimationModal
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        correctCount={resultData?.correctCount || 0}
+        partialCorrectCount={resultData?.partialCorrectCount || 0}
+        xpGained={xpEarned}
+        destination={modalDestination}
+      />
+
+      {/* 에러 모달 */}
+      <Modal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title="오류"
+        description={
+          <div className="text-gray-600">
+            <p>{error}</p>
+          </div>
+        }
+        buttons={[
+          {
+            label: "확인",
+            textColor: "gray",
+            onClick: () => setShowErrorModal(false),
+          },
+        ]}
+      />
+    </Container>
   );
 };
 
