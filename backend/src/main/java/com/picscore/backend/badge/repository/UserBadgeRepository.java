@@ -11,4 +11,6 @@ public interface UserBadgeRepository extends JpaRepository<UserBadge, Long> {
     Boolean existsByUserIdAndBadgeId(Long userId, Long badgeId);
 
     List<UserBadge> findByUserId(Long userId);
+
+    int countByUserId(Long userId);
 }
