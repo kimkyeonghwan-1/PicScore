@@ -21,6 +21,7 @@ function Home() {
   const [showChickenModal, setShowChickenModal] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [message, setMessage] = useState("");
+  const [showGameModal, setShowGameModal] = useState(false); // 게임 선택 모달 상태
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
   const setUserId = useAuthStore((state) => state.setUserId);
@@ -221,21 +222,22 @@ function Home() {
         {/* 기존 사진 분석 버튼 제거 */}
         {/* 메뉴 그리드 섹션 */}
         <div className="grid grid-cols-2 gap-5 w-full p-4 max-w-[400px]">
-          {/* 타임어택 */}
-          <Link to="/time-attack">
-            <div className="bg-white rounded-xl p-5 flex flex-col items-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
-              <div className="absolute inset-0 bg-white rounded-xl shadow-xl"></div>
-              <div className="relative mb-2 z-10">
-                <div className="absolute -inset-[0.625rem] rounded-full bg-pic-primary opacity-40 blur-sm -z-10 transition-opacity duration-300 group-hover:opacity-60"></div>
-                <div className="w-20 h-20 rounded-full bg-pic-primary flex items-center justify-center shadow-sm relative transition-transform duration-300 hover:scale-105">
-                  <img src={time} alt="시계 아이콘" className="w-10 h-10" />
-                </div>
+          {/* ACTIVITY 버튼 (이전 타임어택) */}
+          <div
+            onClick={() => setShowGameModal(true)}
+            className="bg-white rounded-xl p-5 flex flex-col items-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer"
+          >
+            <div className="absolute inset-0 bg-white rounded-xl shadow-xl"></div>
+            <div className="relative mb-2 z-10">
+              <div className="absolute -inset-[0.625rem] rounded-full bg-pic-primary opacity-40 blur-sm -z-10 transition-opacity duration-300 group-hover:opacity-60"></div>
+              <div className="w-20 h-20 rounded-full bg-pic-primary flex items-center justify-center shadow-sm relative transition-transform duration-300 hover:scale-105">
+                <img src={time} alt="시계 아이콘" className="w-10 h-10" />
               </div>
-              <span className="font-bold text-gray-700 relative z-10">
-                타임어택
-              </span>
             </div>
-          </Link>
+            <span className="font-bold text-gray-700 relative z-10">
+              ACTIVITY
+            </span>
+          </div>
 
           {/* 사진 분석 */}
           <Link to="/image-upload">
@@ -269,8 +271,8 @@ function Home() {
             </div>
           </Link>
 
-          {/* 아레나나 */}
-          <Link to="/arena">
+          {/* 랭킹 */}
+          <Link to="/ranking">
             <div className="bg-white rounded-xl p-5 flex flex-col items-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
               <div className="absolute inset-0 bg-white rounded-xl shadow-xl"></div>
               <div className="relative mb-2 z-10">
@@ -280,28 +282,10 @@ function Home() {
                 </div>
               </div>
               <span className="font-bold text-gray-700 relative z-10">
-                아레나
+                랭킹
               </span>
             </div>
           </Link>
-
-          {/* 아레나
-          <Link to="/arena">
-            <div className="bg-white rounded-xl p-5 flex flex-col items-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
-              <div className="absolute inset-0 bg-white rounded-xl shadow-xl"></div>
-              <div className="relative mb-2 z-10">
-                <div className="absolute -inset-[0.625rem] rounded-full bg-pic-primary opacity-40 blur-sm -z-10 transition-opacity duration-300 group-hover:opacity-60"></div>
-                <div className="w-20 h-20 rounded-full bg-pic-primary flex items-center justify-center shadow-sm relative transition-transform duration-300 hover:scale-105">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                  </svg>
-                </div>
-              </div>
-              <span className="font-bold text-gray-700 relative z-10">
-                아레나
-              </span>
-            </div>
-          </Link> */}
         </div>
 
         {/* 치킨받기 가로로 긴 버튼 */}
@@ -385,6 +369,63 @@ function Home() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 게임 선택 모달 */}
+      {showGameModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-[90%] max-w-md">
+            <h2 className="text-2xl font-bold mb-6 text-center text-pic-primary">
+              게임 선택
+            </h2>
+
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              {/* 타임어택 버튼 */}
+              <div
+                className="bg-white border-2 border-pic-primary rounded-xl p-4 flex flex-col items-center justify-center shadow-md hover:shadow-lg transition-all cursor-pointer"
+                onClick={() => {
+                  setShowGameModal(false);
+                  navigate("/time-attack");
+                }}
+              >
+                <div className="w-16 h-16 rounded-full bg-pic-primary/10 flex items-center justify-center mb-2">
+                  <img src={time} alt="타임어택" className="w-8 h-8" />
+                </div>
+                <span className="font-bold text-gray-700">타임어택</span>
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  시간 제한 퀴즈 풀기
+                </p>
+              </div>
+
+              {/* 아레나 버튼 */}
+              <div
+                className="bg-white border-2 border-pic-primary rounded-xl p-4 flex flex-col items-center justify-center shadow-md hover:shadow-lg transition-all cursor-pointer"
+                onClick={() => {
+                  setShowGameModal(false);
+                  navigate("/arena");
+                }}
+              >
+                <div className="w-16 h-16 rounded-full bg-pic-primary/10 flex items-center justify-center mb-2">
+                  <img src={ranking} alt="아레나" className="w-8 h-8" />
+                </div>
+                <span className="font-bold text-gray-700">아레나</span>
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  사진 점수 맞추기
+                </p>
+              </div>
+            </div>
+
+            {/* 닫기 버튼 */}
+            <div className="flex justify-center">
+              <button
+                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                onClick={() => setShowGameModal(false)}
+              >
+                닫기
+              </button>
+            </div>
           </div>
         </div>
       )}

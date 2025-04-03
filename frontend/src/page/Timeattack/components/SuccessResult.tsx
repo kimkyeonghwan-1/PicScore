@@ -187,7 +187,7 @@ const SuccessResult: React.FC<SuccessResultProps> = ({
                 저장 중...
               </div>
             ) : (
-              <span>저장 후 랭킹보기</span>
+              <span>랭킹 등록</span>
             )}
           </button>
 
