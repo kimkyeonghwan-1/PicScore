@@ -47,4 +47,14 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
             "GROUP BY p.id " +
             "ORDER BY COUNT(pl) DESC, p.createdAt DESC") // ← 동점시 최신순
     List<Object[]> findTop5PhotosWithLikeCount(Pageable pageable);
+
+    int countByUserId(Long userId);
+
+    Boolean existsByUserIdAndScoreGreaterThanEqual(Long userId, Float score);
+
+    List<Photo> findByUserId(Long userId);
+
+    @Query("SELECT p.id FROM Photo p WHERE p.user.id = :userId")
+    List<Long> findPhotoIdsByUserId(@Param("userId") Long userId);
+
 }
