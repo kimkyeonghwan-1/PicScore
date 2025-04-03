@@ -38,6 +38,7 @@ const Arena: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
+  const [correctOrder, setCorrectOrder] = useState<number[]>([]);
 
   // Handle timer countdown
   useEffect(() => {
@@ -68,13 +69,21 @@ const Arena: React.FC = () => {
       const response = await arenaApi.getRandomPhotos();
       const data = response.data.data;
 
-      if (!data || !data.photos || data.photos.length !== 4) {
+      if (!data || !data.photos || data.photos.length !== 4 || !data.answer) {
         throw new Error("사진 데이터를 가져오지 못했습니다");
       }
 
-      // 사진 설정
-      const photosData = data.photos;
+      // 배열 형태로 전달된 사진 데이터를 ArenaPhoto 형태로 변환
+      const photosData: ArenaPhoto[] = data.photos.map(photo => ({
+        id: photo[0],      // photo_id
+        score: photo[1],   // score
+        imageUrl: photo[2]  // imageUrl
+      }));
+      
       setPhotos(photosData);
+      
+      // 백엔드에서 전달된 정답 순서 저장
+      setCorrectOrder(data.answer);
 
       // 게임 상태 업데이트
       setGameState({
@@ -86,6 +95,7 @@ const Arena: React.FC = () => {
       });
 
       console.log("가져온 사진:", photosData);
+      console.log("정답 순서:", data.answer);
 
       return true;
     } catch (error) {
@@ -195,11 +205,6 @@ const Arena: React.FC = () => {
   // 결과 계산
   const calculateResult = (): ArenaResultData => {
     const { userOrder, photos, timeLeft } = gameState;
-
-    // 점수 순서대로 정렬된 정답 배열 계산
-    const correctOrder = [...photos]
-      .sort((a, b) => b.score - a.score)
-      .map((photo) => photo.id);
 
     // 전체 정답 여부 확인 (0 또는 1)
     let correctCount = 0;
