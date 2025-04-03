@@ -32,8 +32,9 @@ export interface ArenaRankingUser {
   userId: number;
   nickName: string;
   profileImage: string;
-  score: number;
+  score: number; // API 호환을 위해 남기지만 UI에서는 표시하지 않음
   rank: number;
+  correctCount: number; // 4개 전체를 맞춰서 플레이한 횟수
 }
 
 export const arenaApi = {

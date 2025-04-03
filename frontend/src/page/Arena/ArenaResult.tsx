@@ -1,5 +1,5 @@
 // page/Arena/ArenaResult.tsx
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useArenaStore } from "../../store/arenaStore";
 import { arenaApi } from "../../api/arenaApi";
@@ -135,7 +135,7 @@ const ArenaResultPage: React.FC = () => {
   }, [result, gameState, navigate]);
 
   // 결과 저장
-  const saveResult = async () => {
+  const saveResult = useCallback(async () => {
     try {
       if (!result) return;
       
@@ -160,64 +160,82 @@ const ArenaResultPage: React.FC = () => {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [result]);
 
   // 다시 도전하기 핸들러
-  const handlePlayAgain = () => {
+  const handlePlayAgain = useCallback(() => {
     resetAll();
     navigate("/arena");
-  };
+  }, [resetAll, navigate]);
 
   // 랭킹 보기 핸들러
-  const handleViewRanking = async () => {
+  const handleViewRanking = useCallback(async () => {
     await saveResult();
-  };
+  }, [saveResult]);
 
   // 모달 닫기 핸들러
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setShowModal(false);
-  };
+  }, []);
 
-  // 로딩 중이면 로딩 화면 표시
-  if (isLoading) {
+  // 메모이제이션된 렌더링 컨텐츠
+  const renderContent = useMemo(() => {
+    if (isLoading) {
+      return (
+        <Container>
+          <LoadingState />
+        </Container>
+      );
+    }
+
     return (
       <Container>
-        <LoadingState />
+        <ContentNavBar content="아레나 결과" />
+        <main className="flex-1">
+          {result && gameState.photos && gameState.photos.length > 0 && (
+            <ArenaResult
+              score={result.score}
+              userOrder={gameState.userOrder}
+              correctOrder={gameState.correctOrder}
+              photos={gameState.photos}
+              timeSpent={result.timeSpent}
+              correctCount={result.correctCount}
+              xpEarned={result.xpEarned}
+              onPlayAgain={handlePlayAgain}
+              onViewRanking={handleViewRanking}
+              isSaving={isSaving}
+            />
+          )}
+        </main>
+        <BottomBar />
       </Container>
     );
-  }
+  }, [
+    isLoading, 
+    result, 
+    gameState, 
+    handlePlayAgain, 
+    handleViewRanking, 
+    isSaving
+  ]);
+
+  // 애니메이션 모달 렌더링
+  const renderModal = useMemo(() => (
+    <AnimationModal
+      isOpen={showModal}
+      onClose={handleCloseModal}
+      correctCount={result?.correctCount || 0}
+      score={result?.score || 0}
+      xpGained={result?.xpEarned || 0}
+      destination={modalDestination}
+    />
+  ), [showModal, handleCloseModal, result, modalDestination]);
 
   return (
-    <Container>
-      <ContentNavBar content="아레나 결과" />
-      <main className="flex-1">
-        {result && gameState.photos && gameState.photos.length > 0 && (
-          <ArenaResult
-            score={result.score}
-            userOrder={gameState.userOrder}
-            correctOrder={gameState.correctOrder}
-            photos={gameState.photos}
-            timeSpent={result.timeSpent}
-            correctCount={result.correctCount}
-            xpEarned={result.xpEarned}
-            onPlayAgain={handlePlayAgain}
-            onViewRanking={handleViewRanking}
-            isSaving={isSaving}
-          />
-        )}
-      </main>
-      <BottomBar />
-
-      {/* 애니메이션 모달 */}
-      <AnimationModal
-        isOpen={showModal}
-        onClose={handleCloseModal}
-        correctCount={result?.correctCount || 0}
-        score={result?.score || 0}
-        xpGained={result?.xpEarned || 0}
-        destination={modalDestination}
-      />
-    </Container>
+    <>
+      {renderContent}
+      {renderModal}
+    </>
   );
 };
 
