@@ -1,6 +1,6 @@
 // src/page/Ranking/RankingPage.tsx
 import React, { useEffect, useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { timeAttackApi } from "../../api/timeAttackApi";
 import { arenaApi, ArenaRankingUser } from "../../api/arenaApi";
@@ -73,7 +73,7 @@ type TimeFrame = "today" | "week" | "month" | "all";
 
 const RankingPage: React.FC = () => {
   const navigate = useNavigate();
-
+  const location = useLocation();
   // 상태 관리
   const [rankings, setRankings] = useState<RankingUser[]>([]);
   const [topThreeUsers, setTopThreeUsers] = useState<RankingUser[]>([]);
@@ -84,7 +84,6 @@ const RankingPage: React.FC = () => {
   const [timeframe, setTimeframe] = useState<TimeFrame>("all");
   const [rankingType, setRankingType] = useState<RankingType>("timeAttack");
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-
   // 모달 관련 상태
   const [selectedUser, setSelectedUser] = useState<RankingUser | null>(null);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
@@ -187,6 +186,23 @@ const RankingPage: React.FC = () => {
     setSelectedUser(null);
     setModalOpen(false);
   }, [rankingType]);
+
+  /* 뒤로가기 방지 로직 */
+
+  useEffect(() => {
+    const fromTimeAttackResult = location.state?.from === "timeattack-result";
+
+    if (fromTimeAttackResult) {
+      const handleReplaceHistory = () => {
+        navigate("/timeattack", { replace: true });
+      };
+
+      window.addEventListener("popstate", handleReplaceHistory);
+      return () => {
+        window.removeEventListener("popstate", handleReplaceHistory);
+      };
+    }
+  }, [navigate, location]);
 
   // 랭킹 아이템 클릭 핸들러
   const handleRankingItemClick = (user: RankingUser) => {
