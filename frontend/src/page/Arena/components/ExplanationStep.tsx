@@ -25,9 +25,7 @@ const ExplanationStep: React.FC<ExplanationStepProps> = ({ onStartGame }) => {
         </svg>
       </div>
 
-      <h1 className="text-2xl font-bold mb-4 text-gray-800">
-        사진 점수 맞추기 아레나
-      </h1>
+      <h1 className="text-2xl font-bold mb-4 text-gray-800">아레나</h1>
 
       <div className="bg-white p-5 rounded-xl shadow-md max-w-md mb-8">
         <div className="mb-4">
@@ -40,19 +38,8 @@ const ExplanationStep: React.FC<ExplanationStepProps> = ({ onStartGame }) => {
               사진들의 <span className="font-bold">점수 순서</span>를 높은
               순서부터 맞춰보세요!
             </li>
-            <li>30초의 제한 시간 내에 정답을 맞춰야 합니다.</li>
+            <li>20초의 제한 시간 내에 정답을 맞춰야 합니다.</li>
             <li>정답을 맞출수록 더 많은 점수와 경험치를 획득할 수 있습니다.</li>
-          </ul>
-        </div>
-
-        <div>
-          <h2 className="text-lg font-semibold text-pic-primary mb-2">
-            점수 계산
-          </h2>
-          <ul className="list-disc list-inside text-left text-gray-700 space-y-2">
-            <li>모든 순서를 맞추면: 100점 + 남은 시간(초) × 10점</li>
-            <li>일부 순서를 맞추면: 맞춘 개수 × 25점</li>
-            <li>획득 경험치: 점수 × 1.2</li>
           </ul>
         </div>
       </div>

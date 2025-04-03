@@ -9,8 +9,6 @@ import ExplanationStep from "./components/ExplanationStep";
 import PreparationStep from "./components/PreparationStep";
 import GameStep from "./components/GameStep";
 import LoadingState from "./components/LoadingState";
-import ContentNavBar from "../../components/NavBar/ContentNavBar";
-import BottomBar from "../../components/BottomBar/BottomBar";
 import Modal from "../../components/Modal";
 
 // 게임 상태 인터페이스
@@ -27,13 +25,13 @@ const Arena: React.FC = () => {
   const navigate = useNavigate();
   const [gameState, setGameState] = useState<GameState>({
     isActive: false,
-    timeLeft: 30,
+    timeLeft: 20,
     photos: [],
     userOrder: [],
     completed: false,
   });
   const [step, setStep] = useState<number>(1); // 1: Explanation, 2: Preparation, 3: Game
-  const [timeLeft, setTimeLeft] = useState<number>(30); // Countdown timer
+  const [timeLeft, setTimeLeft] = useState<number>(20); // Countdown timer
   const [countdown, setCountdown] = useState<number>(3); // Countdown for preparation
   const [isTimerActive, setIsTimerActive] = useState<boolean>(false);
   const [photos, setPhotos] = useState<ArenaPhoto[]>([]);
@@ -81,7 +79,7 @@ const Arena: React.FC = () => {
       // 게임 상태 업데이트
       setGameState({
         isActive: true,
-        timeLeft: 30,
+        timeLeft: 20,
         photos: photosData,
         userOrder: [],
         completed: false,
@@ -128,7 +126,7 @@ const Arena: React.FC = () => {
       setStep(3);
       // 타이머 시작
       setIsTimerActive(true);
-      setTimeLeft(30);
+      setTimeLeft(20);
     } else {
       // 오류 시 처음 단계로 돌아가기
       setStep(1);
@@ -223,8 +221,8 @@ const Arena: React.FC = () => {
       }
     }
 
-    // 소요 시간 계산 (30초에서 남은 시간 빼기)
-    const timeSpent = timeLeft > 0 ? 30 - timeLeft : 30;
+    // 소요 시간 계산 (20초에서 남은 시간 빼기)
+    const timeSpent = timeLeft > 0 ? 20 - timeLeft : 20;
 
     // 점수 계산 (정확한 로직은 백엔드와 일치해야 함)
     // 예시: 모두 맞추면 최대 점수 + 남은 시간 보너스, 아니면 부분 점수
@@ -284,9 +282,7 @@ const Arena: React.FC = () => {
 
   return (
     <Container>
-      {step !== 1 && <ContentNavBar content="사진 점수 맞추기" />}
       <main className="flex-1 flex flex-col">{renderStep()}</main>
-      {step !== 1 && <BottomBar />}
 
       {/* 에러 모달 */}
       <Modal

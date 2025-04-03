@@ -7,7 +7,7 @@ interface ArenaResultProps {
   correctOrder: number[];
   photos: ArenaPhoto[];
   timeSpent: number;
-  correctCount: number;  // 전체 정답 여부 (0 또는 1)
+  correctCount: number; // 전체 정답 여부 (0 또는 1)
   partialCorrectCount: number; // 부분 정답 개수 (0~4)
   xpEarned: number;
   onPlayAgain: () => void;
@@ -33,8 +33,8 @@ const ArenaResult: React.FC<ArenaResultProps> = ({
   // 정렬된 사진 배열 가져오기 (정답 순서대로)
   const getSortedPhotos = () => {
     // correctOrder를 사용하여 정렬
-    return correctOrder.map(id => {
-      const photo = photos.find(photo => photo.id === id);
+    return correctOrder.map((id) => {
+      const photo = photos.find((photo) => photo.id === id);
       if (!photo) {
         console.error(`ID ${id}에 해당하는 사진을 찾을 수 없습니다.`, photos);
         // 안전하게 처리하기 위해 첫 번째 사진 반환
@@ -46,8 +46,8 @@ const ArenaResult: React.FC<ArenaResultProps> = ({
 
   // 사용자가 선택한 순서대로 사진 가져오기
   const getUserOrderedPhotos = () => {
-    return userOrder.map(id => {
-      const photo = photos.find(photo => photo.id === id);
+    return userOrder.map((id) => {
+      const photo = photos.find((photo) => photo.id === id);
       if (!photo) {
         console.error(`ID ${id}에 해당하는 사진을 찾을 수 없습니다.`, photos);
         return null;
@@ -71,24 +71,23 @@ const ArenaResult: React.FC<ArenaResultProps> = ({
 
         <div className="flex justify-between items-center mb-4">
           <span className="text-gray-700 font-medium">정답 개수</span>
-          <span className="text-2xl font-bold text-pic-primary">{partialCorrectCount}/4</span>
+          <span className="text-2xl font-bold text-pic-primary">
+            {partialCorrectCount}/4
+          </span>
         </div>
 
         <div className="flex justify-between items-center mb-4">
           <span className="text-gray-700 font-medium">소요 시간</span>
           <span className="font-semibold">
-            {timeSpent === 30 ? "30초 초과" : `${timeSpent}초`}
+            {timeSpent === 20 ? "20초 초과" : `${timeSpent}초`}
           </span>
-        </div>
-
-        <div className="flex justify-between items-center mb-4">
-          <span className="text-gray-700 font-medium">점수</span>
-          <span className="text-xl font-bold text-pic-primary">{score}점</span>
         </div>
 
         <div className="flex justify-between items-center mb-2">
           <span className="text-gray-700 font-medium">획득 경험치</span>
-          <span className="text-xl font-bold text-green-600">+{xpEarned} XP</span>
+          <span className="text-xl font-bold text-green-600">
+            +{xpEarned} XP
+          </span>
         </div>
       </div>
 
@@ -97,7 +96,9 @@ const ArenaResult: React.FC<ArenaResultProps> = ({
         <h3 className="text-lg font-semibold mb-4 text-gray-800">정답 확인</h3>
 
         <div className="mb-6">
-          <h4 className="text-base font-medium text-gray-700 mb-2">정답 순서 (점수 높은순)</h4>
+          <h4 className="text-base font-medium text-gray-700 mb-2">
+            정답 순서 (점수 높은순)
+          </h4>
           <div className="grid grid-cols-4 gap-2">
             {getSortedPhotos().map((photo, index) => (
               <div key={`correct-${photo.id}`} className="relative">
@@ -124,21 +125,33 @@ const ArenaResult: React.FC<ArenaResultProps> = ({
         </div>
 
         <div>
-          <h4 className="text-base font-medium text-gray-700 mb-2">내가 선택한 순서</h4>
+          <h4 className="text-base font-medium text-gray-700 mb-2">
+            내가 선택한 순서
+          </h4>
           <div className="grid grid-cols-4 gap-2">
             {getUserOrderedPhotos().map((photo, index) => {
-              if (!photo) return (
-                <div key={`error-${index}`} className="relative aspect-square rounded-lg bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-500">오류</span>
-                </div>
-              );
-              
+              if (!photo)
+                return (
+                  <div
+                    key={`error-${index}`}
+                    className="relative aspect-square rounded-lg bg-gray-200 flex items-center justify-center"
+                  >
+                    <span className="text-gray-500">오류</span>
+                  </div>
+                );
+
               const correctIndex = correctOrder.indexOf(photo.id);
               const isCorrect = correctIndex === index;
-              
+
               return (
                 <div key={`user-${photo.id}`} className="relative">
-                  <div className={`aspect-square rounded-lg overflow-hidden ${isCorrect ? 'border-2 border-green-500' : 'border-2 border-red-500'}`}>
+                  <div
+                    className={`aspect-square rounded-lg overflow-hidden ${
+                      isCorrect
+                        ? "border-2 border-green-500"
+                        : "border-2 border-red-500"
+                    }`}
+                  >
                     <img
                       src={photo.imageUrl}
                       alt={`Your Rank ${index + 1}`}
@@ -152,8 +165,12 @@ const ArenaResult: React.FC<ArenaResultProps> = ({
                   <div className="absolute top-0 left-0 w-6 h-6 bg-pic-primary text-white rounded-tl-lg rounded-br-lg flex items-center justify-center font-bold">
                     {index + 1}
                   </div>
-                  <div className={`absolute top-0 right-0 w-6 h-6 ${isCorrect ? 'bg-green-500' : 'bg-red-500'} text-white rounded-tr-lg rounded-bl-lg flex items-center justify-center`}>
-                    {isCorrect ? '✓' : '✗'}
+                  <div
+                    className={`absolute top-0 right-0 w-6 h-6 ${
+                      isCorrect ? "bg-green-500" : "bg-red-500"
+                    } text-white rounded-tr-lg rounded-bl-lg flex items-center justify-center`}
+                  >
+                    {isCorrect ? "✓" : "✗"}
                   </div>
                   <div className="text-center mt-1 text-sm font-medium">
                     {photo.score}점
@@ -177,7 +194,9 @@ const ArenaResult: React.FC<ArenaResultProps> = ({
           onClick={onViewRanking}
           disabled={isSaving}
           className={`flex-1 bg-pic-primary text-white py-3 rounded-lg font-medium ${
-            isSaving ? "opacity-70 cursor-not-allowed" : "hover:bg-pic-primary/90"
+            isSaving
+              ? "opacity-70 cursor-not-allowed"
+              : "hover:bg-pic-primary/90"
           } transition-colors flex justify-center items-center`}
         >
           {isSaving ? (
