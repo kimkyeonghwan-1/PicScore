@@ -58,9 +58,7 @@ pipeline {
 
         stage('Parallel Analysis and Build') {
             when {
-                anyOf {
-                    branch 'develop'
-                }
+                branch 'develop'
             }
             parallel {
                 stage('SonarQube Analysis') {
@@ -110,7 +108,7 @@ pipeline {
                         }
                     }
                 }
-
+            }
         stage('Build and Deploy') {
             parallel {
                 stage('Develop Branch - EC2 Deployment') {
