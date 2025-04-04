@@ -71,7 +71,6 @@ pipeline {
                             -Dsonar.projectKey=${SONAR_PROJECT_KEY_BACKEND} \
                             -Dsonar.host.url=${SONAR_HOST} \
                             -Dsonar.login=${SONAR_BACK_TOKEN} \
-                            -Dsonar.tests.skip=true
                         """
                     }
                 }
