@@ -83,7 +83,7 @@ const RankingPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [timeframe, setTimeframe] = useState<TimeFrame>("all");
-  const [rankingType, setRankingType] = useState<RankingType>("timeAttack");
+  const [rankingType, setRankingType] = useState<RankingType>("arena");
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   // 모달 관련 상태
   const [selectedUser, setSelectedUser] = useState<RankingUser | null>(null);
@@ -523,6 +523,17 @@ const RankingPage: React.FC = () => {
       <div className="flex border-b bg-white mb-2 shadow-sm">
         <button
           className={`flex-1 py-4 text-center font-medium relative ${
+            rankingType === "arena" ? "text-pic-primary" : "text-gray-600"
+          }`}
+          onClick={() => handleRankingTypeChange("arena")}
+        >
+          아레나
+          {rankingType === "arena" && (
+            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-pic-primary"></div>
+          )}
+        </button>
+        <button
+          className={`flex-1 py-4 text-center font-medium relative ${
             rankingType === "timeAttack" ? "text-pic-primary" : "text-gray-600"
           }`}
           onClick={() => handleRankingTypeChange("timeAttack")}
@@ -540,17 +551,6 @@ const RankingPage: React.FC = () => {
         >
           컨테스트
           {rankingType === "contest" && (
-            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-pic-primary"></div>
-          )}
-        </button>
-        <button
-          className={`flex-1 py-4 text-center font-medium relative ${
-            rankingType === "arena" ? "text-pic-primary" : "text-gray-600"
-          }`}
-          onClick={() => handleRankingTypeChange("arena")}
-        >
-          아레나
-          {rankingType === "arena" && (
             <div className="absolute bottom-0 left-0 w-full h-0.5 bg-pic-primary"></div>
           )}
         </button>
