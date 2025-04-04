@@ -58,6 +58,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // 소셜 ID로 기존 사용자 조회
         User existData = userRepository.findBySocialId(oAuth2Response.getProviderId());
 
+        // 처음 온 유저인지 확인하는 변수
+        boolean firstUser = false;
+
         if (existData == null) {
             // 기존 데이터가 없을 경우 새 사용자 생성 및 저장
             User user = new User(
@@ -70,6 +73,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     0
             );
 
+            firstUser = true;
             userRepository.save(user);
         }
 
@@ -77,7 +81,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         UserDto userDto = new UserDto(
                 oAuth2Response.getProviderId(),
                 oAuth2Response.getName(),
-                "ROLE_USER"
+                "ROLE_USER",
+                firstUser
         );
 
         return new CustomOAuth2User(userDto);
