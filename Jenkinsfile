@@ -86,7 +86,7 @@ pipeline {
                             -Dsonar.login=${SONAR_FRONT_TOKEN} \
                             -Dsonar.tests='' \
                             -Dsonar.test.inclusions='' \
-                            -Dsonar.coverage.exclusions='**/*
+                            -Dsonar.coverage.exclusions='**/*'
                         """
                     }
                 }
