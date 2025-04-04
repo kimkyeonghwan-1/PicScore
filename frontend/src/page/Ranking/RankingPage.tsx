@@ -63,6 +63,7 @@ interface RankingApiUser {
 interface ArenaRankingApiUser extends ArenaRankingUser {
   imageUrl?: string;
   topic?: string;
+  rank?: number; // 랭킹 번호(프론트엔드에서 계산되는 값)
 }
 
 // 랭킹 사용자 타입 정의 (애플리케이션 내에서 사용)
@@ -145,12 +146,21 @@ const RankingPage: React.FC = () => {
           if (data && data.ranking && Array.isArray(data.ranking)) {
             // API 응답을 애플리케이션 타입으로 명시적 변환
             const apiRankings = data.ranking as ArenaRankingApiUser[];
-            setRankings(apiRankings);
+            
+            // 점수순으로 정렬하고 랭킹 부여
+            const rankedUsers = apiRankings
+              .sort((a, b) => b.score - a.score)
+              .map((user, index) => ({
+                ...user,
+                rank: index + 1 // 점수 기준으로 랭킹 부여
+              }));
+              
+            setRankings(rankedUsers);
             setTotalPages(data.totalPage || 1);
 
             // 첫 로드 시에만 상위 3명 설정
             if (isFirstLoad.current && currentPage === 1) {
-              const topUsers = apiRankings.filter((user) => user.rank <= 3);
+              const topUsers = rankedUsers.slice(0, 3);
               setTopThreeUsers(topUsers);
               isFirstLoad.current = false;
             }
@@ -271,7 +281,7 @@ const RankingPage: React.FC = () => {
           {/* 헤더 */}
           <div className="flex items-center justify-between px-4 py-3 border-b">
             <div className="flex items-center">
-              <span className="font-bold text-lg">#{user.rank}</span>
+              <span className="font-bold text-lg">#{user.rank || '-'}</span>
               <div
                 className="flex items-center ml-2 cursor-pointer"
                 onClick={() => handleGoToProfile(user.userId)}
@@ -324,9 +334,9 @@ const RankingPage: React.FC = () => {
               </div>
 
               <div className="mb-6 bg-gray-50 rounded-lg p-4">
-                <h3 className="text-gray-600 text-sm mb-2">정답 횟수</h3>
+                <h3 className="text-gray-600 text-sm mb-2">점수</h3>
                 <p className="text-xl font-bold text-pic-primary">
-                  {"correctCount" in user ? user.correctCount : "-"}
+                  {"score" in user ? user.score : "-"}
                 </p>
               </div>
 
@@ -334,7 +344,7 @@ const RankingPage: React.FC = () => {
                 <div>
                   <h3 className="text-gray-500 text-sm mb-1">랭킹</h3>
                   <p className="font-bold text-xl text-pic-primary">
-                    #{user.rank}
+                    #{user.rank || '-'}
                   </p>
                 </div>
                 <div>
@@ -378,7 +388,7 @@ const RankingPage: React.FC = () => {
                   <div>
                     <h3 className="text-gray-500 text-sm mb-1">랭킹</h3>
                     <p className="font-bold text-xl text-pic-primary">
-                      #{user.rank}
+                      #{user.rank || '-'}
                     </p>
                   </div>
                   <div>
@@ -486,9 +496,12 @@ const RankingPage: React.FC = () => {
   };
 
   // 상위 3명 데이터 가져오기
-  const firstPlace = topThreeUsers.find((user) => user.rank === 1);
-  const secondPlace = topThreeUsers.find((user) => user.rank === 2);
-  const thirdPlace = topThreeUsers.find((user) => user.rank === 3);
+  const firstPlace = topThreeUsers.find((user) => user.rank === 1) || 
+                     (topThreeUsers.length > 0 ? topThreeUsers[0] : undefined);
+  const secondPlace = topThreeUsers.find((user) => user.rank === 2) ||
+                      (topThreeUsers.length > 1 ? topThreeUsers[1] : undefined);
+  const thirdPlace = topThreeUsers.find((user) => user.rank === 3) ||
+                     (topThreeUsers.length > 2 ? topThreeUsers[2] : undefined);
 
   // 랭킹 유형에 따른 제목 반환
   const getRankingTitle = () => {
@@ -653,12 +666,12 @@ const RankingPage: React.FC = () => {
                 <div className="text-left pl-6">
                   <span
                     className={`inline-flex items-center justify-center font-bold ${
-                      user.rank <= 3
+                      (user.rank && user.rank <= 3)
                         ? "text-pic-primary text-lg"
                         : "text-gray-700"
                     }`}
                   >
-                    {user.rank}
+                    {user.rank || (index + 1)}
                   </span>
                 </div>
                 <div className="flex items-center -ml-11">
@@ -695,7 +708,7 @@ const RankingPage: React.FC = () => {
                   </span>
                 </div>
                 <div className="text-center font-medium text-gray-700">
-                  {"correctCount" in user ? user.correctCount : "-"}
+                  {"score" in user ? user.score : "-"}
                 </div>
               </li>
             ))}
@@ -714,12 +727,12 @@ const RankingPage: React.FC = () => {
                 <div className="text-left pl-6">
                   <span
                     className={`inline-flex items-center justify-center font-bold ${
-                      user.rank <= 3
+                      (user.rank && user.rank <= 3)
                         ? "text-pic-primary text-lg"
                         : "text-gray-700"
                     }`}
                   >
-                    {user.rank}
+                    {user.rank || (index + 1)}
                   </span>
                 </div>
                 <div className="flex items-center -ml-11">

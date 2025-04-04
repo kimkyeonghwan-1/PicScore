@@ -210,18 +210,9 @@ const ArenaResultPage: React.FC = () => {
     navigate("/arena");
   }; // 랭킹 보기 핸들러
 
-  const handleViewRanking = async () => {
-    try {
-      // 랭킹 조회 API 호출 (첫 페이지)
-      await arenaApi.getArenaRanking(1); // 애니메이션 모달 표시 후 랭킹 페이지로 이동
-
-      setModalDestination("ranking");
-      setShowModal(true);
-    } catch (error) {
-      console.error("랭킹 조회 실패:", error); // 오류가 발생해도 랭킹 페이지로 이동
-      setModalDestination("ranking");
-      setShowModal(true);
-    }
+  const handleViewRanking = () => {
+    // 모달 표시 없이 바로 랭킹 페이지로 이동
+    navigate("/ranking");
   }; // 모달 닫기 핸들러
 
   const handleCloseModal = () => {
