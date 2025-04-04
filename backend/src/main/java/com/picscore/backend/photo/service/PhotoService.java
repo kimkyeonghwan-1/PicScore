@@ -95,7 +95,13 @@ public class PhotoService {
      * @throws IOException 파일 처리 중 발생할 수 있는 입출력 예외
      */
     @Transactional
-    public ResponseEntity<BaseResponse<UploadPhotoResponse>> uploadFile(MultipartFile file) throws IOException {
+    public ResponseEntity<BaseResponse<UploadPhotoResponse>> uploadFile(
+            MultipartFile file) throws IOException {
+
+        if (file == null || file.isEmpty()) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "업로드 파일이 유효하지 않습니다");
+        }
+
         // UUID를 사용하여 고유한 파일명 생성
         String fileName = UUID.randomUUID() + getFileExtension(file.getOriginalFilename());
 
@@ -144,7 +150,13 @@ public class PhotoService {
      * @return String 업로드된 파일의 URL
      * @throws IOException 파일 처리 중 발생할 수 있는 입출력 예외
      */
-    public String uploadProfileFile(MultipartFile file) throws IOException {
+    public String uploadProfileFile(
+            MultipartFile file) throws IOException {
+
+        if (file == null || file.isEmpty()) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "업로드 파일이 유효하지 않습니다");
+        }
+
         String fileName = UUID.randomUUID() + "." + getFileExtension(file.getOriginalFilename());
         String tempFolder = "profile/";
 
