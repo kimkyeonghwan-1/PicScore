@@ -3,6 +3,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../../store/authStore";
 import { useLogout } from "../../../hooks/useUser";
+import { testApi } from "../../../api/api";
 
 interface ProfileHeaderProps {
   profile: {
@@ -36,8 +37,25 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   };
 
   // 업적 페이지로 이동
-  const handleAchievementClick = () => {
-    navigate("/archieve");
+  const handleAchievementClick = async () => {
+    try {
+      // 먼저 badge/complete API를 호출하여 업적 상태 확인 및 갱신
+      const response = await testApi.post("/api/v1/badge/complete", {}, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      });
+      
+      console.log("업적 상태 확인 결과:", response.data);
+      
+      // 업적 페이지로 이동
+      navigate("/archieve");
+    } catch (error) {
+      console.error("업적 상태 확인 중 오류:", error);
+      // 오류가 발생해도 업적 페이지로 이동
+      navigate("/archieve");
+    }
   };
 
   return (

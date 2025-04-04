@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -183,9 +184,9 @@ public class PhotoController {
      */
     @GetMapping("/photos/{pageNum}")
     public ResponseEntity<BaseResponse<Map<String, Object>>> getPaginatedPhotos(
-            @PathVariable int pageNum) {
+            @PathVariable int pageNum, @RequestParam(required = false) String sort) {
 
-        Map<String, Object> response = photoService.getPaginatedPhotos(pageNum);
+        Map<String, Object> response = photoService.getPaginatedPhotos(pageNum, sort);
 
         return ResponseEntity.ok(BaseResponse.success("사진 리스트 조회 성공", response));
     }

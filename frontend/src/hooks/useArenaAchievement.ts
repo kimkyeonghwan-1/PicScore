@@ -1,5 +1,4 @@
 import { useCallback } from "react";
-import { achievementApi } from "../api/achievementApi";
 
 export const useArenaAchievement = () => {
   const checkArenaAchievement = useCallback(async (correctCount: number) => {
