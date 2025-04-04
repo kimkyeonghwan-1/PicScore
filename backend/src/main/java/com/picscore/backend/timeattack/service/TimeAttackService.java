@@ -173,7 +173,7 @@ public class TimeAttackService {
             final float adjustedTime = time / 20f;
 
             // 응답 자체가 유효하지 않은 경우 예외 처리
-            if (response == null || response.getBody() == null) {
+            if (response == null || response.getBody() == null || response.getBody().getTags() == null) {
                 throw new CustomException(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 분석 결과가 유효하지 않습니다");
             }
 
