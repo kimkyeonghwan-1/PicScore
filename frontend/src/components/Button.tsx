@@ -7,6 +7,7 @@ interface ButtonProps {
   textSize?: "md" | "lg" | "xl" | "2xl";
   onClick?: () => void;
   children: ReactNode;
+  disabled?: boolean;
 }
 
 function Button({
@@ -16,6 +17,7 @@ function Button({
   textSize,
   onClick,
   children,
+  disabled,
 }: ButtonProps) {
   const colorClasses = {
     green:
@@ -30,9 +32,9 @@ function Button({
       className={`w-${width} h-${height} px-5 py-3 rounded-sm shadow-[0px_0px_5px_-2px_gray]
       touch-action-manipulation transition-colors duration-150 cursor-pointer
       flex items-center justify-center text-center text-${textSize}
-      ${colorClasses[color]}`}
+      ${colorClasses[color]} ${disabled ? 'opacity-70 cursor-not-allowed' : ''}`}
       onClick={onClick}
-      disabled={color === "gray"}
+      disabled={color === "gray" || disabled}
     >
       {children}
     </button>
