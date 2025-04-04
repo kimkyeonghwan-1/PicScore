@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { testApi } from "../../api/api";
-import ContentNavBar from "../../components/NavBar/ContentNavBar";
 import Modal from "../../components/Modal";
 
 // 컴포넌트 임포트
@@ -144,8 +143,11 @@ const AchievementPage: React.FC = () => {
   const [selectedBadgeId, setSelectedBadgeId] = useState<string | undefined>(
     undefined
   );
-  const [newlyAchievedBadge, setNewlyAchievedBadge] = useState<Badge | null>(null);
-  const [showAchievementModal, setShowAchievementModal] = useState<boolean>(false);
+  const [newlyAchievedBadge, setNewlyAchievedBadge] = useState<Badge | null>(
+    null
+  );
+  const [showAchievementModal, setShowAchievementModal] =
+    useState<boolean>(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -164,27 +166,29 @@ const AchievementPage: React.FC = () => {
         setSelectionMode(true);
         setSelectedBadgeId(currentBadgeId);
       }
-      
+
       // 업적 확인 결과 처리
       const { badgeCheckResult } = location.state as {
         badgeCheckResult?: Record<string, string>;
       };
-      
+
       if (badgeCheckResult) {
         // 배지 상태 정보 처리
         const newlyAchievedBadges = Object.entries(badgeCheckResult)
           .filter(([key, value]) => value === "달성")
           .map(([key]) => key);
-        
+
         console.log("새로 달성한 배지:", newlyAchievedBadges);
-        
+
         // 새로 달성한 배지가 있으면 처리
         if (newlyAchievedBadges.length > 0) {
           // 배지 정보 새로 불러오기
           fetchBadges().then(() => {
             // 배지 정보가 로드된 후 처리
             setTimeout(() => {
-              const firstAchievedBadge = badges.find(badge => badge.id === newlyAchievedBadges[0]);
+              const firstAchievedBadge = badges.find(
+                (badge) => badge.id === newlyAchievedBadges[0]
+              );
               if (firstAchievedBadge) {
                 setNewlyAchievedBadge(firstAchievedBadge);
                 setShowAchievementModal(true);
@@ -223,7 +227,7 @@ const AchievementPage: React.FC = () => {
         console.log(`총 ${formattedBadges.length}개 중 ${achieved}개 달성`);
         setAchievedCount(achieved);
         setTotalCount(formattedBadges.length);
-        
+
         return formattedBadges;
       } else {
         setError("배지 데이터 형식이 올바르지 않습니다.");
@@ -285,7 +289,6 @@ const AchievementPage: React.FC = () => {
 
   return (
     <div className="flex flex-col w-full max-w-md mx-auto bg-gray-50 min-h-screen">
-      <ContentNavBar content="업적" />
       <div className="p-4">
         {/* 업적 달성도 */}
         <div className="bg-white rounded-lg shadow-sm p-4 mb-4 border border-gray-200">
@@ -425,7 +428,7 @@ const AchievementPage: React.FC = () => {
             <p>달성한 배지를 선택하면 프로필에 표시됩니다.</p>
           </div>
         )}
-        
+
         {/* 선택 모드 버튼 (백엔드 API 구현 완료 후 주석 해제) */}
         {/* 
         {!selectionMode && achievedCount > 0 && (
@@ -440,38 +443,48 @@ const AchievementPage: React.FC = () => {
         )}
         */}
       </div>
-      
+
       {/* 업적 달성 축하 모달 */}
       {showAchievementModal && newlyAchievedBadge && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-sm w-full p-6 text-center animate-fadeIn">
             <div className="mb-4">
               <div className="w-20 h-20 mx-auto relative">
-                <img 
-                  src={newlyAchievedBadge.image} 
-                  alt={newlyAchievedBadge.name} 
+                <img
+                  src={newlyAchievedBadge.image}
+                  alt={newlyAchievedBadge.name}
                   className="w-full h-full object-contain"
                 />
                 <div className="absolute -right-2 -top-2 bg-green-500 text-white p-1 rounded-full">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                 </div>
               </div>
             </div>
-            
+
             <h3 className="text-2xl font-bold text-gray-800 mb-2">
-              업적 달성 축하합니다!  🎉
+              업적 달성 축하합니다! 🎉
             </h3>
-            
+
             <div className="text-xl font-bold text-pic-primary mb-4">
               {newlyAchievedBadge.name}
             </div>
-            
+
             <p className="text-gray-600 mb-6">
               {newlyAchievedBadge.description}
             </p>
-            
+
             <button
               onClick={() => setShowAchievementModal(false)}
               className="w-full bg-pic-primary text-white py-3 rounded-lg font-medium hover:bg-pic-primary/90 transition-colors"
