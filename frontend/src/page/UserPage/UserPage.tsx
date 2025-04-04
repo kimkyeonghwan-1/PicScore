@@ -110,7 +110,7 @@ const UserPage: React.FC<UserPageProps> = ({ userId, apiEndpoint }) => {
           averageScore: statsData.scoreAvg,
           contestRank: "N/A", // 실제 데이터로 교체 필요
           timeAttackRank: statsData.timeAttackRank.toString(),
-          arenaRank: statsData.arenaRank ? statsData.arenaRank.toString() : "0",
+          arenaRank: "N/A",
         });
 
         // 사진 정보 처리
@@ -154,7 +154,7 @@ const UserPage: React.FC<UserPageProps> = ({ userId, apiEndpoint }) => {
           averageScore: statsData.scoreAvg,
           contestRank: "N/A", // 실제 데이터로 교체 필요
           timeAttackRank: statsData.timeAttackRank.toString(),
-          arenaRank: statsData.arenaRank ? statsData.arenaRank.toString() : "0",
+          arenaRank: "N/A",
         });
 
         // 사진 정보 처리 - 다른 사용자의 경우 항상 공개 사진
