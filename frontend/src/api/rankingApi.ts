@@ -27,7 +27,7 @@ export const rankingApi = {
   // 타임어택 랭킹 조회
   getRanking: (pageNum: number) => {
     return testApi.get<BaseResponse<RankingData>>(
-      `/api/v1/activity/time-attack/${pageNum}`
+      `/api/v1/time-attack/${pageNum}`
     );
   },
 };

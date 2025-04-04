@@ -52,7 +52,10 @@ export const achievementApi = {
       }
 
       // 사용자 활동 데이터 가져오기
-      const activityResponse = await testApi.get("/api/v1/user/activity", {});
+      const activityResponse = await testApi.get(
+        "/api/v1/user/time-attack",
+        {}
+      );
 
       const activityData = activityResponse.data.data;
 

@@ -135,40 +135,44 @@ const ArenaResultPage: React.FC = () => {
     "ranking"
   );
 
-  // 컴포넌트 마운트 시 데이터 확인
+  // 컴포넌트 마운트 시 데이터 확인 및 결과 저장
   useEffect(() => {
     // 세션 스토리지에서 결과 데이터 가져오기
     const storedResult = sessionStorage.getItem("arenaResult");
 
     if (!storedResult) {
-    // 결과 데이터가 없으면 게임 페이지로 리다이렉트
-    navigate("/arena");
-    return;
+      // 결과 데이터가 없으면 게임 페이지로 리다이렉트
+      navigate("/arena");
+      return;
     }
 
     try {
-    const parsedResult = JSON.parse(storedResult);
-    
-    // 결과 데이터 설정
+      const parsedResult = JSON.parse(storedResult);
+      
+      // 결과 데이터 설정
       setResultData(parsedResult);
-        setIsLoading(false);
-      } catch (error) {
+      setIsLoading(false);
+      
+      // 결과 자동 저장 - 페이지 로드 시 바로 실행
+      saveResult(parsedResult);
+    } catch (error) {
       console.error("결과 데이터 파싱 오류:", error);
       navigate("/arena");
     }
   }, [navigate]);
 
   // 결과 저장
-  const saveResult = async () => {
+  const saveResult = async (resultDataParam?: ArenaResultData) => {
     try {
-      if (!resultData) return;
+      const dataToUse = resultDataParam || resultData;
+      if (!dataToUse) return;
 
       setIsSaving(true);
 
       // 백엔드에 결과 전송
       const requestData: SaveArenaResultRequest = {
-        correct: resultData.partialCorrectCount, // 맞은 개수 (0~4)
-        time: resultData.remainingTime, // 남은 시간
+        correct: dataToUse.partialCorrectCount, // 맞은 개수 (0~4)
+        time: dataToUse.remainingTime, // 남은 시간
       };
 
       const response = await arenaApi.saveArenaResult(requestData);
@@ -178,10 +182,11 @@ const ArenaResultPage: React.FC = () => {
       setXpEarned(responseData.xp);
 
       console.log("저장 결과:", responseData);
-
-      // 애니메이션 모달 표시 (저장 성공 후)
-      setModalDestination("ranking");
-      setShowModal(true);
+      
+      // 결과가 이미 저장됨을 표시
+      const updatedResultData = { ...dataToUse, resultSaved: true };
+      setResultData(updatedResultData);
+      sessionStorage.setItem("arenaResult", JSON.stringify(updatedResultData));
     } catch (error) {
       console.error("결과 저장 실패:", error);
       setError("결과 저장 중 오류가 발생했습니다. 다시 시도해 주세요.");
@@ -198,8 +203,10 @@ const ArenaResultPage: React.FC = () => {
   };
 
   // 랭킹 보기 핸들러
-  const handleViewRanking = async () => {
-    await saveResult();
+  const handleViewRanking = () => {
+    // 애니메이션 모달 표시 후 랭킹 페이지로 이동
+    setModalDestination("ranking");
+    setShowModal(true);
   };
 
   // 모달 닫기 핸들러

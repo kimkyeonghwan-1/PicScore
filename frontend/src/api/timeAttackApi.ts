@@ -47,7 +47,7 @@ export const timeAttackApi = {
   // 타임어택 랭킹 조회
   getRanking: (pageNum: number) => {
     return testApi.get<BaseResponse<RankingData>>(
-      `/api/v1/activity/time-attack/${pageNum}`
+      `/api/v1/time-attack/${pageNum}`
     );
   },
 
@@ -88,7 +88,7 @@ export const timeAttackApi = {
     formData.append("time", timeleft.toString()); // 남은 시간 추가
 
     return testApi.post<BaseResponse<AnalysisResponse>>(
-      "/api/v1/activity/analysis",
+      "/api/v1/time-attack/analysis",
       formData,
       {
         headers: {
@@ -100,7 +100,7 @@ export const timeAttackApi = {
 
   // 타임어택 결과 저장
   saveTimeAttackResult: (data: SaveTimeAttackRequest) => {
-    return testApi.post<BaseResponse<void>>("/api/v1/activity/save", data, {
+    return testApi.post<BaseResponse<void>>("/api/v1/time-attack/save", data, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -112,13 +112,13 @@ export const timeAttackApi = {
 
   // 내 타임어택 기록 조회
   getMyTimeAttackHistory: () => {
-    return testApi.get<BaseResponse<any>>("/api/v1/activity/my-history");
+    return testApi.get<BaseResponse<any>>("/api/v1/time-attack/my-history");
   },
 
   // 특정 사용자의 타임어택 기록 조회
   getUserTimeAttackHistory: (userId: number) => {
     return testApi.get<BaseResponse<any>>(
-      `/api/v1/activity/user-history/${userId}`
+      `/api/v1/time-attack/user-history/${userId}`
     );
   },
 };
