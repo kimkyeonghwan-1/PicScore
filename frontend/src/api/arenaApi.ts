@@ -70,15 +70,11 @@ export const arenaApi = {
 
   // 아레나 결과 저장
   saveArenaResult: (data: SaveArenaResultRequest) => {
-    return testApi.post<BaseResponse<ArenaResultResponse>>(
-      "/api/v2/arena/result",
-      data,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    return testApi.post<BaseResponse<number>>("/api/v2/arena/result", data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   },
 
   // 아레나 랭킹 조회
