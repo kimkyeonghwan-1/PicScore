@@ -40,7 +40,7 @@ Sentry.init({
   ],
   environment: import.meta.env.MODE, // 현재 환경 구분 (대시보드에서 필터링용)
   release: "1.0.0", // 현재 배포 버전
-  debug: import.meta.env.DEV, // 개발중 Sentry 작동 방식
+  // debug: import.meta.env.DEV, // 개발중 Sentry 작동 방식
 
   beforeSend(event) {
     //에러 이벤트를 서버로 전송하기 직전에 호출되는 콜백함수 (전송되는 데이터 추가,수정 및 필터링 가능)
@@ -92,11 +92,11 @@ const queryClient = new QueryClient({
 Sentry.setTag("app_version", "1.0.0");
 
 createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <Sentry.ErrorBoundary fallback={ErrorPage}>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
-    </Sentry.ErrorBoundary>
-  </React.StrictMode>
+  // <React.StrictMode>
+  <Sentry.ErrorBoundary fallback={ErrorPage}>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  </Sentry.ErrorBoundary>
+  // </React.StrictMode>
 );
