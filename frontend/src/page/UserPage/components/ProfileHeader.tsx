@@ -49,8 +49,12 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       
       console.log("업적 상태 확인 결과:", response.data);
       
-      // 업적 페이지로 이동
-      navigate("/archieve");
+      // 업적 페이지로 이동 (응답 데이터를 state로 전달)
+      navigate("/archieve", {
+        state: {
+          badgeCheckResult: response.data.data
+        }
+      });
     } catch (error) {
       console.error("업적 상태 확인 중 오류:", error);
       // 오류가 발생해도 업적 페이지로 이동
