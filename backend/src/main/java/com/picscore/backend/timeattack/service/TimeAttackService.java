@@ -172,23 +172,16 @@ public class TimeAttackService {
             time = Float.parseFloat(request.getTime());
             final float adjustedTime = time / 20f;
 
+
             // 응답 자체가 유효하지 않은 경우 예외 처리
-            if (response == null || response.getBody() == null || response.getBody().getTags() == null) {
+            if (response == null || response.getBody() == null) {
                 throw new CustomException(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 분석 결과가 유효하지 않습니다");
             }
 
-            // 2. Null-Safe 스트림 처리
-            List<AnalysisPhotoResponse> analysisResults = Optional.ofNullable(response.getBody().getTags())
-                    .orElseGet(Collections::emptyList)
-                    .stream()
-                    .filter(Objects::nonNull)  // 리스트 내부의 null 태그 제거
-                    .map(tag -> {
-                        // 필드 값 안전 추출
-                        String name = Optional.ofNullable(tag.getName()).orElse("Unknown");
-                        float confidence = tag.getConfidence();  // float는 null 체크 불필요
-                        float score = confidence * 0.7f + adjustedTime * 0.3f;
-                        return new AnalysisPhotoResponse(name, confidence, score);
-                    })
+            // API 응답에서 태그 정보 추출 및 변환
+            List<AnalysisPhotoResponse> analysisResults = response.getBody().getTags().stream()
+                    .map(tag -> new AnalysisPhotoResponse(
+                            tag.getName(), tag.getConfidence(), tag.getConfidence() * 0.7f + adjustedTime * 0.3f))
                     .collect(Collectors.toList());
 
             // 요청된 주제와 일치하는 태그 중 가장 높은 신뢰도를 가진 태그 선택
