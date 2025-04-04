@@ -56,42 +56,60 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('Parallel Analysis and Build') {
             when {
-                     branch 'develop'
-            }
-            steps {
-                // 백엔드 분석
-                dir('backend') {
-                    withCredentials([string(credentialsId: 'sonarqube-backend-token', variable: 'SONAR_BACK_TOKEN')]) {
-                        sh "chmod +x ./gradlew"
-                        sh """
-                        ./gradlew clean build -x test
-                        ./gradlew sonarqube \
-                            -Dsonar.projectKey=${SONAR_PROJECT_KEY_BACKEND} \
-                            -Dsonar.host.url=${SONAR_HOST} \
-                            -Dsonar.login=${SONAR_BACK_TOKEN} \
-                        """
-                    }
-                }
-                
-                // 프론트엔드 분석
-                dir('frontend') {
-                    withCredentials([string(credentialsId: 'sonarqube-frontend-token', variable: 'SONAR_FRONT_TOKEN')]) {
-                        sh """
-                        npm install
-                        npx sonar-scanner \
-                            -Dsonar.projectKey=${SONAR_PROJECT_KEY_FRONTEND} \
-                            -Dsonar.host.url=${SONAR_HOST} \
-                            -Dsonar.login=${SONAR_FRONT_TOKEN} \
-                            -Dsonar.tests='' \
-                            -Dsonar.test.inclusions='' \
-                            -Dsonar.coverage.exclusions='**/*'
-                        """
-                    }
+                anyOf {
+                    branch 'develop'
                 }
             }
-        }
+            parallel {
+                stage('SonarQube Analysis') {
+                    stages {
+                        stage('Backend & Frontend Analysis') {
+                            parallel {
+                                stage('Backend Analysis') {
+                                    steps {
+                                        dir('backend') {
+                                            withCredentials([string(credentialsId: 'sonarqube-backend-token', variable: 'SONAR_BACK_TOKEN')]) {
+                                                sh "chmod +x ./gradlew"
+                                                sh """
+                                                ./gradlew clean build jacocoTestReport
+                                                ./gradlew sonarqube \
+                                                    -Dsonar.projectKey=${SONAR_PROJECT_KEY_BACKEND} \
+                                                    -Dsonar.host.url=${SONAR_HOST} \
+                                                    -Dsonar.login=${SONAR_BACK_TOKEN}
+                                                """
+                                            }
+                                        }
+                                    }
+                                }
+                                stage('Frontend Analysis') {
+                                    steps {
+                                        dir('frontend') {
+                                            withCredentials([string(credentialsId: 'sonarqube-frontend-token', variable: 'SONAR_FRONT_TOKEN')]) {
+                                                sh """
+                                                npm install
+                                                npm run lint
+                                                npx sonar-scanner \
+                                                    -Dsonar.projectKey=${SONAR_PROJECT_KEY_FRONTEND} \
+                                                    -Dsonar.host.url=${SONAR_HOST} \
+                                                    -Dsonar.login=${SONAR_FRONT_TOKEN}
+                                                """
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        stage('Quality Gate') {
+                            steps {
+                                timeout(time: 3, unit: 'MINUTES') {
+                                    waitForQualityGate abortPipeline: false, credentialsId: 'sonarqube-backend-token'
+                                }
+                            }
+                        }
+                    }
+                }
 
         stage('Build and Deploy') {
             parallel {
@@ -263,16 +281,17 @@ pipeline {
     post {
         success {
             script {
-                if (env.BRANCH_NAME == 'develop' || env.BRANCH_NAME == 'backend' || env.BRANCH_NAME == 'backend') {
+                if (env.BRANCH_NAME == 'develop' || env.BRANCH_NAME == 'backend' || env.BRANCH_NAME == 'frontend') {
                     echo '개발 환경(EC2) 배포 성공'
                 } else if (env.BRANCH_NAME == 'master') {
                     echo '운영 환경(GCP) 배포 성공'
                 }
             }
+            echo '코드 품질 검사 및 배포 파이프라인 완료'
         }
         failure {
             script {
-                if (env.BRANCH_NAME == 'develop' || env.BRANCH_NAME == 'backend' || env.BRANCH_NAME == 'backend') {
+                if (env.BRANCH_NAME == 'develop' || env.BRANCH_NAME == 'backend' || env.BRANCH_NAME == 'frontend') {
                     echo '개발 환경(EC2) 배포 실패'
                 } else if (env.BRANCH_NAME == 'master') {
                     echo '운영 환경(GCP) 배포 실패'
