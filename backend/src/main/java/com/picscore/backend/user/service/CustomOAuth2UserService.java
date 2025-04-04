@@ -4,6 +4,7 @@ import com.picscore.backend.user.model.dto.CustomOAuth2User;
 import com.picscore.backend.user.model.dto.UserDto;
 import com.picscore.backend.user.model.entity.User;
 import com.picscore.backend.user.model.response.GoogleResponse;
+import com.picscore.backend.user.model.response.KakaoResponse;
 import com.picscore.backend.user.model.response.OAuth2Response;
 import com.picscore.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,8 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -33,32 +36,44 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
         System.out.println("oAuth2User = " + oAuth2User);
 
-        // 클라이언트 등록 ID 확인 (예: google, facebook 등)
+        // 클라이언트 등록 ID 확인 (예: google, naver 등)
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
         OAuth2Response oAuth2Response = null;
 
         // Google 로그인 처리
         if (registrationId.equals("google")) {
             oAuth2Response = new GoogleResponse(oAuth2User.getAttributes());
-        } else {
+        }
+        // Kakao 로그인 처리
+        else if (registrationId.equals("kakao")) {
+            oAuth2Response = new KakaoResponse((Map<String, Object>) oAuth2User.getAttributes());
+        }
+        else {
             return null; // 지원하지 않는 OAuth 제공자일 경우 null 반환
         }
 
+        // 이름을 "이름_google" 또는 "이름_kakao" 형식으로 변환
+        String formattedName = oAuth2Response.getName() + "_" + registrationId;
+
         // 소셜 ID로 기존 사용자 조회
         User existData = userRepository.findBySocialId(oAuth2Response.getProviderId());
+
+        // 처음 온 유저인지 확인하는 변수
+        boolean firstUser = false;
 
         if (existData == null) {
             // 기존 데이터가 없을 경우 새 사용자 생성 및 저장
             User user = new User(
                     oAuth2Response.getProviderId(),
                     oAuth2Response.getProvider(),
-                    oAuth2Response.getName(),
+                    formattedName, // 변환된 이름 사용
                     oAuth2Response.getProfileImage(),
                     "상태메시지를 작성해주세요!",
                     0,
                     0
             );
 
+            firstUser = true;
             userRepository.save(user);
         }
 
@@ -66,7 +81,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         UserDto userDto = new UserDto(
                 oAuth2Response.getProviderId(),
                 oAuth2Response.getName(),
-                "ROLE_USER"
+                "ROLE_USER",
+                firstUser
         );
 
         return new CustomOAuth2User(userDto);

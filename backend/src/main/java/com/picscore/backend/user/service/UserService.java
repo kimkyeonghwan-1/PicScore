@@ -83,21 +83,6 @@ public class UserService {
         // JWT에서 닉네임(유저 식별자) 추출
         String accessToken = accessTokenCookie.get().getValue();
 
-//        // 헤더에서 Authorization 값 추출
-//        String authHeader = request.getHeader("Authorization");
-//
-//        // Authorization 헤더가 없거나 'Bearer '로 시작하지 않는 경우
-//        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-//            throw new CustomException(HttpStatus.BAD_REQUEST, "유효한 Authorization 헤더 없음");
-//        }
-//
-//        // 'Bearer ' 접두사 제거하여 실제 토큰 추출
-//        String accessToken = authHeader.substring(7);
-
-//        responses.addCookie(createCookie("access", accessToken));
-        // 여기까지 개발 환경
-
-
         String nickName = jwtUtil.getNickName(accessToken);
 
         // 유효하지 않은 토큰인 경우

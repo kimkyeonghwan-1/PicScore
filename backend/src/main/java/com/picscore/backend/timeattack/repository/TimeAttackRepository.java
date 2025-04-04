@@ -45,6 +45,10 @@ public interface TimeAttackRepository extends JpaRepository<TimeAttack, Long> {
     """)
     List<TimeAttack> findHighestScoresAllUser();
 
+    int countByUserId(Long userId);
 
+    Boolean existsByUserIdAndRanking(Long userId, int ranking);
+
+    Boolean existsByUserIdAndScoreGreaterThanEqual(Long userId, float score);
 
 }

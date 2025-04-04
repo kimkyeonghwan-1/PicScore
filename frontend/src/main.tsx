@@ -92,11 +92,11 @@ const queryClient = new QueryClient({
 Sentry.setTag("app_version", "1.0.0");
 
 createRoot(document.getElementById("root")!).render(
-  // <React.StrictMode>
-  <Sentry.ErrorBoundary fallback={ErrorPage}>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  </Sentry.ErrorBoundary>
-  // </React.StrictMode>
+  <React.StrictMode>
+    <Sentry.ErrorBoundary fallback={ErrorPage}>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </Sentry.ErrorBoundary>
+  </React.StrictMode>
 );

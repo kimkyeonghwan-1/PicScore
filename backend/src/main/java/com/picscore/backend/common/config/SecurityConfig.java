@@ -105,7 +105,8 @@ public class SecurityConfig {
         // URL 별 접근 권한 설정
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/", "/api/v1/user", "/api/v1/photo", "/api/v1/image/analyze").permitAll()
+                        .requestMatchers("/", "/api/v1/photo", "/api/v1/image/analyze").permitAll()
+                        .requestMatchers("/api/v1/user/{type}").permitAll()
                         .requestMatchers("/api/v1/user/photo/{userId}").permitAll()
                         .requestMatchers("/api/v1/photo/{photoId}").permitAll()
                         .anyRequest().authenticated());

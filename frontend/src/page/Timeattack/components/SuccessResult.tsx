@@ -54,7 +54,7 @@ const SuccessResult: React.FC<SuccessResultProps> = ({
     if (onViewRanking) {
       onViewRanking();
     } else {
-      navigate("/ranking");
+      navigate("/ranking", { state: { from: "timeattack-result" } });
     }
   };
 
