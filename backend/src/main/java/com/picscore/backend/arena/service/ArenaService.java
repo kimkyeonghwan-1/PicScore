@@ -1,6 +1,7 @@
 package com.picscore.backend.arena.service;
 
 import com.picscore.backend.arena.model.ArenaPhotoResponse;
+import com.picscore.backend.arena.model.ArenaRankingResponse;
 import com.picscore.backend.arena.model.entity.Arena;
 import com.picscore.backend.arena.repository.ArenaRepository;
 import com.picscore.backend.common.exception.CustomException;
@@ -8,6 +9,8 @@ import com.picscore.backend.photo.repository.PhotoRepository;
 import com.picscore.backend.user.model.entity.User;
 import com.picscore.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,5 +97,54 @@ public class ArenaService {
         int year = now.getYear();
         int week = now.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
         return String.format("%d%02d", year, week);
+    }
+
+    /**
+     * 페이지별 TimeAttack 랭킹을 조회하는 메소드
+     *
+     * @param pageNum 조회할 페이지 번호 (1부터 시작)
+     * @return ResponseEntity<BaseResponse<Map<String, Object>>> 랭킹 정보를 포함한 응답
+     */
+    @Transactional
+    public Map<String, Object> getArenaRanking(
+            int pageNum) {
+        String activityWeek = getCurrentGameWeek();
+        // pageNum이 1보다 작은 경우 예외 처리
+        if (pageNum < 1) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "페이지 번호는 1 이상의 값이어야 합니다.");
+        }
+
+        // 페이지 요청 객체 생성 (페이지당 5개 항목)
+        PageRequest pageRequest = PageRequest.of(pageNum-1, 5);
+
+        // 레포지토리에서 사용자별 최고 점수 조회
+        Page<Arena> arenaPage = arenaRepository.getHighestScoresPerUser(activityWeek, pageRequest);
+
+        // 페이지 데이터 존재 여부 확인
+        if (pageNum > arenaPage.getTotalPages() || arenaPage.getContent().isEmpty()) {
+            throw new CustomException(HttpStatus.NOT_FOUND, "해당 페이지에 랭킹 정보가 없습니다");
+        }
+
+        List<ArenaRankingResponse> rankingResponses = new ArrayList<>();
+
+        // 조회된 arena 데이터를 GetRankingResponse 객체로 변환
+        for (int i = 0; i < arenaPage.getContent().size(); i++) {
+            Arena arena = arenaPage.getContent().get(i);
+
+            rankingResponses.add(new ArenaRankingResponse(
+                    arena.getUser().getId(),
+                    arena.getUser().getNickName(),
+                    arena.getUser().getProfileImage(),
+                    arena.getScore()
+            ));
+        }
+
+        // 응답 데이터 구성
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("totalPage", arenaPage.getTotalPages());
+        responseData.put("ranking", rankingResponses);
+
+        // 성공 응답 반환
+        return responseData;
     }
 }
