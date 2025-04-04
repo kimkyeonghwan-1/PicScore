@@ -135,11 +135,21 @@ public class PhotoService {
      * @return String 파일 확장자 (점 포함)
      */
     private String getFileExtension(String originalFileName) {
-        int extensionIndex = originalFileName.lastIndexOf(".");
-        if (extensionIndex > 0) {
-            return originalFileName.substring(extensionIndex);
+        // 1. null 또는 빈 문자열 체크
+        if (originalFileName == null || originalFileName.isEmpty()) {
+            return "";
         }
-        return "";
+
+        // 2. 마지막 점(.) 위치 찾기
+        int extensionIndex = originalFileName.lastIndexOf('.');
+
+        // 3. 유효성 검사 (점이 없거나, 첫 문자에 있을 경우 제외)
+        if (extensionIndex <= 0 || extensionIndex >= originalFileName.length() - 1) {
+            return "";
+        }
+
+        // 4. 소문자로 통일하여 반환 (선택사항)
+        return originalFileName.substring(extensionIndex);
     }
 
 
