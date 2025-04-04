@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "eslint . --format json --output-file eslint-report.json",
+    "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "sonar": "sonar-scanner"
   },
