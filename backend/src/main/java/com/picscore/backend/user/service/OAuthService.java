@@ -118,12 +118,6 @@ public class OAuthService {
             }
         }
 
-        // 개발 환경 임시 방편
-//        String authorizationHeader = request.getHeader("Authorization");
-//        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-//            access = authorizationHeader.substring(7); // "Bearer " 이후의 토큰을 추출
-//        }
-
         // JWT에서 닉네임 추출
         String nickName = jwtUtil.getNickName(access);
         // 닉네임으로 사용자 ID 조회

@@ -49,7 +49,6 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
             "ORDER BY COUNT(pl) DESC, p.createdAt DESC") // ← 동점시 최신순
     List<Object[]> findTop5PhotosWithLikeCount(Pageable pageable);
 
-<<<<<<< HEAD
     // 랜덤하게 is_public=true인 사진 4장 가져오기 (score 값이 중복되지 않도록)
     @Query(value = "SELECT p.photo_id, p.score, p.image_url FROM photo p " +
             "WHERE p.is_public = 1 AND p.photo_type = 'article' " +
@@ -60,7 +59,7 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
             ") " +
             "ORDER BY RAND() LIMIT 4", nativeQuery = true)
     List<Object[]> getRandomPublicPhotos();
-=======
+
     int countByUserId(Long userId);
 
     Boolean existsByUserIdAndScoreGreaterThanEqual(Long userId, Float score);
@@ -69,6 +68,4 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
 
     @Query("SELECT p.id FROM Photo p WHERE p.user.id = :userId")
     List<Long> findPhotoIdsByUserId(@Param("userId") Long userId);
-
->>>>>>> f58e4067ad472dc202eb513181017842f889131f
 }

@@ -27,6 +27,9 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     @Value("${LOGIN_SUCCESS}")
     private String successURL;
 
+    @Value("${FIRST_USER}")
+    private String agreementURL;
+
     /**
      * OAuth2 인증 성공 시 호출됩니다.
      * JWT 토큰을 생성하고 Redis에 Refresh 토큰을 저장한 후, 클라이언트에 쿠키를 설정합니다.
@@ -42,16 +45,9 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         
         // OAuth2User 정보 가져오기
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
-        
+
         String socialId = customUserDetails.getSocialId();
-        Boolean isExist = userRepository.existsBySocialId(socialId);
-        
-        String nickName = null;
-        if (isExist) {
-            nickName = userRepository.findNickNameBySocialId(socialId);
-        } else {
-            nickName = customUserDetails.getName();
-        }
+        String nickName = userRepository.findNickNameBySocialId(socialId);
 
         // 기기 정보 가져오기
         String userAgent = request.getHeader("User-Agent").toLowerCase();
@@ -59,11 +55,9 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         
         // Access Token 및 Refresh Token 생성
         String access = jwtUtil.createJwt("access", nickName, 600000L); // 10분 유효
-//        String access = jwtUtil.createJwt("access", nickName, 86400000L); // 1일 유효
         String refresh = jwtUtil.createJwt("refresh", nickName, 86400000L); // 1일 유효
 
         // Redis에 Refresh Token 저장
-//        String userKey = "refresh:" + userRepository.findIdByNickName(nickName);
         String userKey = "refresh:" + userRepository.findIdByNickName(nickName) + ":" + deviceType;
         redisUtil.setex(userKey, refresh, 86400L); // 1일 TTL
 
@@ -72,10 +66,12 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.addCookie(createCookie("refresh", refresh));
 
          //인증 성공 후 리다이렉트
-        response.sendRedirect(successURL);
-//        response.sendRedirect("https://picscore.net?loginSuccess=true");
-//         response.sendRedirect("https://j12b104.p.ssafy.io?loginSuccess=true");
-//        response.sendRedirect("http://localhost:5173?loginSuccess=true&access=" + access + "&refresh=" + refresh);
+        boolean firstUser = customUserDetails.getFistUser();
+        if (firstUser) {
+            response.sendRedirect(agreementURL);
+        } else {
+            response.sendRedirect(successURL);
+        }
     }
 
     /**
