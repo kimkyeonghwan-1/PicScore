@@ -3,11 +3,15 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { testApi } from "../../api/api";
 import ContentNavBar from "../../components/NavBar/ContentNavBar";
+import Modal from "../../components/Modal";
 
 // 컴포넌트 임포트
 import BadgeGrid from "./components/BadgeGrid";
 import ProgressBar from "./components/ProgressBar";
 import CategoryTabs from "./components/CategoryTabs";
+
+// 참고: 배지 선택 기능은 현재 비활성화(주석 처리)되어 있습니다.
+// 백엔드 API가 구현된 후 주석을 해제하여 사용하세요.
 
 const BADGE_NAME_MAPPING: Record<string, string> = {
   // 소셜 관련 배지
@@ -140,6 +144,8 @@ const AchievementPage: React.FC = () => {
   const [selectedBadgeId, setSelectedBadgeId] = useState<string | undefined>(
     undefined
   );
+  const [newlyAchievedBadge, setNewlyAchievedBadge] = useState<Badge | null>(null);
+  const [showAchievementModal, setShowAchievementModal] = useState<boolean>(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -147,57 +153,93 @@ const AchievementPage: React.FC = () => {
   // URL 상태 확인 - 선택 모드인지 체크
   useEffect(() => {
     if (location.state) {
+      // 선택 모드 확인
       const { selectionMode, currentBadgeId } = location.state as {
         selectionMode?: boolean;
         currentBadgeId?: string;
+        badgeCheckResult?: any;
       };
 
       if (selectionMode) {
         setSelectionMode(true);
         setSelectedBadgeId(currentBadgeId);
       }
+      
+      // 업적 확인 결과 처리
+      const { badgeCheckResult } = location.state as {
+        badgeCheckResult?: Record<string, string>;
+      };
+      
+      if (badgeCheckResult) {
+        // 배지 상태 정보 처리
+        const newlyAchievedBadges = Object.entries(badgeCheckResult)
+          .filter(([key, value]) => value === "달성")
+          .map(([key]) => key);
+        
+        console.log("새로 달성한 배지:", newlyAchievedBadges);
+        
+        // 새로 달성한 배지가 있으면 처리
+        if (newlyAchievedBadges.length > 0) {
+          // 배지 정보 새로 불러오기
+          fetchBadges().then(() => {
+            // 배지 정보가 로드된 후 처리
+            setTimeout(() => {
+              const firstAchievedBadge = badges.find(badge => badge.id === newlyAchievedBadges[0]);
+              if (firstAchievedBadge) {
+                setNewlyAchievedBadge(firstAchievedBadge);
+                setShowAchievementModal(true);
+              }
+            }, 500);
+          });
+        }
+      }
     }
-  }, [location]);
+  }, [location, badges.length]);
 
   // API에서 배지 정보 가져오기
-  useEffect(() => {
-    const fetchBadges = async () => {
-      setIsLoading(true);
-      setError(null);
+  const fetchBadges = async () => {
+    setIsLoading(true);
+    setError(null);
 
-      try {
-        // 배지 목록 API 호출
-        const response = await testApi.get("/api/v1/badge");
-        console.log("배지 API 응답:", response.data);
+    try {
+      // 배지 목록 API 호출
+      const response = await testApi.get("/api/v1/badge");
+      console.log("배지 API 응답:", response.data);
 
-        if (response.data?.data && Array.isArray(response.data.data)) {
-          const apiBadges: ApiBadge[] = response.data.data;
+      if (response.data?.data && Array.isArray(response.data.data)) {
+        const apiBadges: ApiBadge[] = response.data.data;
 
-          // API 응답에서 배지 정보 변환 - formatBadgeFromApi 함수 사용
-          const formattedBadges: Badge[] = apiBadges.map(formatBadgeFromApi);
+        // API 응답에서 배지 정보 변환 - formatBadgeFromApi 함수 사용
+        const formattedBadges: Badge[] = apiBadges.map(formatBadgeFromApi);
 
-          // 상태 업데이트
-          setBadges(formattedBadges);
-          setFilteredBadges(
-            filterBadgesByCategory(formattedBadges, activeCategory)
-          );
+        // 상태 업데이트
+        setBadges(formattedBadges);
+        setFilteredBadges(
+          filterBadgesByCategory(formattedBadges, activeCategory)
+        );
 
-          // 달성 카운트 업데이트
-          const achieved = formattedBadges.filter((b) => b.achieved).length;
-          console.log(`총 ${formattedBadges.length}개 중 ${achieved}개 달성`);
-          setAchievedCount(achieved);
-          setTotalCount(formattedBadges.length);
-        } else {
-          setError("배지 데이터 형식이 올바르지 않습니다.");
-        }
-      } catch (err) {
-        console.error("배지 API 호출 오류:", err);
-        setError("배지 정보를 불러오는 중 오류가 발생했습니다.");
-      } finally {
-        setIsLoading(false);
+        // 달성 카운트 업데이트
+        const achieved = formattedBadges.filter((b) => b.achieved).length;
+        console.log(`총 ${formattedBadges.length}개 중 ${achieved}개 달성`);
+        setAchievedCount(achieved);
+        setTotalCount(formattedBadges.length);
+        
+        return formattedBadges;
+      } else {
+        setError("배지 데이터 형식이 올바르지 않습니다.");
+        return [];
       }
-    };
+    } catch (err) {
+      console.error("배지 API 호출 오류:", err);
+      setError("배지 정보를 불러오는 중 오류가 발생했습니다.");
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  // 초기 및 카테고리 변경 시 배지 정보 갱신
+  useEffect(() => {
     fetchBadges();
   }, [activeCategory]);
 
@@ -243,6 +285,7 @@ const AchievementPage: React.FC = () => {
 
   return (
     <div className="flex flex-col w-full max-w-md mx-auto bg-gray-50 min-h-screen">
+      <ContentNavBar content="업적" />
       <div className="p-4">
         {/* 업적 달성도 */}
         <div className="bg-white rounded-lg shadow-sm p-4 mb-4 border border-gray-200">
@@ -294,14 +337,11 @@ const AchievementPage: React.FC = () => {
                         ? "border-pic-primary bg-green-50"
                         : "border-pic-primary border-opacity-30"
                       : "border-gray-300 bg-gray-100"
-                  } ${
-                    selectionMode && badge.achieved
-                      ? "cursor-pointer hover:bg-gray-50"
-                      : ""
                   }`}
-                  onClick={() =>
-                    selectionMode && badge.achieved && handleSelectBadge(badge)
-                  }
+                  // 백엔드 API 구현 후 주석 해제
+                  // onClick={() =>
+                  //  selectionMode && badge.achieved && handleSelectBadge(badge)
+                  // }
                 >
                   <div className="flex flex-col items-center">
                     <div className="relative w-16 h-16 mb-2 flex items-center justify-center">
@@ -385,7 +425,62 @@ const AchievementPage: React.FC = () => {
             <p>달성한 배지를 선택하면 프로필에 표시됩니다.</p>
           </div>
         )}
+        
+        {/* 선택 모드 버튼 (백엔드 API 구현 완료 후 주석 해제) */}
+        {/* 
+        {!selectionMode && achievedCount > 0 && (
+          <div className="mt-4">
+            <button 
+              onClick={() => setSelectionMode(true)}
+              className="w-full bg-pic-primary text-white py-3 rounded-lg font-medium hover:bg-pic-primary/90 transition-colors"
+            >
+              프로필 배지 선택하기
+            </button>
+          </div>
+        )}
+        */}
       </div>
+      
+      {/* 업적 달성 축하 모달 */}
+      {showAchievementModal && newlyAchievedBadge && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-sm w-full p-6 text-center animate-fadeIn">
+            <div className="mb-4">
+              <div className="w-20 h-20 mx-auto relative">
+                <img 
+                  src={newlyAchievedBadge.image} 
+                  alt={newlyAchievedBadge.name} 
+                  className="w-full h-full object-contain"
+                />
+                <div className="absolute -right-2 -top-2 bg-green-500 text-white p-1 rounded-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              업적 달성 축하합니다!  🎉
+            </h3>
+            
+            <div className="text-xl font-bold text-pic-primary mb-4">
+              {newlyAchievedBadge.name}
+            </div>
+            
+            <p className="text-gray-600 mb-6">
+              {newlyAchievedBadge.description}
+            </p>
+            
+            <button
+              onClick={() => setShowAchievementModal(false)}
+              className="w-full bg-pic-primary text-white py-3 rounded-lg font-medium hover:bg-pic-primary/90 transition-colors"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
