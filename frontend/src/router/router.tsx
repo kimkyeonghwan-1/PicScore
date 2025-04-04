@@ -31,6 +31,7 @@ import UserFollower from "../page/UserPage/UserFollower";
 import PhotoPost from "../page/Board/PhotoPost";
 import Loading from "../components/Loading";
 import SearchResult from "../page/Board/SearchResult";
+import TermsAgreement from "../page/Terms/TermsAgreement";
 
 const HomeRouter = () => {
   const [params] = useSearchParams();
@@ -73,6 +74,10 @@ const router = createBrowserRouter([
       {
         path: "/photo/:number",
         element: <PhotoPost />,
+      },
+      {
+        path: "/agreement",
+        element: <TermsAgreement />,
       },
       {
         element: <PrivateRouter />,
