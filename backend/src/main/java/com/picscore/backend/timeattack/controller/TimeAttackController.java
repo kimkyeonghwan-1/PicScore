@@ -22,7 +22,7 @@ import java.util.Map;
  * TimeAttack 관련 API를 처리하는 컨트롤러
  */
 @RestController
-@RequestMapping("/api/v1/activity")
+@RequestMapping("/api/v1/time-attack")
 @RequiredArgsConstructor
 public class TimeAttackController {
 
@@ -36,7 +36,7 @@ public class TimeAttackController {
      * @param pageNum 조회할 페이지 번호 (1부터 시작)
      * @return ResponseEntity<BaseResponse<Map<String, Object>>> 랭킹 정보를 포함한 응답
      */
-    @GetMapping("/time-attack/{pageNum}")
+    @GetMapping("/{pageNum}")
     public ResponseEntity<BaseResponse<Map<String, Object>>> getRanking(
             @PathVariable int pageNum) {
 
