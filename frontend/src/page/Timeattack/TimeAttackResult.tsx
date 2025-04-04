@@ -48,7 +48,6 @@ import SuccessResult from "./components/SuccessResult";
 import { LocationState } from "../../types";
 import { TimeAttackResultData } from "../../types";
 import { timeAttackApi } from "../../api/timeAttackApi";
-import ContentNavBar from "../../components/NavBar/ContentNavBar";
 import BottomBar from "../../components/BottomBar/BottomBar";
 
 // 애니메이션 모달 컴포넌트
@@ -97,7 +96,7 @@ const AnimationModal: React.FC<AnimationModalProps> = ({
               <span className="text-xl text-white ml-1">XP</span>
             </div>
           </div>
-          
+
           {/* 버튼 그룹 - 두 개의 버튼 */}
           <div className="grid grid-cols-2 gap-3 mt-6">
             <button
@@ -321,7 +320,6 @@ const TimeAttackResult: React.FC = () => {
         />
       ) : (
         <>
-          <ContentNavBar content="타임어택 결과" />
           <main className="flex-1 p-3">
             {localResult?.score !== undefined &&
               localResult?.topicAccuracy !== undefined &&

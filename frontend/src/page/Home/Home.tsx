@@ -390,12 +390,12 @@ function Home() {
                   navigate("/time-attack");
                 }}
               >
-                <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-2">
+                <div className="w-16 h-16 rounded-full bg-pic-primary/100 flex items-center justify-center mb-2">
                   <img src={time} alt="타임어택" className="w-8 h-8" />
                 </div>
-                <span className="font-bold text-white">타임어택</span>
-                <p className="text-xs text-white text-center mt-2">
-                  시간 제한 퀴즈 풀기
+                <span className="font-bold text-gray-700">타임어택</span>
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  빠르게 찍어 올리기기
                 </p>
               </div>
 
@@ -407,7 +407,7 @@ function Home() {
                   navigate("/arena");
                 }}
               >
-                <div className="w-16 h-16 rounded-full bg-pic-primary/10 flex items-center justify-center mb-2">
+                <div className="w-16 h-16 rounded-full bg-pic-primary/100 flex items-center justify-center mb-2">
                   <img src={ranking} alt="아레나" className="w-8 h-8" />
                 </div>
                 <span className="font-bold text-gray-700">아레나</span>

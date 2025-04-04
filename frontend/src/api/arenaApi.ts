@@ -18,7 +18,7 @@ export interface ArenaPhoto {
 
 // 랜덤 사진 응답 인터페이스
 export interface RandomPhotosResponse {
-  answer: number[];  // 정답 순서
+  answer: number[]; // 정답 순서
   photos: [number, number, string][]; // [photo_id, score, imageUrl] 형태의 배열
 }
 
@@ -84,7 +84,7 @@ export const arenaApi = {
   // 아레나 랭킹 조회
   getArenaRanking: (pageNum: number) => {
     return testApi.get<BaseResponse<ArenaRankingData>>(
-      `/api/v2/arena/ranking/${pageNum}`
+      `/api/v2/arena/${pageNum}`
     );
   },
 };
