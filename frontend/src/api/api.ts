@@ -81,8 +81,6 @@ testApi.interceptors.response.use(
       switch (errorStatus) {
         case 400:
           console.error(`${errorStatus} 오류`);
-          authStore.logout();
-          window.location.replace("/");
           break;
         case 401:
           console.error(`${errorStatus} Unauthorized: 인증 오류`);

@@ -120,7 +120,7 @@ const RankingPage: React.FC = () => {
           const response = await timeAttackApi.getRanking(currentPage);
           responseData = response.data;
           data = responseData.data;
-          
+
           if (data && data.ranking && Array.isArray(data.ranking)) {
             // API 응답을 애플리케이션 타입으로 명시적 변환
             const apiRankings = data.ranking as RankingApiUser[];
@@ -141,7 +141,7 @@ const RankingPage: React.FC = () => {
           const response = await arenaApi.getArenaRanking(currentPage);
           responseData = response.data;
           data = responseData.data;
-          
+
           if (data && data.ranking && Array.isArray(data.ranking)) {
             // API 응답을 애플리케이션 타입으로 명시적 변환
             const apiRankings = data.ranking as ArenaRankingApiUser[];
@@ -186,23 +186,27 @@ const RankingPage: React.FC = () => {
     setSelectedUser(null);
     setModalOpen(false);
   }, [rankingType]);
-
-  /* 뒤로가기 방지 로직 */
-
   useEffect(() => {
+    // 타임어택 결과 페이지에서 왔는지 확인
     const fromTimeAttackResult = location.state?.from === "timeattack-result";
-    console.log(fromTimeAttackResult);
+
     if (fromTimeAttackResult) {
-      const handleReplaceHistory = () => {
+      // 히스토리 스택에 현재 상태 추가 (뒤로가기를 누르면 이 상태로 돌아옴)
+
+      const currentState = { ...history.state, blockBack: true };
+      history.pushState(currentState, "");
+      console.log(window.location.pathname, "path name");
+      const handlePopState = () => {
         navigate("/time-attack", { replace: true });
       };
 
-      window.addEventListener("popstate", handleReplaceHistory);
+      window.addEventListener("popstate", handlePopState);
+
       return () => {
-        window.removeEventListener("popstate", handleReplaceHistory);
+        window.removeEventListener("popstate", handlePopState);
       };
     }
-  }, [navigate, location]);
+  }, []); // 빈 의존성 배열로 마운트 시에만 실행
 
   // 랭킹 아이템 클릭 핸들러
   const handleRankingItemClick = (user: RankingUser) => {
@@ -259,7 +263,7 @@ const RankingPage: React.FC = () => {
     if (!isOpen || !user) return null;
 
     // Arena 랭킹과 TimeAttack 랭킹 구분
-    const isArenaRanking = !('topic' in user);
+    const isArenaRanking = !("topic" in user);
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 animate-fadeIn">
@@ -312,47 +316,56 @@ const RankingPage: React.FC = () => {
 
           {isArenaRanking ? (
             // 아레나 랭킹 표시
-              <div className="p-6">
-                <div className="mb-6 text-center">
-                  <span className="text-2xl font-bold text-pic-primary">아레나 랭킹</span>
-                </div>
+            <div className="p-6">
+              <div className="mb-6 text-center">
+                <span className="text-2xl font-bold text-pic-primary">
+                  아레나 랭킹
+                </span>
+              </div>
 
-                <div className="mb-6 bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-gray-600 text-sm mb-2">정답 횟수</h3>
-                  <p className="text-xl font-bold text-pic-primary">
-                    {'correctCount' in user ? user.correctCount : '-'}
+              <div className="mb-6 bg-gray-50 rounded-lg p-4">
+                <h3 className="text-gray-600 text-sm mb-2">정답 횟수</h3>
+                <p className="text-xl font-bold text-pic-primary">
+                  {"correctCount" in user ? user.correctCount : "-"}
+                </p>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-gray-500 text-sm mb-1">랭킹</h3>
+                  <p className="font-bold text-xl text-pic-primary">
+                    #{user.rank}
                   </p>
                 </div>
-
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-gray-500 text-sm mb-1">랭킹</h3>
-                    <p className="font-bold text-xl text-pic-primary">#{user.rank}</p>
-                  </div>
-                  <div>
-                    <h3 className="text-gray-500 text-sm mb-1">닉네임</h3>
-                    <p className="font-bold text-xl text-gray-700">{user.nickName}</p>
-                  </div>
+                <div>
+                  <h3 className="text-gray-500 text-sm mb-1">닉네임</h3>
+                  <p className="font-bold text-xl text-gray-700">
+                    {user.nickName}
+                  </p>
                 </div>
               </div>
+            </div>
           ) : (
             // 타임어택 랭킹 표시
             <>
               {/* 이미지 */}
               <div className="relative">
                 <img
-                  src={'imageUrl' in user ? user.imageUrl : ''}
+                  src={"imageUrl" in user ? user.imageUrl : ""}
                   alt={`${user.nickName}의 타임어택 사진`}
                   className="w-full aspect-[4/3] object-cover"
                 />
                 <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white py-1 px-3 rounded-full text-sm font-bold">
-                  {typeof user.score === 'number' ? user.score.toFixed(1) : user.score}점
+                  {typeof user.score === "number"
+                    ? user.score.toFixed(1)
+                    : user.score}
+                  점
                 </div>
               </div>
 
               {/* 주제 및 정보 */}
               <div className="p-4">
-                {'topic' in user && user.topic && (
+                {"topic" in user && user.topic && (
                   <div className="mb-4">
                     <h3 className="text-gray-500 text-sm mb-1">주제</h3>
                     <p className="font-semibold text-xl">
@@ -364,12 +377,16 @@ const RankingPage: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="text-gray-500 text-sm mb-1">랭킹</h3>
-                    <p className="font-bold text-xl text-pic-primary">#{user.rank}</p>
+                    <p className="font-bold text-xl text-pic-primary">
+                      #{user.rank}
+                    </p>
                   </div>
                   <div>
                     <h3 className="text-gray-500 text-sm mb-1">점수</h3>
                     <p className="font-bold text-xl text-pic-primary">
-                      {typeof user.score === 'number' ? user.score.toFixed(1) : user.score}
+                      {typeof user.score === "number"
+                        ? user.score.toFixed(1)
+                        : user.score}
                     </p>
                   </div>
                 </div>
@@ -527,24 +544,18 @@ const RankingPage: React.FC = () => {
       </div>
 
       {/* TOP 3 섹션 - contest가 아니고 로딩 중이 아닀 때만 표시 */}
-      {rankingType !== "contest" &&
-        !isLoading &&
-        topThreeUsers.length > 0 && (
-          <div className="grid grid-cols-3 gap-2 p-4">
-            {/* 2등 */}
-            <TrophyCard
-              user={secondPlace}
-              rank={2}
-              trophyImage={silverTrophy}
-            />
+      {rankingType !== "contest" && !isLoading && topThreeUsers.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 p-4">
+          {/* 2등 */}
+          <TrophyCard user={secondPlace} rank={2} trophyImage={silverTrophy} />
 
-            {/* 1등 */}
-            <TrophyCard user={firstPlace} rank={1} trophyImage={goldTrophy} />
+          {/* 1등 */}
+          <TrophyCard user={firstPlace} rank={1} trophyImage={goldTrophy} />
 
-            {/* 3등 */}
-            <TrophyCard user={thirdPlace} rank={3} trophyImage={bronzeTrophy} />
-          </div>
-        )}
+          {/* 3등 */}
+          <TrophyCard user={thirdPlace} rank={3} trophyImage={bronzeTrophy} />
+        </div>
+      )}
 
       {/* 랭킹 목록 섹션 */}
       <div className="p-5 mt-2 bg-white rounded-lg mx-4 border border-gray-200 shadow-md">
@@ -572,7 +583,7 @@ const RankingPage: React.FC = () => {
 
         {/* 랭킹 테이블 헤더 - 랭킹 타입에 따라 다른 컴포넌트 렌더링 */}
         {rankingType === "arena" ? (
-// 아레나 랭킹 테이블 헤더
+          // 아레나 랭킹 테이블 헤더
           <div className="bg-gray-100 p-2.5 grid grid-cols-3 font-medium rounded-t-lg text-gray-700 border-b border-gray-200">
             <div className="text-left pl-1">순위</div>
             <div className="text-left -ml-2">프로필</div>
@@ -634,12 +645,18 @@ const RankingPage: React.FC = () => {
             {rankings.map((user, index) => (
               <li
                 key={user.userId}
-                className={`py-2.5 grid grid-cols-3 items-center cursor-pointer hover:bg-gray-50 transition-colors ${index % 2 === 1 ? "bg-gray-50" : "bg-white"}`}
+                className={`py-2.5 grid grid-cols-3 items-center cursor-pointer hover:bg-gray-50 transition-colors ${
+                  index % 2 === 1 ? "bg-gray-50" : "bg-white"
+                }`}
                 onClick={() => handleRankingItemClick(user)}
               >
                 <div className="text-left pl-6">
                   <span
-                    className={`inline-flex items-center justify-center font-bold ${user.rank <= 3 ? "text-pic-primary text-lg" : "text-gray-700"}`}
+                    className={`inline-flex items-center justify-center font-bold ${
+                      user.rank <= 3
+                        ? "text-pic-primary text-lg"
+                        : "text-gray-700"
+                    }`}
                   >
                     {user.rank}
                   </span>
@@ -678,12 +695,12 @@ const RankingPage: React.FC = () => {
                   </span>
                 </div>
                 <div className="text-center font-medium text-gray-700">
-                  {'correctCount' in user ? user.correctCount : '-'}
+                  {"correctCount" in user ? user.correctCount : "-"}
                 </div>
               </li>
             ))}
           </ul>
-          ) : (
+        ) : (
           /* 타임어택 랭킹 목록 */
           <ul className="overflow-hidden rounded-b-lg border-x border-b border-gray-200">
             {rankings.map((user, index) => (
