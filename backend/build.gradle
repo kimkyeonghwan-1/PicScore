@@ -67,6 +67,10 @@ dependencies {
 	// health, prometheus
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'io.micrometer:micrometer-registry-prometheus'
+
+	// sentry
+	implementation 'io.sentry:sentry-spring-boot-starter-jakarta:8.6.0'
+	implementation 'io.sentry:sentry-logback:8.6.0'
 }
 
 tasks.named('test') {
