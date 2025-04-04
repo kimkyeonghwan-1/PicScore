@@ -27,7 +27,7 @@ public interface ArenaRepository extends JpaRepository<Arena, Long> {
     @Query(value = """
             SELECT a FROM Arena a
             WHERE a.activityWeek = :activityWeek              
-            ORDER BY a.score DESC, a.activityWeek DESC
+            ORDER BY a.score DESC, a.updatedAt DESC
             """,
             countQuery = "SELECT COUNT(DISTINCT a.user) FROM Arena a")
     Page<Arena> getHighestScoresPerUser(@Param("activityWeek") String activityWeek, Pageable pageable);
