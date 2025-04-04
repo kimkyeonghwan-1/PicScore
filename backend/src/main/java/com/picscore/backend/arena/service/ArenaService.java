@@ -3,10 +3,12 @@ package com.picscore.backend.arena.service;
 import com.picscore.backend.arena.model.ArenaPhotoResponse;
 import com.picscore.backend.arena.model.entity.Arena;
 import com.picscore.backend.arena.repository.ArenaRepository;
+import com.picscore.backend.common.exception.CustomException;
 import com.picscore.backend.photo.repository.PhotoRepository;
 import com.picscore.backend.user.model.entity.User;
 import com.picscore.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +33,7 @@ public class ArenaService {
         List<Object[]> photos = photoRepository.getRandomPublicPhotos();
 
         if (photos.size() < 4) {
-            throw new IllegalStateException("조건에 맞는 사진이 충분하지 않습니다.");
+            throw new CustomException(HttpStatus.BAD_REQUEST, "조건에 맞는 사진이 충분하지 않습니다.");
         }
 
         List<Long> answer = photos.stream()

@@ -34,6 +34,21 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
             countQuery = "SELECT COUNT(p) FROM Photo p WHERE p.isPublic = true AND p.photoType = 'article'")
     Page<Photo> findAllWithPublic(Pageable pageable);
 
+    @Query(
+            value = """
+        SELECT p FROM Photo p
+        LEFT JOIN PhotoLike pl ON pl.photo.id = p.id
+        WHERE p.isPublic = true
+        GROUP BY p
+        ORDER BY COUNT(pl) DESC
+    """,
+            countQuery = """
+        SELECT COUNT(DISTINCT p) FROM Photo p
+        WHERE p.isPublic = true AND p.photoType = 'article'
+    """
+    )
+    Page<Photo> findAllOrderByLikeCount(Pageable pageable);
+
 
     @Modifying
     @Transactional
