@@ -223,17 +223,30 @@ public class PhotoService {
      * @return ResponseEntity<BaseResponse<Map<String, Object>>> 페이징된 사진 목록
      */
     public Map<String, Object> getPaginatedPhotos(
-            int pageNum) {
+            int pageNum, String sort) {
 
         if (pageNum < 1) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "페이지 번호는 1 이상의 값이어야 합니다.");
         }
 
-        // PageRequest 객체 생성 (0부터 시작하는 페이지 번호 사용)
-        PageRequest pageRequest = PageRequest.of(pageNum - 1, 24, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Photo> photoPage;
+        PageRequest pageRequest;
 
-        // 레포지토리에서 페이징된 데이터 조회
-        Page<Photo> photoPage = photoRepository.findAllWithPublic(pageRequest);
+        if (sort == null || sort.equalsIgnoreCase("latest")) {
+            pageRequest = PageRequest.of(pageNum - 1, 24, Sort.by(Sort.Direction.DESC, "createdAt"));
+            photoPage = photoRepository.findAllWithPublic(pageRequest);
+
+        } else if (sort.equalsIgnoreCase("score")) {
+            pageRequest = PageRequest.of(pageNum - 1, 24, Sort.by(Sort.Direction.DESC, "score"));
+            photoPage = photoRepository.findAllWithPublic(pageRequest);
+
+        } else if (sort.equalsIgnoreCase("like")) {
+            pageRequest = PageRequest.of(pageNum - 1, 24);
+            photoPage = photoRepository.findAllOrderByLikeCount(pageRequest);
+
+        } else {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "지원하지 않는 정렬 방식입니다.");
+        }
 
         // 페이지 데이터 존재 여부 확인
         if (pageNum > photoPage.getTotalPages() || photoPage.getContent().isEmpty()) {
