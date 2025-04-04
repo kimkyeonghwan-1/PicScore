@@ -57,38 +57,37 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
+            when {
+                     branch 'develop'
+            }
             steps {
                 // 백엔드 분석
                 dir('backend') {
-                    withSonarQubeEnv('SonarQube') {
-                        withCredentials([string(credentialsId: 'sonarqube-backend-token', variable: 'SONAR_BACK_TOKEN')]) {
-                            sh """
-                            ./gradlew clean build -x test
-                            ./gradlew sonarqube \
-                              -Dsonar.projectKey=${SONAR_PROJECT_KEY_BACKEND} \
-                              -Dsonar.host.url=${SONAR_HOST} \
-                              -Dsonar.login=${SONAR_BACK_TOKEN} \
-                              -Dsonar.tests.skip=true
-                            """
-                        }
+                    withCredentials([string(credentialsId: 'sonarqube-backend-token', variable: 'SONAR_BACK_TOKEN')]) {
+                        sh """
+                        ./gradlew clean build -x test
+                        ./gradlew sonarqube \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY_BACKEND} \
+                            -Dsonar.host.url=${SONAR_HOST} \
+                            -Dsonar.login=${SONAR_BACK_TOKEN} \
+                            -Dsonar.tests.skip=true
+                        """
                     }
                 }
                 
                 // 프론트엔드 분석
                 dir('frontend') {
-                    withSonarQubeEnv('SonarQube') {
-                        withCredentials([string(credentialsId: 'sonarqube-frontend-token', variable: 'SONAR_FRONT_TOKEN')]) {
-                            sh """
-                            npm install
-                            npx sonar-scanner \
-                              -Dsonar.projectKey=${SONAR_PROJECT_KEY_FRONTEND} \
-                              -Dsonar.host.url=${SONAR_HOST} \
-                              -Dsonar.login=${SONAR_FRONT_TOKEN} \
-                              -Dsonar.tests='' \
-                              -Dsonar.test.inclusions='' \
-                              -Dsonar.coverage.exclusions='**/*
-                            """
-                        }
+                    withCredentials([string(credentialsId: 'sonarqube-frontend-token', variable: 'SONAR_FRONT_TOKEN')]) {
+                        sh """
+                        npm install
+                        npx sonar-scanner \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY_FRONTEND} \
+                            -Dsonar.host.url=${SONAR_HOST} \
+                            -Dsonar.login=${SONAR_FRONT_TOKEN} \
+                            -Dsonar.tests='' \
+                            -Dsonar.test.inclusions='' \
+                            -Dsonar.coverage.exclusions='**/*
+                        """
                     }
                 }
             }
