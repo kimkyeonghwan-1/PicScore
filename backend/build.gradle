@@ -7,9 +7,9 @@ plugins {
 
 sonarqube {
     properties {
-        property("sonar.projectKey", System.getenv("SONAR_PROJECT_KEY"))
-        property("sonar.host.url", System.getenv("SONAR_HOST_URL"))
-        property("sonar.login", System.getenv("SONAR_LOGIN"))
+        property "sonar.projectKey", "picscore-backend"
+        property "sonar.projectName", "PicScore Backend"
+        property "sonar.sources", "src/main"
     }
 }
 
