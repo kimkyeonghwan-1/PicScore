@@ -30,10 +30,19 @@ public class ArenaController {
                                                              @RequestBody ResultArenaRequest payload) {
         Long userId = oAuthService.findIdByNickName(request);
         if (userId == null) {
-//            userId = Long.valueOf(1); // 테스트용
-            throw new IllegalArgumentException("userId가 null입니다.");
+            userId = Long.valueOf(1); // 테스트용
+//            throw new IllegalArgumentException("userId가 null입니다.");
         }
         return ResponseEntity.ok(BaseResponse.success("게임 완료",arenaService.calculateArena(userId, payload.getCorrect(), payload.getTime())));
+    }
+
+    @GetMapping("/{pageNum}")
+    public ResponseEntity<BaseResponse<Map<String, Object>>> getArenaRanking(
+            @PathVariable int pageNum) {
+
+        Map<String, Object> reponse = arenaService.getArenaRanking(pageNum);
+
+        return ResponseEntity.ok(BaseResponse.success("랭킹 전체 목록 조회 성공", reponse));
     }
 
 }
