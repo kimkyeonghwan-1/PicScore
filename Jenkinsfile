@@ -64,6 +64,7 @@ pipeline {
                 // 백엔드 분석
                 dir('backend') {
                     withCredentials([string(credentialsId: 'sonarqube-backend-token', variable: 'SONAR_BACK_TOKEN')]) {
+                        sh "chmod +x ./gradlew"
                         sh """
                         ./gradlew clean build -x test
                         ./gradlew sonarqube \
