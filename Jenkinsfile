@@ -56,59 +56,57 @@ pipeline {
             }
         }
 
-        stage('Parallel Analysis and Build') {
+        stage('SonarQube Analysis') {
             when {
                 branch 'develop'
             }
-            parallel {
-                stage('SonarQube Analysis') {
-                    stages {
-                        stage('Backend & Frontend Analysis') {
-                            parallel {
-                                stage('Backend Analysis') {
-                                    steps {
-                                        dir('backend') {
-                                            withCredentials([string(credentialsId: 'sonarqube-backend-token', variable: 'SONAR_BACK_TOKEN')]) {
-                                                sh "chmod +x ./gradlew"
-                                                sh """
-                                                ./gradlew clean build jacocoTestReport
-                                                ./gradlew sonarqube \
-                                                    -Dsonar.projectKey=${SONAR_PROJECT_KEY_BACKEND} \
-                                                    -Dsonar.host.url=${SONAR_HOST} \
-                                                    -Dsonar.login=${SONAR_BACK_TOKEN}
-                                                """
-                                            }
-                                        }
-                                    }
-                                }
-                                stage('Frontend Analysis') {
-                                    steps {
-                                        dir('frontend') {
-                                            withCredentials([string(credentialsId: 'sonarqube-frontend-token', variable: 'SONAR_FRONT_TOKEN')]) {
-                                                sh """
-                                                npm install
-                                                npm run lint
-                                                npx sonar-scanner \
-                                                    -Dsonar.projectKey=${SONAR_PROJECT_KEY_FRONTEND} \
-                                                    -Dsonar.host.url=${SONAR_HOST} \
-                                                    -Dsonar.login=${SONAR_FRONT_TOKEN}
-                                                """
-                                            }
-                                        }
+            stages {
+                stage('Backend & Frontend Analysis') {
+                    parallel {
+                        stage('Backend Analysis') {
+                            steps {
+                                dir('backend') {
+                                    withCredentials([string(credentialsId: 'sonarqube-backend-token', variable: 'SONAR_BACK_TOKEN')]) {
+                                        sh "chmod +x ./gradlew"
+                                        sh """
+                                        ./gradlew clean build jacocoTestReport
+                                        ./gradlew sonarqube \
+                                            -Dsonar.projectKey=${SONAR_PROJECT_KEY_BACKEND} \
+                                            -Dsonar.host.url=${SONAR_HOST} \
+                                            -Dsonar.login=${SONAR_BACK_TOKEN}
+                                        """
                                     }
                                 }
                             }
                         }
-                        stage('Quality Gate') {
+                        stage('Frontend Analysis') {
                             steps {
-                                timeout(time: 3, unit: 'MINUTES') {
-                                    waitForQualityGate abortPipeline: false, credentialsId: 'sonarqube-backend-token'
+                                dir('frontend') {
+                                    withCredentials([string(credentialsId: 'sonarqube-frontend-token', variable: 'SONAR_FRONT_TOKEN')]) {
+                                        sh """
+                                        npm install
+                                        npm run lint
+                                        npx sonar-scanner \
+                                            -Dsonar.projectKey=${SONAR_PROJECT_KEY_FRONTEND} \
+                                            -Dsonar.host.url=${SONAR_HOST} \
+                                            -Dsonar.login=${SONAR_FRONT_TOKEN}
+                                        """
+                                    }
                                 }
                             }
                         }
                     }
                 }
+                stage('Quality Gate') {
+                    steps {
+                        timeout(time: 3, unit: 'MINUTES') {
+                            waitForQualityGate abortPipeline: false, credentialsId: 'sonarqube-backend-token'
+                        }
+                    }
+                }
             }
+        }
+
         stage('Build and Deploy') {
             parallel {
                 stage('Develop Branch - EC2 Deployment') {
