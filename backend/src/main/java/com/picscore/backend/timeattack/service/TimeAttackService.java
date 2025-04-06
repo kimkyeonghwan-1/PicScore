@@ -81,7 +81,7 @@ public class TimeAttackService {
         PageRequest pageRequest = PageRequest.of(pageNum-1, 5);
 
         // 레포지토리에서 사용자별 최고 점수 조회
-        Page<TimeAttack> timeAttackPage = timeAttackRepository.findHighestScoresPerUser(pageRequest);
+        Page<TimeAttack> timeAttackPage = timeAttackRepository.findHighestScoresPerUser(getCurrentGameWeek(), pageRequest);
 
         // 페이지 데이터 존재 여부 확인
         if (timeAttackPage == null || pageNum > timeAttackPage.getTotalPages() || timeAttackPage.getContent().isEmpty()) {
@@ -262,7 +262,7 @@ public class TimeAttackService {
         String activityWeek = getCurrentGameWeek();
         System.out.printf("이번 게임 주차는!!!=="+activityWeek);
         TimeAttack timeAttack = new TimeAttack(
-                user, activityImageUrl, request.getTopic(), 1, request.getScore()
+                user, activityImageUrl, request.getTopic(), getCurrentGameWeek(), request.getScore()
         );
         timeAttackRepository.save(timeAttack);
 
@@ -272,8 +272,10 @@ public class TimeAttackService {
         user.updateLevel(plusExperience);
         userRepository.save(user);
     }
+
+
     // ✅ 현재 주차의 게임 ID 가져오기
-    public String getCurrentGameWeek() {
+    private String getCurrentGameWeek() {
         LocalDate now = LocalDate.now(ZoneId.of("UTC"));
         int year = now.getYear();
         int week = now.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
