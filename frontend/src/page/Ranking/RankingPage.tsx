@@ -196,27 +196,6 @@ const RankingPage: React.FC = () => {
     setSelectedUser(null);
     setModalOpen(false);
   }, [rankingType]);
-  useEffect(() => {
-    // 타임어택 결과 페이지에서 왔는지 확인
-    const fromTimeAttackResult = location.state?.from === "timeattack-result";
-
-    if (fromTimeAttackResult) {
-      // 히스토리 스택에 현재 상태 추가 (뒤로가기를 누르면 이 상태로 돌아옴)
-
-      const currentState = { ...history.state, blockBack: true };
-      history.pushState(currentState, "");
-      console.log(window.location.pathname, "path name");
-      const handlePopState = () => {
-        navigate("/time-attack", { replace: true });
-      };
-
-      window.addEventListener("popstate", handlePopState);
-
-      return () => {
-        window.removeEventListener("popstate", handlePopState);
-      };
-    }
-  }, []); // 빈 의존성 배열로 마운트 시에만 실행
 
   // 랭킹 아이템 클릭 핸들러
   const handleRankingItemClick = (user: RankingUser) => {

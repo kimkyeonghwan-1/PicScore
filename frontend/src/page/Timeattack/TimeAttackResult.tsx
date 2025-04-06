@@ -72,7 +72,7 @@ const AnimationModal: React.FC<AnimationModalProps> = ({
 
   const handleGoToRanking = () => {
     onClose();
-    navigate("/ranking", { state: { from: "timeattack-result" } });
+    navigate("/ranking", { replace: true });
   };
 
   const handleGoToTimeAttack = () => {
