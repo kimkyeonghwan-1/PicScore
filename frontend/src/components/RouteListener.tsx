@@ -74,7 +74,7 @@ const routeLayouts: { [key: string]: LayoutConfig } = {
     content: "검색",
   },
   "/time-attack": {
-    showNavBar: true,
+    showNavBar: false,
     showBottomBar: false,
     content: "타임어택",
   },
@@ -100,16 +100,17 @@ function RouteListener() {
       const params = new URLSearchParams(location.search);
       const step = params.get("step");
       
-      // step이 1(설명 단계)일 때만 내브바 표시, 그 외에는 표시하지 않음
-      if (step === "1" || step === null) { // step이 없을 때는 처음 로드로 간주
+      // step이 "1"이거나 null인 경우에만 내브바 표시
+      if (step === "1" || step === null) {
         setLayoutVisibility({
           showNavBar: true,
           showBottomBar: false,
           content: "타임어택",
         });
-      } else {
+      } else if (step === "2" || step === "3") {
+        // step이 2 또는 3인 경우 내브바 숨김
         setLayoutVisibility({
-          showNavBar: false, 
+          showNavBar: false,
           showBottomBar: false,
           content: "타임어택",
         });
