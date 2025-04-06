@@ -1,11 +1,8 @@
 package com.picscore.backend.user.controller;
 
-import ch.qos.logback.core.model.processor.PhaseIndicator;
 import com.picscore.backend.common.model.response.BaseResponse;
-import com.picscore.backend.photo.service.PhotoService;
 import com.picscore.backend.timeattack.model.response.GetMyStaticResponse;
 import com.picscore.backend.timeattack.model.response.GetUserStaticResponse;
-import com.picscore.backend.common.jwt.JWTUtil;
 import com.picscore.backend.user.model.request.SaveFeedbackRequest;
 import com.picscore.backend.user.model.request.UpdateMyProfileRequest;
 import com.picscore.backend.user.model.response.GetMyFollowersResponse;
@@ -14,7 +11,6 @@ import com.picscore.backend.user.model.response.GetUserFollowersResponse;
 import com.picscore.backend.user.model.response.GetUserFollowingsResponse;
 import com.picscore.backend.user.model.request.ToggleFollowRequest;
 import com.picscore.backend.user.model.response.*;
-import com.picscore.backend.user.repository.UserRepository;
 import com.picscore.backend.user.service.FollowService;
 import com.picscore.backend.user.service.OAuthService;
 import com.picscore.backend.user.service.UserService;

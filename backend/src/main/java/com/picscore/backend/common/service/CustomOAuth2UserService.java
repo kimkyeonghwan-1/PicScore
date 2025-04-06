@@ -1,4 +1,4 @@
-package com.picscore.backend.user.service;
+package com.picscore.backend.common.service;
 
 import com.picscore.backend.user.model.dto.CustomOAuth2User;
 import com.picscore.backend.user.model.dto.UserDto;

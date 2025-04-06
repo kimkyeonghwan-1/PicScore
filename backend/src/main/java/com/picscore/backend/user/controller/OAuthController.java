@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import java.io.IOException;
 
