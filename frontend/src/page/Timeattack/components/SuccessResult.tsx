@@ -22,7 +22,9 @@ interface SuccessResultProps {
   ranking: number;
   onTryAgain?: () => void;
   onViewRanking?: () => void;
+  onShowXpModal?: () => void;
   isSaving?: boolean;
+  xpEarned?: number;
 }
 
 const SuccessResult: React.FC<SuccessResultProps> = ({
@@ -36,13 +38,21 @@ const SuccessResult: React.FC<SuccessResultProps> = ({
   ranking,
   onTryAgain,
   onViewRanking,
+  onShowXpModal,
   isSaving = false,
+  xpEarned = 0,
 }) => {
   const navigate = useNavigate();
 
   const handleTryAgain = () => {
-    // 경험치 반환 없이 바로 타임어택 페이지로 이동
-    navigate("/time-attack");
+    if (onTryAgain) {
+      onTryAgain();
+    } else {
+      // 경험치 반환 없이 바로 타임어택 페이지로 이동
+      sessionStorage.removeItem("timeAttackResultSaved");
+      sessionStorage.removeItem("timeAttackXpSaved");
+      navigate("/time-attack");
+    }
   };
 
   const handleGoHome = () => {
@@ -55,6 +65,12 @@ const SuccessResult: React.FC<SuccessResultProps> = ({
       onViewRanking();
     } else {
       navigate("/ranking", { state: { from: "timeattack-result" } });
+    }
+  };
+
+  const handleShowXpModal = () => {
+    if (onShowXpModal) {
+      onShowXpModal();
     }
   };
 
@@ -151,6 +167,14 @@ const SuccessResult: React.FC<SuccessResultProps> = ({
             <p className="text-lg font-bold text-pic-primary">{score}</p>
           </div>
         </div>
+
+        {/* 경험치 표시 */}
+        {xpEarned > 0 && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center mb-6" onClick={handleShowXpModal}>
+            <p className="text-green-700 text-sm mb-1">획득한 경험치</p>
+            <p className="text-xl font-bold text-green-600">+{xpEarned} XP</p>
+          </div>
+        )}
 
         {/* 저장 경고 메시지 */}
         <SaveWarning />
