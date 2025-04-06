@@ -1,11 +1,14 @@
 package com.picscore.backend.user.service;
 
+import com.picscore.backend.arena.model.entity.Arena;
+import com.picscore.backend.arena.repository.ArenaRepository;
 import com.picscore.backend.badge.model.dto.ProfileBadgeDto;
 import com.picscore.backend.badge.model.entity.Badge;
 import com.picscore.backend.badge.model.entity.UserBadge;
 import com.picscore.backend.badge.repository.UserBadgeRepository;
 import com.picscore.backend.common.exception.CustomException;
 import com.picscore.backend.common.model.response.BaseResponse;
+import com.picscore.backend.common.utill.GameWeekUtil;
 import com.picscore.backend.common.utill.RedisUtil;
 import com.picscore.backend.photo.service.PhotoService;
 import com.picscore.backend.timeattack.model.entity.TimeAttack;
@@ -55,6 +58,7 @@ public class UserService {
     private final FollowRepository followRepository;
     private final UserBadgeRepository userBadgeRepository;
     private final TimeAttackRepository timeAttackRepository;
+    private final ArenaRepository arenaRepository;
     private final UserFeedbackRepository userFeedbackRepository;
 
     private final JWTUtil jwtUtil;
@@ -292,21 +296,33 @@ public class UserService {
      */
     public GetMyStaticResponse getMyStatic(
             Long userId) {
-
+        String activityWeek = GameWeekUtil.getCurrentGameWeek();
+        // 평균 점수
         Map<String, Object> stats = timeAttackRepository.calculateStats(userId);
         float avgScore = stats.get("avgScore") != null ? ((Double) stats.get("avgScore")).floatValue() : 0f;
 
-        List<TimeAttack> timeAttackList = timeAttackRepository.findHighestScoresAllUser(getCurrentGameWeek());
-        int rank = 0;
+        // 타임어택 랭크
+        List<TimeAttack> timeAttackList = timeAttackRepository.findHighestScoresAllUser(activityWeek);
+        int timeAttackRank = 0;
         for (int i = 0; i < timeAttackList.size(); i++) {
             if (timeAttackList.get(i).getUser().getId().equals(userId)) {
-                rank = i + 1; // 등수는 1부터 시작
+                timeAttackRank = i + 1; // 등수는 1부터 시작
+                break;
+            }
+        }
+
+        // 아레나 랭크
+        List<Arena> arenaList = arenaRepository.getRankAllUser(activityWeek);
+        int arenaRank = 0;
+        for (int ii = 0; ii < arenaList.size(); ii++) {
+            if (arenaList.get(ii).getUser().getId().equals(userId)) {
+                arenaRank = ii + 1; // 등수는 1부터 시작
                 break;
             }
         }
 
         GetMyStaticResponse response = new GetMyStaticResponse(
-                avgScore, rank
+                avgScore, timeAttackRank, arenaRank
         );
 
         return response;
@@ -325,11 +341,11 @@ public class UserService {
         if (userId == null || userId <= 0) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "유효하지 않은 사용자 ID입니다.");
         }
-
+        String activityWeek = GameWeekUtil.getCurrentGameWeek();
         Map<String, Object> stats = timeAttackRepository.calculateStats(userId);
         float avgScore = stats.get("avgScore") != null ? ((Double) stats.get("avgScore")).floatValue() : 0f;
 
-        List<TimeAttack> timeAttackList = timeAttackRepository.findHighestScoresAllUser(getCurrentGameWeek());
+        List<TimeAttack> timeAttackList = timeAttackRepository.findHighestScoresAllUser(activityWeek);
         int rank = 0;
         for (int i = 0; i < timeAttackList.size(); i++) {
             if (timeAttackList.get(i).getUser().getId().equals(userId)) {
@@ -338,8 +354,18 @@ public class UserService {
             }
         }
 
+        // 아레나 랭크
+        List<Arena> arenaList = arenaRepository.getRankAllUser(activityWeek);
+        int arenaRank = 0;
+        for (int ii = 0; ii < arenaList.size(); ii++) {
+            if (arenaList.get(ii).getUser().getId().equals(userId)) {
+                arenaRank = ii + 1; // 등수는 1부터 시작
+                break;
+            }
+        }
+
         GetUserStaticResponse response = new GetUserStaticResponse(
-                avgScore, rank
+                avgScore, rank, arenaRank
         );
 
         return response;
@@ -396,13 +422,5 @@ public class UserService {
             return "mobile";
         }
         return "pc";
-    }
-
-    // ✅ 현재 주차의 게임 ID 가져오기
-    private String getCurrentGameWeek() {
-        LocalDate now = LocalDate.now(ZoneId.of("UTC"));
-        int year = now.getYear();
-        int week = now.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-        return String.format("%d%02d", year, week);
     }
 }

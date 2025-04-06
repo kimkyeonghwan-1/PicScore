@@ -5,6 +5,7 @@ import com.picscore.backend.arena.model.ArenaRankingResponse;
 import com.picscore.backend.arena.model.entity.Arena;
 import com.picscore.backend.arena.repository.ArenaRepository;
 import com.picscore.backend.common.exception.CustomException;
+import com.picscore.backend.common.utill.GameWeekUtil;
 import com.picscore.backend.photo.repository.PhotoRepository;
 import com.picscore.backend.user.model.entity.User;
 import com.picscore.backend.user.repository.UserRepository;
@@ -56,7 +57,7 @@ public class ArenaService {
     public Integer calculateArena(Long userId, int correct, String time) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("유저를 찾을 수 없습니다. ID: " + userId));
-        String activityWeek = getCurrentGameWeek();
+        String activityWeek = GameWeekUtil.getCurrentGameWeek();
         float Ftime = 20f;
         Ftime = Float.parseFloat(time);
         final float adjustedTime = Ftime / 18f;
@@ -91,13 +92,6 @@ public class ArenaService {
 
         return exp;
     }
-    // ✅ 현재 주차의 게임 ID 가져오기
-    public String getCurrentGameWeek() {
-        LocalDate now = LocalDate.now(ZoneId.of("UTC"));
-        int year = now.getYear();
-        int week = now.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-        return String.format("%d%02d", year, week);
-    }
 
     /**
      * 페이지별 TimeAttack 랭킹을 조회하는 메소드
@@ -108,7 +102,7 @@ public class ArenaService {
     @Transactional
     public Map<String, Object> getArenaRanking(
             int pageNum) {
-        String activityWeek = getCurrentGameWeek();
+        String activityWeek = GameWeekUtil.getCurrentGameWeek();
         // pageNum이 1보다 작은 경우 예외 처리
         if (pageNum < 1) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "페이지 번호는 1 이상의 값이어야 합니다.");

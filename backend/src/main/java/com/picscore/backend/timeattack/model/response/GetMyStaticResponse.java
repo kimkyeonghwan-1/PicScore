@@ -10,4 +10,5 @@ public class GetMyStaticResponse {
 
     private float scoreAvg;
     private int timeAttackRank;
+    private int arenaRank;
 }
