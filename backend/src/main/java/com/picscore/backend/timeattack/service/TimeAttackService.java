@@ -46,6 +46,8 @@ public class TimeAttackService {
 
     private final PhotoService photoService;
 
+    private final GameWeekUtil gameWeekUtil;
+
     private final RestTemplate restTemplate;
     private final S3Client s3Client;
 
@@ -81,8 +83,10 @@ public class TimeAttackService {
         // 페이지 요청 객체 생성 (페이지당 5개 항목)
         PageRequest pageRequest = PageRequest.of(pageNum-1, 5);
 
+        String activityWeek = gameWeekUtil.getCurrentGameWeek();
+
         // 레포지토리에서 사용자별 최고 점수 조회
-        Page<TimeAttack> timeAttackPage = timeAttackRepository.findHighestScoresPerUser(GameWeekUtil.getCurrentGameWeek(), pageRequest);
+        Page<TimeAttack> timeAttackPage = timeAttackRepository.findHighestScoresPerUser(activityWeek, pageRequest);
 
         // 페이지 데이터 존재 여부 확인
         if (timeAttackPage == null || pageNum > timeAttackPage.getTotalPages() || timeAttackPage.getContent().isEmpty()) {
@@ -260,8 +264,8 @@ public class TimeAttackService {
         String activityImageUrl = photoService.getFileUrl(activityFolder, request.getImageName());
 
         // 타임어택 정보를 DB에 저장
-        String activityWeek = GameWeekUtil.getCurrentGameWeek();
-//        System.out.printf("이번 게임 주차는!!!=="+activityWeek);
+        String activityWeek = gameWeekUtil.getCurrentGameWeek();
+
         TimeAttack timeAttack = new TimeAttack(
                 user, activityImageUrl, request.getTopic(), activityWeek, request.getScore()
         );

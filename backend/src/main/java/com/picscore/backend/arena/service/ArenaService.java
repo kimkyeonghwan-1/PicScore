@@ -29,6 +29,9 @@ public class ArenaService {
     final private PhotoRepository photoRepository;
     final private ArenaRepository arenaRepository;
     final private UserRepository userRepository;
+
+    final private GameWeekUtil gameWeekUtil;
+
     @Transactional
     public Map<String, Object> randomPhotos () {
         Map<String, Object> response = new HashMap<>();
@@ -57,7 +60,7 @@ public class ArenaService {
     public Integer calculateArena(Long userId, int correct, String time) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("유저를 찾을 수 없습니다. ID: " + userId));
-        String activityWeek = GameWeekUtil.getCurrentGameWeek();
+        String activityWeek = gameWeekUtil.getCurrentGameWeek();
         float Ftime = 20f;
         Ftime = Float.parseFloat(time);
         final float adjustedTime = Ftime / 18f;
@@ -102,7 +105,7 @@ public class ArenaService {
     @Transactional
     public Map<String, Object> getArenaRanking(
             int pageNum) {
-        String activityWeek = GameWeekUtil.getCurrentGameWeek();
+        String activityWeek = gameWeekUtil.getCurrentGameWeek();
         // pageNum이 1보다 작은 경우 예외 처리
         if (pageNum < 1) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "페이지 번호는 1 이상의 값이어야 합니다.");

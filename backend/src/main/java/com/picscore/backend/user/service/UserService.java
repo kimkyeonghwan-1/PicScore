@@ -63,6 +63,7 @@ public class UserService {
 
     private final JWTUtil jwtUtil;
     private final RedisUtil redisUtil;
+    private final GameWeekUtil gameWeekUtil;
 
     private final PhotoService photoService;
 
@@ -296,7 +297,7 @@ public class UserService {
      */
     public GetMyStaticResponse getMyStatic(
             Long userId) {
-        String activityWeek = GameWeekUtil.getCurrentGameWeek();
+        String activityWeek = gameWeekUtil.getCurrentGameWeek();
         // 평균 점수
         Map<String, Object> stats = timeAttackRepository.calculateStats(userId);
         float avgScore = stats.get("avgScore") != null ? ((Double) stats.get("avgScore")).floatValue() : 0f;
@@ -341,7 +342,7 @@ public class UserService {
         if (userId == null || userId <= 0) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "유효하지 않은 사용자 ID입니다.");
         }
-        String activityWeek = GameWeekUtil.getCurrentGameWeek();
+        String activityWeek = gameWeekUtil.getCurrentGameWeek();
         Map<String, Object> stats = timeAttackRepository.calculateStats(userId);
         float avgScore = stats.get("avgScore") != null ? ((Double) stats.get("avgScore")).floatValue() : 0f;
 
