@@ -131,27 +131,6 @@ const GameStep: React.FC<GameStepProps> = ({
         >
           {isComplete ? "정답 제출하기" : "4장의 사진을 모두 선택하세요"}
         </button>
-
-        {/* 아레나 팁 섹션 */}
-        <div className="bg-gray-50 rounded-lg shadow-md p-3 mt-3 border border-gray-100 w-full">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">
-            아레나 팁
-          </h3>
-          <ul className="text-xs text-gray-500">
-            <li className="flex items-start mb-1">
-              <span className="text-pic-primary mr-1">•</span>
-              <span>모든 순서를 맞추면 100점 + 남은 시간 × 10점의 점수를 받아요!</span>
-            </li>
-            <li className="flex items-start mb-1">
-              <span className="text-pic-primary mr-1">•</span>
-              <span>일부만 맞춰도 맞은 개수만큼 점수를 받을 수 있어요.</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-pic-primary mr-1">•</span>
-              <span>획득한 점수의 1.2배의 경험치를 받을 수 있어요!</span>
-            </li>
-          </ul>
-        </div>
       </div>
     </div>
   );

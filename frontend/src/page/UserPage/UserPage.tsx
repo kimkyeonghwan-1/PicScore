@@ -110,7 +110,7 @@ const UserPage: React.FC<UserPageProps> = ({ userId, apiEndpoint }) => {
           averageScore: statsData.scoreAvg,
           contestRank: "N/A", // 실제 데이터로 교체 필요
           timeAttackRank: statsData.timeAttackRank.toString(),
-          arenaRank: "N/A",
+          arenaRank: statsData.arenaRank.toString(),
         });
 
         // 사진 정보 처리

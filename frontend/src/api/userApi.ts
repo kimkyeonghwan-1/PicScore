@@ -49,6 +49,7 @@ interface FollowingResponse {
 interface UserStatistics {
   scoreAvg: number;
   timeAttackRank: number;
+  arenaRank: number;
 }
 
 interface SearchUserResponse {

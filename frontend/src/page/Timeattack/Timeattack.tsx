@@ -157,6 +157,11 @@ const TimeAttack: React.FC = () => {
 
   // TimeAttack 게임 시작 시 Zustand 상태 업데이트
   useEffect(() => {
+    // URL에 step 매개변수 추가하여 현재 단계 표시
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('step', step.toString());
+    window.history.replaceState({}, '', newUrl.toString());
+    
     setGameState({
       currentStep: step,
       timeLeft,

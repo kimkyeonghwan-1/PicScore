@@ -95,6 +95,28 @@ function RouteListener() {
       timestamp: Date.now() / 1000,
     });
 
+    // 타임어택 특별 처리 - URL의 step 매개변수 확인
+    if (location.pathname === "/time-attack") {
+      const params = new URLSearchParams(location.search);
+      const step = params.get("step");
+      
+      // step이 1(설명 단계)일 때만 내브바 표시, 그 외에는 표시하지 않음
+      if (step === "1" || step === null) { // step이 없을 때는 처음 로드로 간주
+        setLayoutVisibility({
+          showNavBar: true,
+          showBottomBar: false,
+          content: "타임어택",
+        });
+      } else {
+        setLayoutVisibility({
+          showNavBar: false, 
+          showBottomBar: false,
+          content: "타임어택",
+        });
+      }
+      return;
+    }
+
     // 현재 경로에 맞는 레이아웃 설정 찾기
     const currentPath = Object.keys(routeLayouts).find(
       (route) =>
