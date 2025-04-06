@@ -138,6 +138,7 @@ const TimeAttackResult: React.FC = () => {
     "ranking" | "timeattack"
   >("ranking");
   const [isSaving, setIsSaving] = useState(false);
+  const [xpEarned, setXpEarned] = useState<number>(0);
 
   // 업적 관련 상태
   const [achievementMessage, setAchievementMessage] = useState<string | null>(
@@ -195,23 +196,44 @@ const TimeAttackResult: React.FC = () => {
       }
     }
 
+    // 이미 저장된 XP가 있는지 확인
+    const savedXp = sessionStorage.getItem("timeAttackXpSaved");
+    if (savedXp) {
+      setXpEarned(parseInt(savedXp, 10));
+    } else if (localResult?.score) {
+      // 저장된 XP가 없고 점수가 있으면 XP 계산
+      setXpEarned(Math.floor(localResult.score * 10));
+    }
+
     setIsLoading(false);
-  }, [location, result]);
+
+    // 이미 결과가 저장되었는지 확인
+    const resultSaved = sessionStorage.getItem("timeAttackResultSaved");
+    if (!resultSaved && localResult?.score && localResult.score > 0 && !noMatch) {
+      // 결과가 아직 저장되지 않았고, 점수가 있고, 일치 항목이 있는 경우에만 저장
+      saveResultAndCheckAchievement();
+    }
+  }, [location, result, noMatch]);
 
   // 다시 도전하기 핸들러 - 사용하지 않음 (SuccessResult에서 직접 처리)
   const handleTryAgain = () => {
-    // 이전: 모달을 통해 경험치 표시 후 이동
-    // setModalDestination("timeattack");
-    // setShowModal(true);
-    // 수정: 사용하지 않음 (SuccessResult에서 직접 navigate 처리)
+    // 세션 스토리지 정리
+    sessionStorage.removeItem("timeAttackResultSaved");
+    sessionStorage.removeItem("timeAttackXpSaved");
+    navigate("/time-attack");
   };
 
   // 타임어택 결과를 저장하고 업적을 확인하는 함수
   const saveResultAndCheckAchievement = async () => {
+    // 이미 저장되었는지 확인
+    if (sessionStorage.getItem("timeAttackResultSaved")) {
+      return;
+    }
+
     try {
       setIsSaving(true);
 
-      if (!localResult) return;
+      if (!localResult || localResult.score <= 0) return;
 
       // 1. 타임어택 결과 저장 API 호출
       await timeAttackApi.saveTimeAttackResult({
@@ -219,6 +241,14 @@ const TimeAttackResult: React.FC = () => {
         topic: localResult.topic || "",
         score: localResult.score || 0,
       });
+
+      // 결과 저장 완료 플래그 설정
+      sessionStorage.setItem("timeAttackResultSaved", "true");
+      
+      // XP 저장 (점수의 10배)
+      const calculatedXp = Math.floor(localResult.score * 10);
+      setXpEarned(calculatedXp);
+      sessionStorage.setItem("timeAttackXpSaved", calculatedXp.toString());
 
       // 2. 업적 API 호출 (점수가 90점 이상인 경우만)
       if (localResult.score && localResult.score >= 90) {
@@ -246,9 +276,6 @@ const TimeAttackResult: React.FC = () => {
         }
       }
 
-      // 애니메이션 모달 표시 (저장 성공 후)
-      setModalDestination("ranking");
-      setShowModal(true);
     } catch (error) {
       console.error("결과 저장 실패:", error);
       // 오류 처리
@@ -258,8 +285,14 @@ const TimeAttackResult: React.FC = () => {
   };
 
   // 랭킹 보기 핸들러
-  const handleViewRanking = async () => {
-    await saveResultAndCheckAchievement();
+  const handleViewRanking = () => {
+    navigate("/ranking", { state: { from: "timeattack-result" } });
+  };
+
+  // 모달 열기 핸들러
+  const handleShowXpModal = () => {
+    setModalDestination("ranking");
+    setShowModal(true);
   };
 
   // 모달 닫기 핸들러
@@ -338,6 +371,8 @@ const TimeAttackResult: React.FC = () => {
                   onTryAgain={handleTryAgain}
                   onViewRanking={handleViewRanking}
                   isSaving={isSaving}
+                  onShowXpModal={handleShowXpModal}
+                  xpEarned={xpEarned}
                 />
               )}
           </main>
@@ -350,7 +385,7 @@ const TimeAttackResult: React.FC = () => {
         isOpen={showModal}
         onClose={handleCloseModal}
         score={localResult?.score || 0}
-        xpGained={Math.floor((localResult?.score || 0) * 10)} // XP 계산 로직: 점수 * 10
+        xpGained={xpEarned}
         destination={modalDestination}
       />
 

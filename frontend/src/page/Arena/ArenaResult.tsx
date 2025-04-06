@@ -65,53 +65,53 @@ const AnimationModal: React.FC<AnimationModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-           {" "}
+           {" "}
       <div className="w-full max-w-sm mx-auto">
-               {" "}
+               {" "}
         <div className="bg-white/10 backdrop-blur-md rounded-xl p-8 text-center animate-fadeIn">
-                   {" "}
-          <h2 className="text-3xl font-bold mb-4 text-white">축하합니다!</h2>   
-               {" "}
+                   {" "}
+          <h2 className="text-3xl font-bold mb-4 text-white">축하합니다!</h2>   
+               {" "}
           <div className="mb-6">
-                        <p className="text-xl text-yellow-300">정답 판정</p>   
-                   {" "}
+                        <p className="text-xl text-yellow-300">정답 판정</p>   
+                   {" "}
             <p className="text-5xl font-bold text-white">
-                            {correctCount > 0 ? "정답!" : "오답"}           {" "}
+                            {correctCount > 0 ? "정답!" : "오답"}           {" "}
             </p>
-                     {" "}
+                     {" "}
           </div>
-                   {" "}
+                   {" "}
           <div className="mb-6">
-                        <p className="text-xl text-yellow-300">맞은 개수</p>   
-                   {" "}
+                        <p className="text-xl text-yellow-300">맞은 개수</p>   
+                   {" "}
             <p className="text-5xl font-bold text-white">
-                            {partialCorrectCount}/4            {" "}
+                            {partialCorrectCount}/4            {" "}
             </p>
-                     {" "}
+                     {" "}
           </div>
-                   {" "}
+                   {" "}
           <div className="mb-8">
-                        <p className="text-xl text-green-300">경험치 획득</p>   
-                   {" "}
+                        <p className="text-xl text-green-300">경험치 획득</p>   
+                   {" "}
             <div className="flex items-center justify-center">
-                           {" "}
+                           {" "}
               <span className="text-5xl font-bold text-white">+{xpGained}</span>
-                            <span className="text-xl text-white ml-1">XP</span> 
-                       {" "}
+                            <span className="text-xl text-white ml-1">XP</span> 
+                       {" "}
             </div>
-                     {" "}
+                     {" "}
           </div>
-                   {" "}
+                   {" "}
           {countdown > 0 ? (
             <p className="text-gray-200">
-                            {countdown}초 후              {" "}
-              {destination === "ranking" ? "랭킹 페이지" : "아레나 페이지"}로  
-                          이동합니다...            {" "}
+                            {countdown}초 후              {" "}
+              {destination === "ranking" ? "랭킹 페이지" : "아레나 페이지"}로  
+                          이동합니다...            {" "}
             </p>
           ) : (
             <p className="text-gray-200">이동 중...</p>
           )}
-                   {" "}
+                   {" "}
           <button
             onClick={() => {
               onClose();
@@ -123,13 +123,13 @@ const AnimationModal: React.FC<AnimationModalProps> = ({
             }}
             className="mt-4 bg-pic-primary text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-pic-primary/90 transition"
           >
-                        바로 이동하기          {" "}
+                        바로 이동하기          {" "}
           </button>
-                 {" "}
+                 {" "}
         </div>
-             {" "}
+             {" "}
       </div>
-         {" "}
+         {" "}
     </div>
   );
 };
@@ -153,7 +153,7 @@ const ArenaResultPage: React.FC = () => {
   useEffect(() => {
     // 세션 스토리지에서 결과 데이터 가져오기
     const storedResult = sessionStorage.getItem("arenaResult");
-
+    
     if (!storedResult) {
       // 결과 데이터가 없으면 게임 페이지로 리다이렉트
       navigate("/arena");
@@ -162,11 +162,19 @@ const ArenaResultPage: React.FC = () => {
 
     try {
       const parsedResult = JSON.parse(storedResult); // 결과 데이터 설정
-
       setResultData(parsedResult);
-      setIsLoading(false); // 결과 자동 저장 - 페이지 로드 시 바로 실행
-
-      saveResult(parsedResult);
+      setIsLoading(false);
+      
+      // 경험치가 이미 저장되었는지 확인
+      const xpAlreadySaved = sessionStorage.getItem("arenaXpSaved");
+      
+      if (xpAlreadySaved) {
+        // 이미 저장된 XP 값 가져오기
+        setXpEarned(parseInt(xpAlreadySaved, 10));
+      } else if (!parsedResult.resultSaved) {
+        // XP가 저장되지 않았고 결과도 저장되지 않았으면 저장 진행
+        saveResult(parsedResult);
+      }
     } catch (error) {
       console.error("결과 데이터 파싱 오류:", error);
       navigate("/arena");
@@ -191,6 +199,9 @@ const ArenaResultPage: React.FC = () => {
       // responseData (경험치 값)를 직접 사용하여 상태 업데이트
       setXpEarned(responseData); // <--- 수정됨: responseData.xp -> responseData
 
+      // 경험치 저장 플래그를 세션 스토리지에 저장
+      sessionStorage.setItem("arenaXpSaved", responseData.toString());
+
       console.log("저장 결과 (획득 XP):", responseData); // 로그도 수정된 데이터 반영 // 결과가 이미 저장됨을 표시 (이 로직은 그대로 유지)
 
       const updatedResultData = { ...dataToUse, resultSaved: true };
@@ -206,7 +217,9 @@ const ArenaResultPage: React.FC = () => {
   }; // 다시 도전하기 핸들러
 
   const handlePlayAgain = () => {
+    // 다시 도전할 때 저장된 XP 정보와 결과 모두 제거
     sessionStorage.removeItem("arenaResult");
+    sessionStorage.removeItem("arenaXpSaved");
     navigate("/arena");
   }; // 랭킹 보기 핸들러
 
@@ -222,16 +235,16 @@ const ArenaResultPage: React.FC = () => {
   if (isLoading) {
     return (
       <Container>
-                <LoadingState />     {" "}
+                <LoadingState />     {" "}
       </Container>
     );
   }
 
   return (
     <Container>
-            <ContentNavBar content="아레나 결과" />     {" "}
+            <ContentNavBar content="아레나 결과" />     {" "}
       <main className="flex-1">
-               {" "}
+               {" "}
         {resultData && (
           <ArenaResult
             score={resultData.score}
@@ -249,10 +262,10 @@ const ArenaResultPage: React.FC = () => {
             isSaving={isSaving}
           />
         )}
-             {" "}
+             {" "}
       </main>
-            <BottomBar />      {/* 애니메이션 모달 */}
-           {" "}
+            <BottomBar />      {/* 애니메이션 모달 */}
+           {" "}
       <AnimationModal
         isOpen={showModal}
         onClose={handleCloseModal}
@@ -261,15 +274,15 @@ const ArenaResultPage: React.FC = () => {
         xpGained={xpEarned}
         destination={modalDestination}
       />
-            {/* 에러 모달 */}
-           {" "}
+            {/* 에러 모달 */}
+           {" "}
       <Modal
         isOpen={showErrorModal}
         onClose={() => setShowErrorModal(false)}
         title="오류"
         description={
           <div className="text-gray-600">
-                        <p>{error}</p>         {" "}
+                        <p>{error}</p>         {" "}
           </div>
         }
         buttons={[
@@ -280,7 +293,7 @@ const ArenaResultPage: React.FC = () => {
           },
         ]}
       />
-         {" "}
+         {" "}
     </Container>
   );
 };
