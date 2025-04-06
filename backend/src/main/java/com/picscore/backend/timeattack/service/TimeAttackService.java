@@ -1,6 +1,7 @@
 package com.picscore.backend.timeattack.service;
 
 import com.picscore.backend.common.exception.CustomException;
+import com.picscore.backend.common.utill.GameWeekUtil;
 import com.picscore.backend.photo.service.PhotoService;
 import com.picscore.backend.timeattack.model.entity.TimeAttack;
 import com.picscore.backend.timeattack.model.request.AnalysisPhotoRequest;
@@ -81,7 +82,7 @@ public class TimeAttackService {
         PageRequest pageRequest = PageRequest.of(pageNum-1, 5);
 
         // 레포지토리에서 사용자별 최고 점수 조회
-        Page<TimeAttack> timeAttackPage = timeAttackRepository.findHighestScoresPerUser(getCurrentGameWeek(), pageRequest);
+        Page<TimeAttack> timeAttackPage = timeAttackRepository.findHighestScoresPerUser(GameWeekUtil.getCurrentGameWeek(), pageRequest);
 
         // 페이지 데이터 존재 여부 확인
         if (timeAttackPage == null || pageNum > timeAttackPage.getTotalPages() || timeAttackPage.getContent().isEmpty()) {
@@ -259,10 +260,10 @@ public class TimeAttackService {
         String activityImageUrl = photoService.getFileUrl(activityFolder, request.getImageName());
 
         // 타임어택 정보를 DB에 저장
-        String activityWeek = getCurrentGameWeek();
-        System.out.printf("이번 게임 주차는!!!=="+activityWeek);
+        String activityWeek = GameWeekUtil.getCurrentGameWeek();
+//        System.out.printf("이번 게임 주차는!!!=="+activityWeek);
         TimeAttack timeAttack = new TimeAttack(
-                user, activityImageUrl, request.getTopic(), getCurrentGameWeek(), request.getScore()
+                user, activityImageUrl, request.getTopic(), activityWeek, request.getScore()
         );
         timeAttackRepository.save(timeAttack);
 
@@ -271,15 +272,6 @@ public class TimeAttackService {
         user.updateExperience(plusExperience);
         user.updateLevel(plusExperience);
         userRepository.save(user);
-    }
-
-
-    // ✅ 현재 주차의 게임 ID 가져오기
-    private String getCurrentGameWeek() {
-        LocalDate now = LocalDate.now(ZoneId.of("UTC"));
-        int year = now.getYear();
-        int week = now.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-        return String.format("%d%02d", year, week);
     }
 }
 
