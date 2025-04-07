@@ -186,6 +186,21 @@ const RankingPage: React.FC = () => {
     }
   }, [currentPage, isLoggedIn, rankingType]);
 
+  // URL 쿼리 파라미터에서 탭 설정 확인
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const tabParam = searchParams.get('tab');
+    
+    // 탭 파라미터가 있는 경우 해당 탭으로 설정
+    if (tabParam === 'timeAttack') {
+      setRankingType('timeAttack');
+    } else if (tabParam === 'arena') {
+      setRankingType('arena');
+    } else if (tabParam === 'contest') {
+      setRankingType('contest');
+    }
+  }, [location]);
+
   // 랭킹 유형 변경 시 데이터 리셋
   useEffect(() => {
     // 랭킹 유형 변경 시 페이지 번호를 1로 리셋

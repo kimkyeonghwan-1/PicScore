@@ -72,10 +72,8 @@ const AnimationModal: React.FC<AnimationModalProps> = ({
 
   const handleGoToRanking = () => {
     onClose();
-    // 정확한 URL 마크업와 탭 파라미터 확인
-    console.log(
-      "타임어택에서 랭킹보기 클릭, 이동 URL: /ranking?tab=timeAttack"
-    );
+    // 타임어택 랭킹 탭으로 이동
+    console.log("타임어택에서 랭킹보기 클릭, 이동 URL: /ranking?tab=timeAttack");
     navigate("/ranking?tab=timeAttack", { replace: true });
   };
 
