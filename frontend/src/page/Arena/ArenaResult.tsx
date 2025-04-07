@@ -199,7 +199,7 @@ const ArenaResultPage: React.FC = () => {
 
   const handleViewRanking = () => {
     // 모달 표시 없이 바로 랭킹 페이지로 이동
-    navigate("/ranking");
+    navigate("/ranking", { replace: true });
   }; // 모달 닫기 핸들러
 
   const handleCloseModal = () => {

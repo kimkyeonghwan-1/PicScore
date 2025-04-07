@@ -46,7 +46,7 @@ const BADGE_DESCRIPTION_MAPPING: Record<string, string> = {
   badge6: "20개 이상의 게시글을 작성했습니다.",
   badge7: "타임어택 90점 이상 달성",
   badge8: "20회 이상의 타임어택에 참여했습니다.",
-  badge9: "사진 평가에서 77점 이상을 달성했습니다.",
+  badge9: "사진 평가에서 90점 이상을 달성했습니다.",
   badge10: "타임어택에서 1위를 달성했습니다.",
   badge11: "게시글이 좋아요 10개를 달성했습니다.",
   badge12: "모든 업적을 달성했습니다.",

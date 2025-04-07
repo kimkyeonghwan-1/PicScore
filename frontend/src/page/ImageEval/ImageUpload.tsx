@@ -18,87 +18,6 @@ import Loading from "../../components/Loading";
 import { ImageEvalResponse } from "../../types/evalTypes";
 
 /**
- * 이미지를 WebP 형식으로 변환하는 함수
- * @param file 원본 이미지 파일
- * @returns WebP 형식으로 변환된 File 객체를 포함한 Promise
- */
-const convertToWebP = (file: File): Promise<File> => {
-  console.log('WebP 변환 시작:', file.name, '크기:', (file.size / 1024 / 1024).toFixed(2), 'MB');
-  
-  return new Promise((resolve, reject) => {
-    // 파일을 URL로 변환
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        console.log('이미지 로드 완료. 크기:', img.width, 'x', img.height);
-        
-        // Canvas에 이미지 그리기
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Canvas 컨텍스트를 가져올 수 없습니다'));
-          return;
-        }
-        
-        ctx.drawImage(img, 0, 0);
-        
-        // WebP로 변환 (품질: 0.9 - 높은 품질 유지)
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              // Blob을 File 객체로 변환
-              const webpFile = new File(
-                [blob], 
-                file.name.replace(/\.(jpe?g|png)$/i, '.webp'), 
-                { type: 'image/webp' }
-              );
-              console.log('WebP 변환 성공:', 
-                          '원본 크기:', (file.size / 1024 / 1024).toFixed(2), 'MB',
-                          '변환 후 크기:', (webpFile.size / 1024 / 1024).toFixed(2), 'MB',
-                          '압축률:', Math.round((1 - webpFile.size / file.size) * 100), '%');
-              resolve(webpFile);
-            } else {
-              console.error('WebP Blob 생성 실패');
-              reject(new Error('WebP 변환 실패'));
-            }
-          },
-          'image/webp',
-          0.9  // 품질 설정 (0-1)
-        );
-      };
-      img.onerror = (e) => {
-        console.error('이미지 로드 실패:', e);
-        reject(new Error('이미지 로드 실패'));
-      };
-      img.src = event.target?.result as string;
-    };
-    reader.onerror = () => {
-      console.error('파일 읽기 실패');
-      reject(new Error('파일 읽기 실패'));
-    };
-    reader.readAsDataURL(file);
-  });
-};
-
-/**
- * 브라우저가 WebP를 지원하는지 확인하는 함수
- */
-const checkWebPSupport = (): Promise<boolean> => {
-  return new Promise((resolve) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    
-    const isSupported = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
-    console.log('브라우저 WebP 지원 여부:', isSupported ? '지원함' : '지원하지 않음');
-    resolve(isSupported);
-  });
-};
-
-/**
  * 이미지 압축 함수
  * 5MB 이상인 파일만 4MB로 압축, 그 이하는 그대로 반환
  * @param file 압축할 이미지 파일
@@ -109,12 +28,12 @@ const compressImageIfNeeded = async (file: File): Promise<File> => {
   const FILE_SIZE_LIMIT = 5; // 5MB
   const TARGET_SIZE = 4; // 4MB
   const fileSizeMB = file.size / (1024 * 1024);
-  
+
   if (fileSizeMB < FILE_SIZE_LIMIT) {
     console.log(`압축 불필요: 파일 크기 ${fileSizeMB.toFixed(2)}MB (5MB 미만)`);
     return file;
   }
-  
+
   try {
     // 압축 옵션 설정
     const options = {
@@ -125,14 +44,16 @@ const compressImageIfNeeded = async (file: File): Promise<File> => {
       alwaysKeepResolution: true, // 해상도 유지
     };
 
-    console.log(`압축 시작: 원본 크기 ${fileSizeMB.toFixed(2)}MB (5MB 이상)`); 
+    console.log(`압축 시작: 원본 크기 ${fileSizeMB.toFixed(2)}MB (5MB 이상)`);
 
     // 이미지 압축 실행
     const compressedFile = await imageCompression(file, options);
     const compressedSizeMB = compressedFile.size / (1024 * 1024);
 
     console.log(
-      `압축 완료: ${compressedSizeMB.toFixed(2)}MB (${Math.round((compressedFile.size / file.size) * 100)}% 크기)`
+      `압축 완료: ${compressedSizeMB.toFixed(2)}MB (${Math.round(
+        (compressedFile.size / file.size) * 100
+      )}% 크기)`
     );
 
     return compressedFile;
@@ -156,8 +77,6 @@ function ImageUpload() {
   const imageEval = useEvalImage(tempImage);
   const navigate = useNavigate();
   const [isCompressing, setIsCompressing] = useState(false); // 이미지 압축 상태
-  const [isConverting, setIsConverting] = useState(false); // WebP 변환 상태
-  const [supportsWebP, setSupportsWebP] = useState<boolean | null>(null); // WebP 지원 여부
   const modalOpen = () => {
     setModalState(true);
   };
@@ -166,16 +85,6 @@ function ImageUpload() {
       setModalState(false);
     }
   };
-
-  // 컴포넌트 마운트 시 WebP 지원 여부 확인
-  useEffect(() => {
-    const checkSupport = async () => {
-      const supported = await checkWebPSupport();
-      setSupportsWebP(supported);
-    };
-    
-    checkSupport();
-  }, []);
 
   const handleModalClick = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -201,14 +110,18 @@ function ImageUpload() {
       // 파일 크기 확인 (100MB 제한)
       const fileSizeMB = originalFile.size / (1024 * 1024);
       const MAX_FILE_SIZE = 100; // 100MB 제한
-      
+
       if (fileSizeMB > MAX_FILE_SIZE) {
-        alert(`파일 크기가 너무 큽니다. (${fileSizeMB.toFixed(1)}MB)\n\n최대 ${MAX_FILE_SIZE}MB 크기의 이미지만 업로드 가능합니다.`);
+        alert(
+          `파일 크기가 너무 큽니다. (${fileSizeMB.toFixed(
+            1
+          )}MB)\n\n최대 ${MAX_FILE_SIZE}MB 크기의 이미지만 업로드 가능합니다.`
+        );
         // 파일 선택 초기화
         if (event.target) event.target.value = "";
         return;
       }
-      
+
       // 원본 이미지 미리보기 설정 (압축 전)
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -218,7 +131,7 @@ function ImageUpload() {
         }
       };
       reader.readAsDataURL(originalFile); //base64로 전환
-      
+
       // 원본 파일 저장 (나중에 압축)
       setImageFile(originalFile);
       console.log(`원본 이미지 크기: ${fileSizeMB.toFixed(2)}MB`);
@@ -233,34 +146,17 @@ function ImageUpload() {
       try {
         // 압축 시작 상태 설정
         setIsCompressing(true);
-        
+
         // 이미지 크기 확인 및 필요시 압축 (5MB 이상일 경우만)
         const processedFile = await compressImageIfNeeded(imageFile);
-        
+
         // 압축 완료 상태 설정
         setIsCompressing(false);
-        
-        // WebP 변환 시도 (브라우저가 지원하고 사진 형식이 지원되는 경우)
-        let finalFile = processedFile;
-        if (supportsWebP && /\.(jpe?g|png)$/i.test(processedFile.name)) {
-          try {
-            setIsConverting(true);
-            finalFile = await convertToWebP(processedFile);
-            console.log('최종 업로드 파일:', finalFile.name, '타입:', finalFile.type);
-          } catch (conversionError) {
-            console.error('WebP 변환 실패, 원본 형식 사용:', conversionError);
-            finalFile = processedFile; // 변환 실패 시 압축된 원본 사용
-          } finally {
-            setIsConverting(false);
-          }
-        } else {
-          console.log('WebP 변환 건너뜀:', supportsWebP ? '지원되지 않는 파일 형식' : 'WebP 지원 안함');
-        }
-        
-        // 폼 데이터 생성 및 업로드
+
+        // 압축 완료 후 formData 생성 및 업로드
         const formData = new FormData();
-        formData.append("file", finalFile);
-        
+        formData.append("file", processedFile);
+
         // 로딩 상태 설정 추가 (옵션)
         tempImageMutation.mutate(formData, {
           onSuccess: (data) => {
@@ -276,7 +172,6 @@ function ImageUpload() {
         console.error("이미지 처리 중 오류:", error);
         // 오류 발생 시 압축 상태 초기화
         setIsCompressing(false);
-        setIsConverting(false);
       }
     }
   };
@@ -306,7 +201,9 @@ function ImageUpload() {
       className="flex flex-col w-full items-center justify-center"
       onClick={modalClose}
     >
-      {(imageEval.isLoading || tempImageMutation.isPending || isCompressing || isConverting) && <Loading />}
+      {(imageEval.isLoading ||
+        tempImageMutation.isPending ||
+        isCompressing) && <Loading />}
       {/* 사진 촬영 / 업로드 모달창 */}
       {modalState && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -383,28 +280,23 @@ function ImageUpload() {
           큰 이미지 파일 압축 중... 잠시만 기다려주세요.
         </div>
       )}
-      {isConverting && (
-        <div className="mb-4 text-sm text-pic-primary">
-          WebP 형식으로 변환 중... 잠시만 기다려주세요.
-        </div>
-      )}
-      {supportsWebP && (
-        <div className="mb-4 text-xs text-gray-500">
-          이미지는 WebP 형식으로 자동 변환됩니다.
-        </div>
-      )}
       <Button
         color={imageFile ? "green" : "gray"}
         width={32}
         height={12}
         textSize="lg"
         onClick={handleTempImagePost}
-        disabled={isCompressing || isConverting || tempImageMutation.isPending || imageEval.isLoading}
+        disabled={
+          isCompressing || tempImageMutation.isPending || imageEval.isLoading
+        }
       >
-        {isCompressing ? "이미지 압축 중..." : 
-         isConverting ? "WebP 변환 중..." :
-         tempImageMutation.isPending ? "업로드 중..." : 
-         imageEval.isLoading ? "분석 중..." : "확인"}
+        {isCompressing
+          ? "이미지 압축 중..."
+          : tempImageMutation.isPending
+          ? "업로드 중..."
+          : imageEval.isLoading
+          ? "분석 중..."
+          : "확인"}
       </Button>
     </div>
   );
