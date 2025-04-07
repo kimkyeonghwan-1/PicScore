@@ -186,6 +186,26 @@ const RankingPage: React.FC = () => {
     }
   }, [currentPage, isLoggedIn, rankingType]);
 
+  // URL 쿼리 파라미터를 통해 초기 탭 설정
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get('tab');
+    
+    if (tabParam === 'arena') {
+      setRankingType('arena');
+    } else if (tabParam === 'timeAttack') {
+      setRankingType('timeAttack');
+    } else if (tabParam === 'contest') {
+      setRankingType('contest');
+    }
+    // URL 파라미터 지우기 (내비게이션 기록 유지)
+    if (tabParam) {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('tab');
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+  }, [location.search]);
+
   // 랭킹 유형 변경 시 데이터 리셋
   useEffect(() => {
     // 랭킹 유형 변경 시 페이지 번호를 1로 리셋
