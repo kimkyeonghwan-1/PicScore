@@ -28,11 +28,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => (
         value={`${stats.arenaRank}위`}
         color="text-[#ff9800]"
       />
-      <StatsCard
-        title="컨테스트"
-        value="추후 공개 예정"
-        color="text-gray-500"
-      />
+      <StatsCard title="컨테스트" value="추후 공개" color="text-gray-500" />
     </div>
   </div>
 );

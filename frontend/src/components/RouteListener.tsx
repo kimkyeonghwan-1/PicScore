@@ -80,6 +80,11 @@ const routeLayouts: { [key: string]: LayoutConfig } = {
     showBottomBar: false,
     content: "타임어택",
   },
+  "/arena": {
+    showNavBar: true,
+    showBottomBar: false,
+    content: "아레나",
+  },
 };
 
 function RouteListener() {
