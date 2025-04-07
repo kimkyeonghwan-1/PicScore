@@ -131,8 +131,10 @@ const RankingPage: React.FC = () => {
           setTotalPages(data.totalPage || 1);
 
           // 첫 로드 시에만 상위 3명 설정
-          if (isFirstLoad.current && currentPage === 1) {
-            const topUsers = apiRankings.filter((user) => user.rank <= 3);
+          if (currentPage === 1) {
+            const topUsers = apiRankings
+              .filter((user) => (user.rank !== undefined && user.rank <= 3) || false)
+              .slice(0, 3);
             setTimeAttackTopThree(topUsers);
           }
         } else {
@@ -175,7 +177,7 @@ const RankingPage: React.FC = () => {
           setTotalPages(data.totalPage || 1);
 
           // 첫 로드 시에만 상위 3명 설정
-          if (isFirstLoad.current && currentPage === 1) {
+          if (currentPage === 1) {
             const topUsers = rankedUsers.slice(0, 3);
             setArenaTopThree(topUsers);
           }
@@ -229,27 +231,15 @@ const RankingPage: React.FC = () => {
     // 탭 파라미터가 있는 경우 해당 탭으로 설정
     if (tabParam === 'timeAttack') {
       setRankingType('timeAttack');
-    } else if (tabParam === 'arena') {
-      setRankingType('arena');
-    } else if (tabParam === 'contest') {
-      setRankingType('contest');
-    }
-  }, [location]);
-
-  // URL 쿼리 파라미터에서 탭 설정 확인
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const tabParam = searchParams.get('tab');
-    
-    // 탭 파라미터가 있는 경우 해당 탭으로 설정
-    if (tabParam === 'timeAttack') {
-      setRankingType('timeAttack');
+      console.log('타임어택 탭으로 설정');
     } else if (tabParam === 'arena') {
       setRankingType('arena');
     } else if (tabParam === 'contest') {
       setRankingType('contest');
     }
   }, [location.search]);
+
+
 
   // 랭킹 유형 변경 시 데이터 리셋
   useEffect(() => {
@@ -260,14 +250,36 @@ const RankingPage: React.FC = () => {
     setModalOpen(false);
     
     // 이미 해당 랭킹 데이터가 있다면 로딩 상태를 false로 설정
-    if (
-      (rankingType === 'timeAttack' && timeAttackRankings.length > 0) ||
-      (rankingType === 'arena' && arenaRankings.length > 0) ||
-      rankingType === 'contest'
-    ) {
+    if (rankingType === 'timeAttack' && timeAttackRankings.length > 0) {
+      setIsLoading(false);
+      
+      // TOP3가 없는 경우 다시 상위 3명 설정
+      if (timeAttackTopThree.length === 0) {
+        const topUsers = timeAttackRankings
+          .filter((user) => (user.rank !== undefined && user.rank <= 3) || false)
+          .slice(0, 3);
+        if (topUsers.length > 0) {
+          setTimeAttackTopThree(topUsers);
+        }
+      }
+    } else if (rankingType === 'arena' && arenaRankings.length > 0) {
+      setIsLoading(false);
+      
+      // TOP3가 없는 경우 다시 상위 3명 설정
+      if (arenaTopThree.length === 0) {
+        const topUsers = arenaRankings.slice(0, 3);
+        if (topUsers.length > 0) {
+          setArenaTopThree(topUsers);
+        }
+      }
+    } else if (rankingType === 'contest') {
       setIsLoading(false);
     }
-  }, [rankingType]);
+    
+    console.log('Current ranking type:', rankingType);
+    console.log('Arena top three:', arenaTopThree);
+    console.log('Time attack top three:', timeAttackTopThree);
+  }, [rankingType, timeAttackRankings, arenaRankings, timeAttackTopThree, arenaTopThree]);
 
   // 랭킹 아이템 클릭 핸들러
   const handleRankingItemClick = (user: RankingUser) => {
