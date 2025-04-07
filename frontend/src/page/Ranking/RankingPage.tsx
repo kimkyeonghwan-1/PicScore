@@ -118,13 +118,16 @@ const RankingPage: React.FC = () => {
 
         if (rankingType === "timeAttack") {
           // 타임어택 랭킹 API 호출
+          console.log("타임어택 랭킹 API 호출 시도", currentPage);
           const response = await timeAttackApi.getRanking(currentPage);
           responseData = response.data;
           data = responseData.data;
+          console.log("타임어택 랭킹 응답:", data);
 
           if (data && data.ranking && Array.isArray(data.ranking)) {
             // API 응답을 애플리케이션 타입으로 명시적 변환
             const apiRankings = data.ranking as RankingApiUser[];
+            console.log("타임어택 랭킹 데이터 확인:", apiRankings);
             setRankings(apiRankings);
             setTotalPages(data.totalPage || 1);
 
@@ -146,6 +149,7 @@ const RankingPage: React.FC = () => {
           if (data && data.ranking && Array.isArray(data.ranking)) {
             // API 응답을 애플리케이션 타입으로 명시적 변환
             const apiRankings = data.ranking as ArenaRankingApiUser[];
+            console.log("아레나 랭킹 데이터 확인:", apiRankings);
             
             // 점수순으로 정렬하고 랭킹 부여
             const rankedUsers = apiRankings
