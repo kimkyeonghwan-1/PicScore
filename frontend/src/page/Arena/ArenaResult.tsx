@@ -153,7 +153,7 @@ const ArenaResultPage: React.FC = () => {
   useEffect(() => {
     // 세션 스토리지에서 결과 데이터 가져오기
     const storedResult = sessionStorage.getItem("arenaResult");
-    
+
     if (!storedResult) {
       // 결과 데이터가 없으면 게임 페이지로 리다이렉트
       navigate("/arena");
@@ -163,16 +163,9 @@ const ArenaResultPage: React.FC = () => {
     try {
       const parsedResult = JSON.parse(storedResult); // 결과 데이터 설정
       setResultData(parsedResult);
-      setIsLoading(false);
-      
-      // 경험치가 이미 저장되었는지 확인
-      const xpAlreadySaved = sessionStorage.getItem("arenaXpSaved");
-      
-      if (xpAlreadySaved) {
-        // 이미 저장된 XP 값 가져오기
-        setXpEarned(parseInt(xpAlreadySaved, 10));
-      } else if (!parsedResult.resultSaved) {
-        // XP가 저장되지 않았고 결과도 저장되지 않았으면 저장 진행
+      setIsLoading(false); // 결과 자동 저장 - 페이지 로드 시 바로 실행
+
+      if (!parsedResult.resultSaved) {
         saveResult(parsedResult);
       }
     } catch (error) {
@@ -193,16 +186,11 @@ const ArenaResultPage: React.FC = () => {
         time: dataToUse.remainingTime, // 남은 시간
       };
 
-      const response = await arenaApi.saveArenaResult(requestData); // 백엔드 응답의 data 필드는 이제 경험치(number)를 직접 포함합니다.
+      const response = await arenaApi.saveArenaResult(requestData);
+      const responseData = response.data.data;
+      setXpEarned(responseData);
 
-      const responseData = response.data.data; // responseData는 이제 number 타입입니다.
-      // responseData (경험치 값)를 직접 사용하여 상태 업데이트
-      setXpEarned(responseData); // <--- 수정됨: responseData.xp -> responseData
-
-      // 경험치 저장 플래그를 세션 스토리지에 저장
-      sessionStorage.setItem("arenaXpSaved", responseData.toString());
-
-      console.log("저장 결과 (획득 XP):", responseData); // 로그도 수정된 데이터 반영 // 결과가 이미 저장됨을 표시 (이 로직은 그대로 유지)
+      console.log("저장 결과 (획득 XP):", responseData);
 
       const updatedResultData = { ...dataToUse, resultSaved: true };
       setResultData(updatedResultData);
@@ -217,9 +205,7 @@ const ArenaResultPage: React.FC = () => {
   }; // 다시 도전하기 핸들러
 
   const handlePlayAgain = () => {
-    // 다시 도전할 때 저장된 XP 정보와 결과 모두 제거
     sessionStorage.removeItem("arenaResult");
-    sessionStorage.removeItem("arenaXpSaved");
     navigate("/arena");
   }; // 랭킹 보기 핸들러
 
