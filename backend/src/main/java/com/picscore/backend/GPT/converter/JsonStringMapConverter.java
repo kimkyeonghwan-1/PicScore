@@ -1,4 +1,4 @@
-package com.picscore.backend.GPT;
+package com.picscore.backend.GPT.converter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
