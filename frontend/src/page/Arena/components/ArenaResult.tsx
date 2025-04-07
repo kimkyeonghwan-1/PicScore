@@ -57,7 +57,7 @@ const ArenaResult: React.FC<ArenaResultProps> = ({
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 pb-20"> {/* 하단 여백을 추가 (pb-20) */}
       {/* 결과 요약 카드 */}
       <div className="bg-white rounded-xl shadow-md p-6 mb-6">
         <h2 className="text-2xl font-bold text-center mb-2 text-gray-800">
