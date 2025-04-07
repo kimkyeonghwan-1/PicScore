@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { useGetPhotos } from "../../hooks/useBoard";
 import { useInView } from "react-intersection-observer";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FadeLoader } from "react-spinners";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import SearchBar from "./components/SearchBar";
 import BoardPhotoGrid from "./components/BoardPhotoGrid";
 import PhotoItem from "./components/PhotoItem";
+import { BoardCategory } from "../../types/boardTypes";
 
 function Board() {
+  const [category, setCategory] = useState<BoardCategory>("latest");
+
   const navigate = useNavigate();
   const {
     data,
@@ -17,10 +20,9 @@ function Board() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useGetPhotos();
+  } = useGetPhotos(category);
   const photos = data?.pages.flatMap((page) => page.photos) || [];
   const totalPage = data?.pages[0].totalPages || 0;
-
   if (error) {
     console.log(error);
     <div>에러 났어요</div>;
@@ -45,7 +47,41 @@ function Board() {
     <div className="w-full h-screen flex flex-col">
       <SearchBar />
 
-      {/* <BoardPhotoGrid /> */}
+      <div className="h-10 flex cursor-pointer">
+        <div
+          className={`flex-1 flex h-full justify-center items-center text-sm font-semibold 
+            ${
+              category === "latest"
+                ? "border-b-2 border-black text-black"
+                : "text-gray-500"
+            }`}
+          onClick={() => setCategory("latest")}
+        >
+          최신순
+        </div>
+        <div
+          className={`flex-1 flex h-full justify-center items-center text-sm font-semibold 
+            ${
+              category === "like"
+                ? "border-b-2 border-black text-black"
+                : "text-gray-500"
+            }`}
+          onClick={() => setCategory("like")}
+        >
+          좋아요
+        </div>
+        <div
+          className={`flex-1 flex h-full justify-center items-center text-sm font-semibold 
+            ${
+              category === "score"
+                ? "border-b-2 border-black text-black"
+                : "text-gray-500"
+            }`}
+          onClick={() => setCategory("score")}
+        >
+          점수순
+        </div>
+      </div>
       <div className="overflow-y-auto flex-1 mb-16 ">
         {isLoading && (
           <div className="grid grid-cols-3 gap-0.5 w-full">

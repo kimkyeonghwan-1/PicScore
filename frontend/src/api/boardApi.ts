@@ -1,3 +1,4 @@
+import { BoardCategory } from "../types/boardTypes";
 import { testApi } from "./api";
 
 export interface PostRequest {
@@ -45,9 +46,14 @@ export interface PhotoResponse {
 // };
 
 // 테스트용 api
+
 export const boardApi = {
-  getPhotos: (pageParam: number) => {
-    return testApi.get<PhotoResponse>(`/api/v1/photos/${pageParam}`);
+  getPhotos: (pageParam: number, category?: BoardCategory) => {
+    return testApi.get<PhotoResponse>(`/api/v1/photos/${pageParam}`, {
+      params: {
+        sort: category,
+      },
+    });
   },
   postPhoto: (data: PostRequest) => {
     return testApi.post("/api/v1/photo", data);

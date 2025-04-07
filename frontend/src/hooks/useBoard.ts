@@ -7,6 +7,7 @@ import {
 import { boardApi, Photo } from "../api/boardApi";
 import { testApi } from "../api/api";
 import { AnalysisFeedbackType, AnalysisScoreType } from "../types/evalTypes";
+import { BoardCategory } from "../types/boardTypes";
 
 interface PhotoResponse {
   analysisChart: AnalysisScoreType;
@@ -28,11 +29,11 @@ interface SearchPhotoResponse {
   imageUrl: string;
 }
 
-export const useGetPhotos = () => {
+export const useGetPhotos = (category: BoardCategory) => {
   return useInfiniteQuery({
-    queryKey: ["photos"],
+    queryKey: ["photos", category],
     queryFn: async ({ pageParam }) => {
-      const response = await boardApi.getPhotos(pageParam);
+      const response = await boardApi.getPhotos(pageParam, category);
       return response.data.data;
     },
     getNextPageParam: (last) => {
