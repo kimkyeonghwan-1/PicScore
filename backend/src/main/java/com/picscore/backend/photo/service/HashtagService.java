@@ -1,32 +1,16 @@
 package com.picscore.backend.photo.service;
 
-import com.picscore.backend.photo.model.entity.Hashtag;
 import com.picscore.backend.photo.model.entity.Photo;
-import com.picscore.backend.photo.model.entity.PhotoHashtag;
-import com.picscore.backend.photo.repository.HashtagRepository;
-import com.picscore.backend.photo.repository.PhotoHashtagRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Service
-@RequiredArgsConstructor
-public class HashtagService {
-    private final HashtagRepository hashtagRepository;
-    private final PhotoHashtagRepository photoHashtagRepository;
+/**
+ * 해시태그 관련 비즈니스 로직을 처리하는 서비스 인터페이스
+ */
+public interface HashtagService {
 
-    @Transactional
-    public void saveHashtags(Photo photo, List<String> hashtags) {
-        if (hashtags != null && !hashtags.isEmpty()) {
-            for (String tagName : hashtags) {
-                Hashtag hashtag = hashtagRepository.findByName(tagName)
-                        .orElseGet(() -> hashtagRepository.save(new Hashtag(tagName)));
-
-                photoHashtagRepository.save(new PhotoHashtag(photo, hashtag));
-            }
-        }
-    }
+    /**
+     * 사진에 해시태그를 연결하여 저장하는 메서드
+     */
+    void saveHashtags(Photo photo, List<String> hashtags);
 }
-

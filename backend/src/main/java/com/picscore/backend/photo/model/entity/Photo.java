@@ -2,13 +2,12 @@ package com.picscore.backend.photo.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.picscore.backend.common.model.entity.BaseEntity;
-import com.picscore.backend.GPT.JsonStringMapConverter;
-import com.picscore.backend.GPT.JsonMapConverter;
+import com.picscore.backend.GPT.converter.JsonStringMapConverter;
+import com.picscore.backend.GPT.converter.JsonMapConverter;
 import com.picscore.backend.user.model.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.HashMap;

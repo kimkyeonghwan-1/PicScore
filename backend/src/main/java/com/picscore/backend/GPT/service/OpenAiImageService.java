@@ -1,7 +1,8 @@
-package com.picscore.backend.GPT;
+package com.picscore.backend.GPT.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.picscore.backend.common.exception.CustomException;
 import com.picscore.backend.common.model.response.BaseResponse;
 import lombok.RequiredArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
@@ -81,11 +82,11 @@ public class OpenAiImageService {
                 ResponseEntity<BaseResponse<Map<String, Object>>> result = parseGPTResponse(response.getBody(), originalImageUrl, retryCount);
                 return result;
             } else {
-                throw new RuntimeException("OpenAI API 요청 실패: HTTP " + response.getStatusCode());
+                throw new CustomException(HttpStatus.INTERNAL_SERVER_ERROR, "OpenAI API 요청 실패: HTTP " + response.getStatusCode());
             }
         } catch (Exception e) {
             System.err.println("❌ OpenAI API 요청 중 오류 발생: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(BaseResponse.error(e.getMessage()));
+            throw new CustomException(HttpStatus.CONFLICT, e.getMessage());
         }
     }
 
