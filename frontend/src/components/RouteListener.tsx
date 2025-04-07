@@ -13,7 +13,7 @@ interface LayoutConfig {
 }
 const nickname = "asdf";
 const routeLayouts: { [key: string]: LayoutConfig } = {
-  "/": { showNavBar: false, showBottomBar: false, content: "" },
+  "/": { showNavBar: false, showBottomBar: true, content: "" },
   "/image-upload": {
     showNavBar: true,
     showBottomBar: false,
@@ -102,7 +102,7 @@ function RouteListener() {
     if (location.pathname === "/time-attack") {
       const params = new URLSearchParams(location.search);
       const step = params.get("step");
-      
+
       // step이 "1"이거나 null인 경우에만 내브바 표시
       if (step === "1" || step === null) {
         setLayoutVisibility({
