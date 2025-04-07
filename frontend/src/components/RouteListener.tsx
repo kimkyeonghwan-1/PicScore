@@ -136,6 +136,19 @@ function RouteListener() {
       return;
     }
 
+    // 홈 경로 특별 처리 - loginSuccess 쿼리 파라미터 확인
+    if (location.pathname === "/") {
+      const searchParams = new URLSearchParams(location.search);
+      const loginSuccess = searchParams.get('loginSuccess');
+      
+      setLayoutVisibility({
+        showNavBar: false,
+        showBottomBar: isLoggedIn || loginSuccess === 'true', // 로그인 상태 또는 loginSuccess가 true일 때만 하단바 표시
+        content: "",
+      });
+      return;
+    }
+
     // 현재 경로에 맞는 레이아웃 설정 찾기
     const currentPath = Object.keys(routeLayouts).find(
       (route) =>

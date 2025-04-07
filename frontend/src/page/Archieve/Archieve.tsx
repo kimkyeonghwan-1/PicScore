@@ -40,8 +40,10 @@ const BADGE_NAME_MAPPING: Record<string, string> = {
 const BADGE_DESCRIPTION_MAPPING: Record<string, string> = {
   badge1: "첫 번째 팔로워를 얻었습니다.",
   badge2: "30명 이상의 팔로워를 달성했습니다.",
-  badge3: "첫 번째 사진 평가를 완료했습니다.",
-  badge4: "30회 이상의 사진 평가를 완료했습니다.",
+  // "첫 번째 사진 평가를 완료했습니다."
+  badge3: "추후 공개 예정",
+  // "30회 이상의 사진 평가를 완료했습니다."
+  badge4: "추후 공개 예정",
   badge5: "첫 번째 게시글을 작성했습니다.",
   badge6: "20개 이상의 게시글을 작성했습니다.",
   badge7: "타임어택 90점 이상 달성",
