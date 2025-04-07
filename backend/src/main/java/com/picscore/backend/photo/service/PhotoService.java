@@ -612,6 +612,3 @@ public class PhotoService {
     }
 
 }
-
-
-

@@ -1,26 +1,19 @@
 package com.picscore.backend.photo.controller;
 
 import com.picscore.backend.common.model.response.BaseResponse;
-import com.picscore.backend.photo.model.request.GetPhotosRequest;
-import com.picscore.backend.photo.model.request.SearchPhotoRequest;
 import com.picscore.backend.photo.model.response.*;
 import com.picscore.backend.photo.model.request.UploadPhotoRequest;
 import com.picscore.backend.photo.service.PhotoService;
-import com.picscore.backend.user.model.entity.User;
-import com.picscore.backend.user.repository.UserRepository;
 import com.picscore.backend.user.service.OAuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
