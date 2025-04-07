@@ -216,7 +216,7 @@ const ArenaResultPage: React.FC = () => {
 
   return (
     <Container>
-      <ContentNavBar content="아레나 결과" />{" "}
+      {" "}
       <main className="flex-1">
         {" "}
         {resultData && (
