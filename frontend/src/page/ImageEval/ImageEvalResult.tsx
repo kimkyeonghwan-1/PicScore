@@ -14,6 +14,7 @@ import Modal from "../../components/Modal";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ImageEvalResponse } from "../../types/evalTypes";
 import { useUploadImage } from "../../hooks/useEvalImage";
+import groupImage from "../../assets/Group 88.png"; // 이미지 import 추가
 
 function ImageEvalResult() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -72,9 +73,17 @@ function ImageEvalResult() {
     <div className="flex flex-col w-full mb-16 items-center justify-center ">
       <Modal
         description={
-          <>
-            더 자세한 정보는 로그인 후 <br></br> 확인하실 수 있습니다!
-          </>
+          <div className="flex flex-col items-center">
+            <img
+              src={groupImage}
+              alt="PICSCORE 기능"
+              className="w-full max-w-[280px] mb-4" // 이미지 크기와 마진 조정
+            />
+            <p className="text-center">
+              로그인 하시면 PICSCORE의 더 많은 서비스를 <br></br> 즐기실 수
+              있습니다!
+            </p>
+          </div>
         }
         title="알림"
         isOpen={isModalOpen}
