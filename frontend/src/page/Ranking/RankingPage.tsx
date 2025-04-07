@@ -118,16 +118,13 @@ const RankingPage: React.FC = () => {
 
         if (rankingType === "timeAttack") {
           // 타임어택 랭킹 API 호출
-          console.log("타임어택 랭킹 API 호출 시도", currentPage);
           const response = await timeAttackApi.getRanking(currentPage);
           responseData = response.data;
           data = responseData.data;
-          console.log("타임어택 랭킹 응답:", data);
 
           if (data && data.ranking && Array.isArray(data.ranking)) {
             // API 응답을 애플리케이션 타입으로 명시적 변환
             const apiRankings = data.ranking as RankingApiUser[];
-            console.log("타임어택 랭킹 데이터 확인:", apiRankings);
             setRankings(apiRankings);
             setTotalPages(data.totalPage || 1);
 
@@ -149,16 +146,15 @@ const RankingPage: React.FC = () => {
           if (data && data.ranking && Array.isArray(data.ranking)) {
             // API 응답을 애플리케이션 타입으로 명시적 변환
             const apiRankings = data.ranking as ArenaRankingApiUser[];
-            console.log("아레나 랭킹 데이터 확인:", apiRankings);
-            
+
             // 점수순으로 정렬하고 랭킹 부여
             const rankedUsers = apiRankings
               .sort((a, b) => b.score - a.score)
               .map((user, index) => ({
                 ...user,
-                rank: index + 1 // 점수 기준으로 랭킹 부여
+                rank: index + 1, // 점수 기준으로 랭킹 부여
               }));
-              
+
             setRankings(rankedUsers);
             setTotalPages(data.totalPage || 1);
 
@@ -189,32 +185,6 @@ const RankingPage: React.FC = () => {
       setError("로그인이 필요한 서비스입니다.");
     }
   }, [currentPage, isLoggedIn, rankingType]);
-
-  // URL 쿼리 파라미터를 통해 초기 탭 설정
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tabParam = params.get('tab');
-    
-    console.log("URL 파라미터:", tabParam, "| 현재 랭킹 타입:", rankingType);
-    
-    if (tabParam?.toLowerCase() === 'arena') {
-      console.log("아레나 탭 선택");
-      setRankingType('arena');
-    } else if (tabParam?.toLowerCase() === 'timeattack') {
-      console.log("타임어택 탭 선택");
-      setRankingType('timeAttack');
-    } else if (tabParam?.toLowerCase() === 'contest') {
-      console.log("컨테스트 탭 선택");
-      setRankingType('contest');
-    }
-    // URL 파라미터 지우기 (내비게이션 기록 유지)
-    if (tabParam) {
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete('tab');
-      window.history.replaceState({}, '', newUrl.toString());
-      console.log("URL 업데이트 완료:", newUrl.toString());
-    }
-  }, [location.search]);
 
   // 랭킹 유형 변경 시 데이터 리셋
   useEffect(() => {
@@ -290,7 +260,7 @@ const RankingPage: React.FC = () => {
           {/* 헤더 */}
           <div className="flex items-center justify-between px-4 py-3 border-b">
             <div className="flex items-center">
-              <span className="font-bold text-lg">#{user.rank || '-'}</span>
+              <span className="font-bold text-lg">#{user.rank || "-"}</span>
               <div
                 className="flex items-center ml-2 cursor-pointer"
                 onClick={() => handleGoToProfile(user.userId)}
@@ -353,7 +323,7 @@ const RankingPage: React.FC = () => {
                 <div>
                   <h3 className="text-gray-500 text-sm mb-1">랭킹</h3>
                   <p className="font-bold text-xl text-pic-primary">
-                    #{user.rank || '-'}
+                    #{user.rank || "-"}
                   </p>
                 </div>
                 <div>
@@ -397,7 +367,7 @@ const RankingPage: React.FC = () => {
                   <div>
                     <h3 className="text-gray-500 text-sm mb-1">랭킹</h3>
                     <p className="font-bold text-xl text-pic-primary">
-                      #{user.rank || '-'}
+                      #{user.rank || "-"}
                     </p>
                   </div>
                   <div>
@@ -505,12 +475,15 @@ const RankingPage: React.FC = () => {
   };
 
   // 상위 3명 데이터 가져오기
-  const firstPlace = topThreeUsers.find((user) => user.rank === 1) || 
-                     (topThreeUsers.length > 0 ? topThreeUsers[0] : undefined);
-  const secondPlace = topThreeUsers.find((user) => user.rank === 2) ||
-                      (topThreeUsers.length > 1 ? topThreeUsers[1] : undefined);
-  const thirdPlace = topThreeUsers.find((user) => user.rank === 3) ||
-                     (topThreeUsers.length > 2 ? topThreeUsers[2] : undefined);
+  const firstPlace =
+    topThreeUsers.find((user) => user.rank === 1) ||
+    (topThreeUsers.length > 0 ? topThreeUsers[0] : undefined);
+  const secondPlace =
+    topThreeUsers.find((user) => user.rank === 2) ||
+    (topThreeUsers.length > 1 ? topThreeUsers[1] : undefined);
+  const thirdPlace =
+    topThreeUsers.find((user) => user.rank === 3) ||
+    (topThreeUsers.length > 2 ? topThreeUsers[2] : undefined);
 
   // 랭킹 유형에 따른 제목 반환
   const getRankingTitle = () => {
@@ -589,7 +562,9 @@ const RankingPage: React.FC = () => {
           {/* 도전하기 버튼 - 컨테스트가 아닐 때만 표시 */}
           {rankingType !== "contest" && (
             <button
-              onClick={() => navigate(rankingType === "arena" ? "/arena" : "/time-attack")}
+              onClick={() =>
+                navigate(rankingType === "arena" ? "/arena" : "/time-attack")
+              }
               className="bg-pic-primary hover:bg-pic-primary/90 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
             >
               도전하기
@@ -669,12 +644,12 @@ const RankingPage: React.FC = () => {
                 <div className="text-left pl-6">
                   <span
                     className={`inline-flex items-center justify-center font-bold ${
-                      (user.rank && user.rank <= 3)
+                      user.rank && user.rank <= 3
                         ? "text-pic-primary text-lg"
                         : "text-gray-700"
                     }`}
                   >
-                    {user.rank || (index + 1)}
+                    {user.rank || index + 1}
                   </span>
                 </div>
                 <div className="flex items-center -ml-11">
@@ -730,12 +705,12 @@ const RankingPage: React.FC = () => {
                 <div className="text-left pl-6">
                   <span
                     className={`inline-flex items-center justify-center font-bold ${
-                      (user.rank && user.rank <= 3)
+                      user.rank && user.rank <= 3
                         ? "text-pic-primary text-lg"
                         : "text-gray-700"
                     }`}
                   >
-                    {user.rank || (index + 1)}
+                    {user.rank || index + 1}
                   </span>
                 </div>
                 <div className="flex items-center -ml-11">

@@ -11,6 +11,7 @@ import {
 import Container from "./components/Container";
 import LoadingState from "./components/LoadingState";
 import ArenaResult from "./components/ArenaResult";
+import ContentNavBar from "../../components/NavBar/ContentNavBar";
 import BottomBar from "../../components/BottomBar/BottomBar";
 import Modal from "../../components/Modal";
 
@@ -45,7 +46,7 @@ const AnimationModal: React.FC<AnimationModalProps> = ({
             setTimeout(() => {
               onClose();
               if (destination === "ranking") {
-                navigate("/ranking?tab=arena", { replace: true });
+                navigate("/ranking", { replace: true });
               } else {
                 navigate("/arena");
               }
@@ -105,7 +106,7 @@ const AnimationModal: React.FC<AnimationModalProps> = ({
             onClick={() => {
               onClose();
               if (destination === "ranking") {
-                navigate("/ranking?tab=arena");
+                navigate("/ranking");
               } else {
                 navigate("/arena");
               }
@@ -197,8 +198,8 @@ const ArenaResultPage: React.FC = () => {
   }; // 랭킹 보기 핸들러
 
   const handleViewRanking = () => {
-    // 랭킹 페이지로 이동하면서 아레나 탭 선택
-    navigate("/ranking?tab=arena", { replace: true });
+    // 모달 표시 없이 바로 랭킹 페이지로 이동
+    navigate("/ranking", { replace: true });
   }; // 모달 닫기 핸들러
 
   const handleCloseModal = () => {
@@ -215,7 +216,7 @@ const ArenaResultPage: React.FC = () => {
 
   return (
     <Container>
-      {" "}
+      <ContentNavBar content="아레나 결과" />{" "}
       <main className="flex-1">
         {" "}
         {resultData && (
