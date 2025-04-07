@@ -46,7 +46,6 @@ interface UploadPhotoResponse {
 export const timeAttackApi = {
   // 타임어택 랭킹 조회
   getRanking: (pageNum: number) => {
-    console.log("타임어택 랭킹 조회 API 호출", `/api/v1/time-attack/${pageNum}`);
     return testApi.get<BaseResponse<RankingData>>(
       `/api/v1/time-attack/${pageNum}`
     );

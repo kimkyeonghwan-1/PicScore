@@ -74,14 +74,14 @@ const Arena: React.FC = () => {
       }
 
       // 배열 형태로 전달된 사진 데이터를 ArenaPhoto 형태로 변환
-      const photosData: ArenaPhoto[] = data.photos.map(photo => ({
-        id: photo[0],      // photo_id
-        score: photo[1],   // score
-        imageUrl: photo[2]  // imageUrl
+      const photosData: ArenaPhoto[] = data.photos.map((photo) => ({
+        id: photo[0], // photo_id
+        score: photo[1], // score
+        imageUrl: photo[2], // imageUrl
       }));
-      
+
       setPhotos(photosData);
-      
+
       // 백엔드에서 전달된 정답 순서 저장
       setCorrectOrder(data.answer);
 
@@ -94,8 +94,8 @@ const Arena: React.FC = () => {
         completed: false,
       });
 
-      console.log("가져온 사진:", photosData);
-      console.log("정답 순서:", data.answer);
+      // console.log("가져온 사진:", photosData);
+      // console.log("정답 순서:", data.answer);
 
       return true;
     } catch (error) {
