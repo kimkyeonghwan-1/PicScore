@@ -9,6 +9,7 @@ import com.picscore.backend.badge.repository.UserBadgeRepository;
 import com.picscore.backend.common.exception.CustomException;
 import com.picscore.backend.common.utill.GameWeekUtil;
 import com.picscore.backend.common.utill.RedisUtil;
+import com.picscore.backend.photo.repository.PhotoRepository;
 import com.picscore.backend.photo.service.PhotoService;
 import com.picscore.backend.timeattack.model.entity.TimeAttack;
 import com.picscore.backend.timeattack.model.response.GetMyStaticResponse;
@@ -56,6 +57,7 @@ public class UserServiceImpl implements UserService {
     private final TimeAttackRepository timeAttackRepository;
     private final ArenaRepository arenaRepository;
     private final UserFeedbackRepository userFeedbackRepository;
+    private final PhotoRepository photoRepository;
 
     private final JWTUtil jwtUtil;
     private final RedisUtil redisUtil;
@@ -301,7 +303,7 @@ public class UserServiceImpl implements UserService {
             Long userId) {
         String activityWeek = gameWeekUtil.getCurrentGameWeek();
         // 평균 점수
-        Map<String, Object> stats = timeAttackRepository.calculateStats(userId);
+        Map<String, Object> stats = photoRepository.calculateStats(userId);
         float avgScore = stats.get("avgScore") != null ? ((Double) stats.get("avgScore")).floatValue() : 0f;
 
         // 타임어택 랭크
@@ -346,7 +348,7 @@ public class UserServiceImpl implements UserService {
             throw new CustomException(HttpStatus.BAD_REQUEST, "유효하지 않은 사용자 ID입니다.");
         }
         String activityWeek = gameWeekUtil.getCurrentGameWeek();
-        Map<String, Object> stats = timeAttackRepository.calculateStats(userId);
+        Map<String, Object> stats = photoRepository.calculateStats(userId);
         float avgScore = stats.get("avgScore") != null ? ((Double) stats.get("avgScore")).floatValue() : 0f;
 
         List<TimeAttack> timeAttackList = timeAttackRepository.findHighestScoresAllUser(activityWeek);

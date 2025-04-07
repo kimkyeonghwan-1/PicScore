@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public interface PhotoRepository extends JpaRepository<Photo, Long> {
@@ -83,4 +84,10 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
 
     @Query("SELECT p.id FROM Photo p WHERE p.user.id = :userId")
     List<Long> findPhotoIdsByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT " +
+            "AVG(p.score) as avgScore " +
+            "FROM Photo p " +
+            "WHERE p.user.id = :userId")
+    Map<String, Object> calculateStats(@Param("userId") Long userId);
 }
