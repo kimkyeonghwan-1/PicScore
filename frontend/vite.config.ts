@@ -92,6 +92,11 @@ export default defineConfig({
             sizes: "192x192",
             type: "image/png",
           },
+          {
+            src: "/PicScore.png", // public 폴더 내 아이콘 위치
+            sizes: "512x512",
+            type: "image/png",
+          },
         ],
       },
     }),
