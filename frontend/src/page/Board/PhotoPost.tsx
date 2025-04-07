@@ -35,6 +35,40 @@ function PhotoPost() {
   const toggleVisibilityMutation = useTogglePhotoVisibility(photoId);
   const myId = useAuthStore((state) => state.userId);
   const likeToggleMutation = useToggleLike();
+  // WebP 지원 여부 상태 추가
+  const [supportsWebP, setSupportsWebP] = useState<boolean | null>(null);
+  
+  // WebP 지원 여부 확인 함수
+  useEffect(() => {
+    const checkWebPSupport = async () => {
+      try {
+        // WebP 지원 여부 검사
+        const webpSupported = document.createElement('canvas')
+          .toDataURL('image/webp')
+          .indexOf('data:image/webp') === 0;
+        setSupportsWebP(webpSupported);
+        console.log(`WebP 지원 여부: ${webpSupported ? '지원함' : '지원하지 않음'}`);
+      } catch (e) {
+        console.error('WebP 지원 여부 확인 중 오류:', e);
+        setSupportsWebP(false);
+      }
+    };
+    
+    checkWebPSupport();
+  }, []);
+  
+  // 이미지 URL 변환 함수
+  const getImageUrl = (originalUrl: string) => {
+    if (supportsWebP === true) {
+      // WebP가 지원되면 URL 확장자를 .webp로 변경 시도
+      const webpUrl = originalUrl.replace(/\.(jpe?g|png)$/i, '.webp');
+      console.log(`원본 이미지 URL: ${originalUrl}`);
+      console.log(`WebP 이미지 URL로 변환 시도: ${webpUrl}`);
+      return webpUrl;
+    }
+    console.log(`WebP를 지원하지 않거나 확인 중입니다. 원본 URL 사용: ${originalUrl}`);
+    return originalUrl;
+  };
 
   if (isLoading) {
     return (
@@ -205,8 +239,16 @@ function PhotoPost() {
       <div className="max-h-[894px]">
         <img
           className="w-full h-auto border-b-1 border-gray-300"
-          src={imageUrl}
+          src={supportsWebP !== null ? getImageUrl(imageUrl) : imageUrl}
           alt=""
+          onError={(e) => {
+            // WebP 로드 실패 시 원본 이미지로 대체
+            const target = e.target as HTMLImageElement;
+            if (target.src !== imageUrl) {
+              console.log('WebP 이미지 로드 실패. 원본 이미지로 대체합니다.');
+              target.src = imageUrl;
+            }
+          }}
         />
       </div>
       <div className=" h-50 mx-3 my-1.5 ">
