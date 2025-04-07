@@ -74,18 +74,24 @@ function ImageEvalResult() {
       <Modal
         description={
           <div className="flex flex-col items-center">
-            <img
-              src={groupImage}
-              alt="PICSCORE 기능"
-              className="w-full max-w-[280px] mb-4" // 이미지 크기와 마진 조정
-            />
-            <p className="text-center">
-              로그인 하시면 PICSCORE의 더 많은 서비스를 <br></br> 즐기실 수
-              있습니다!
-            </p>
+            {/* 이미지 컨테이너에 애니메이션 및 그림자 효과 추가 */}
+            <div className="overflow-hidden rounded-lg shadow-md mb-6 transform transition-transform duration-500 hover:scale-[1.02]">
+              <img
+                src={groupImage}
+                alt="PICSCORE 기능"
+                className="w-full max-w-[300px] object-cover"
+              />
+            </div>
+
+            {/* 텍스트 스타일 개선 - 한 줄로 표시되도록 너비 확보 */}
+            <div className="text-center w-full px-4">
+              <p className="text-gray-600 text-sm whitespace-nowrap">
+                PICSCORE의 모든 기능을 이용해보세요
+              </p>
+            </div>
           </div>
         }
-        title="알림"
+        title="PICSCORE 더 알아보기"
         isOpen={isModalOpen}
         onClose={closeModal}
         buttons={[
@@ -95,7 +101,7 @@ function ImageEvalResult() {
             onClick: navigateLogin,
           },
           {
-            label: "취소",
+            label: "다음에 하기",
             textColor: "gray",
             onClick: closeModal,
           },
