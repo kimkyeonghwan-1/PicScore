@@ -20,7 +20,7 @@ const InstallPWA: React.FC = () => {
   };
 
   // 설치 가능한 상태일 때만 버튼 표시
-  if (!isInstallable) return null;
+  // if (!isInstallable) return null;
 
   return (
     <button
