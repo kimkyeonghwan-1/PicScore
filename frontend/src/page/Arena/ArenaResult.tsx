@@ -11,7 +11,6 @@ import {
 import Container from "./components/Container";
 import LoadingState from "./components/LoadingState";
 import ArenaResult from "./components/ArenaResult";
-import ContentNavBar from "../../components/NavBar/ContentNavBar";
 import BottomBar from "../../components/BottomBar/BottomBar";
 import Modal from "../../components/Modal";
 
@@ -216,7 +215,7 @@ const ArenaResultPage: React.FC = () => {
 
   return (
     <Container>
-      <ContentNavBar content="아레나 결과" />{" "}
+      {" "}
       <main className="flex-1">
         {" "}
         {resultData && (
