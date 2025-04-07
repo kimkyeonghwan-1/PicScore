@@ -76,8 +76,14 @@ const RankingPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   // 상태 관리
-  const [rankings, setRankings] = useState<RankingUser[]>([]);
-  const [topThreeUsers, setTopThreeUsers] = useState<RankingUser[]>([]);
+  const [arenaRankings, setArenaRankings] = useState<RankingUser[]>([]);
+  const [timeAttackRankings, setTimeAttackRankings] = useState<RankingUser[]>([]);
+  const [contestRankings, setContestRankings] = useState<RankingUser[]>([]);
+  
+  const [arenaTopThree, setArenaTopThree] = useState<RankingUser[]>([]);
+  const [timeAttackTopThree, setTimeAttackTopThree] = useState<RankingUser[]>([]);
+  const [contestTopThree, setContestTopThree] = useState<RankingUser[]>([]);
+  
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -98,88 +104,117 @@ const RankingPage: React.FC = () => {
   useEffect(() => {
     // Contest 랭킹은 아직 데이터가 없으므로 API 호출하지 않음
     if (rankingType === "contest") {
-      setRankings([]);
-      setTopThreeUsers([]);
+      setContestRankings([]);
+      setContestTopThree([]);
       setIsLoading(false);
       return;
     }
 
-    const fetchRankings = async () => {
-      // 이미 요청 중이면 중복 요청 방지
-      if (isRequestPending.current) return;
+    // 이미 요청 중이면 중복 요청 방지
+    if (isRequestPending.current) return;
 
-      isRequestPending.current = true;
-      setIsLoading(true);
-      setError(null);
+    isRequestPending.current = true;
+    setIsLoading(true);
+    setError(null);
 
+    const fetchTimeAttackRankings = async () => {
       try {
-        let responseData;
-        let data;
+        // 타임어택 랭킹 API 호출
+        const response = await timeAttackApi.getRanking(currentPage);
+        const responseData = response.data;
+        const data = responseData.data;
 
-        if (rankingType === "timeAttack") {
-          // 타임어택 랭킹 API 호출
-          const response = await timeAttackApi.getRanking(currentPage);
-          responseData = response.data;
-          data = responseData.data;
+        if (data && data.ranking && Array.isArray(data.ranking)) {
+          // API 응답을 애플리케이션 타입으로 명시적 변환
+          const apiRankings = data.ranking as RankingApiUser[];
+          setTimeAttackRankings(apiRankings);
+          setTotalPages(data.totalPage || 1);
 
-          if (data && data.ranking && Array.isArray(data.ranking)) {
-            // API 응답을 애플리케이션 타입으로 명시적 변환
-            const apiRankings = data.ranking as RankingApiUser[];
-            setRankings(apiRankings);
-            setTotalPages(data.totalPage || 1);
-
-            // 첫 로드 시에만 상위 3명 설정
-            if (isFirstLoad.current && currentPage === 1) {
-              const topUsers = apiRankings.filter((user) => user.rank <= 3);
-              setTopThreeUsers(topUsers);
-              isFirstLoad.current = false;
-            }
-          } else {
-            throw new Error("랭킹 데이터가 올바른 형식이 아닙니다.");
+          // 첫 로드 시에만 상위 3명 설정
+          if (isFirstLoad.current && currentPage === 1) {
+            const topUsers = apiRankings.filter((user) => user.rank <= 3);
+            setTimeAttackTopThree(topUsers);
           }
-        } else if (rankingType === "arena") {
-          // 아레나 랭킹 API 호출
-          const response = await arenaApi.getArenaRanking(currentPage);
-          responseData = response.data;
-          data = responseData.data;
-
-          if (data && data.ranking && Array.isArray(data.ranking)) {
-            // API 응답을 애플리케이션 타입으로 명시적 변환
-            const apiRankings = data.ranking as ArenaRankingApiUser[];
-
-            // 점수순으로 정렬하고 랭킹 부여
-            const rankedUsers = apiRankings
-              .sort((a, b) => b.score - a.score)
-              .map((user, index) => ({
-                ...user,
-                rank: index + 1, // 점수 기준으로 랭킹 부여
-              }));
-
-            setRankings(rankedUsers);
-            setTotalPages(data.totalPage || 1);
-
-            // 첫 로드 시에만 상위 3명 설정
-            if (isFirstLoad.current && currentPage === 1) {
-              const topUsers = rankedUsers.slice(0, 3);
-              setTopThreeUsers(topUsers);
-              isFirstLoad.current = false;
-            }
-          } else {
-            throw new Error("랭킹 데이터가 올바른 형식이 아닙니다.");
-          }
+        } else {
+          throw new Error("타임어택 랭킹 데이터가 올바른 형식이 아닙니다.");
         }
       } catch (error) {
-        console.error("Error fetching rankings:", error);
-        setRankings([]);
-        setError("랭킹 데이터를 가져오는 중 오류가 발생했습니다.");
+        console.error("Error fetching time attack rankings:", error);
+        setTimeAttackRankings([]);
+        if (rankingType === "timeAttack") {
+          setError("타임어택 랭킹 데이터를 가져오는 중 오류가 발생했습니다.");
+        }
       } finally {
-        setIsLoading(false);
+        if (rankingType === "timeAttack") {
+          setIsLoading(false);
+        }
         isRequestPending.current = false;
       }
     };
 
+    const fetchArenaRankings = async () => {
+      try {
+        // 아레나 랭킹 API 호출
+        const response = await arenaApi.getArenaRanking(currentPage);
+        const responseData = response.data;
+        const data = responseData.data;
+
+        if (data && data.ranking && Array.isArray(data.ranking)) {
+          // API 응답을 애플리케이션 타입으로 명시적 변환
+          const apiRankings = data.ranking as ArenaRankingApiUser[];
+
+          // 점수순으로 정렬하고 랭킹 부여
+          const rankedUsers = apiRankings
+            .sort((a, b) => b.score - a.score)
+            .map((user, index) => ({
+              ...user,
+              rank: index + 1, // 점수 기준으로 랭킹 부여
+            }));
+
+          setArenaRankings(rankedUsers);
+          setTotalPages(data.totalPage || 1);
+
+          // 첫 로드 시에만 상위 3명 설정
+          if (isFirstLoad.current && currentPage === 1) {
+            const topUsers = rankedUsers.slice(0, 3);
+            setArenaTopThree(topUsers);
+          }
+        } else {
+          throw new Error("아레나 랭킹 데이터가 올바른 형식이 아닙니다.");
+        }
+      } catch (error) {
+        console.error("Error fetching arena rankings:", error);
+        setArenaRankings([]);
+        if (rankingType === "arena") {
+          setError("아레나 랭킹 데이터를 가져오는 중 오류가 발생했습니다.");
+        }
+      } finally {
+        if (rankingType === "arena") {
+          setIsLoading(false);
+        }
+        isRequestPending.current = false;
+      }
+    };
+
+    // 로그인 상태에 따라 API 호출
     if (isLoggedIn) {
-      fetchRankings();
+      if (rankingType === "timeAttack") {
+        fetchTimeAttackRankings();
+      } else if (rankingType === "arena") {
+        fetchArenaRankings();
+      }
+      
+      // 첫 번째 로드일 경우 두 랭킹 모두 불러오기
+      if (isFirstLoad.current && currentPage === 1) {
+        if (rankingType === "timeAttack") {
+          // 아레나 데이터도 같이 불러오기 (배경에서)
+          fetchArenaRankings();
+        } else if (rankingType === "arena") {
+          // 타임어택 데이터도 같이 불러오기 (배경에서)
+          fetchTimeAttackRankings();
+        }
+        isFirstLoad.current = false;
+      }
     } else {
       setIsLoading(false);
       setError("로그인이 필요한 서비스입니다.");
@@ -201,15 +236,37 @@ const RankingPage: React.FC = () => {
     }
   }, [location]);
 
+  // URL 쿼리 파라미터에서 탭 설정 확인
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const tabParam = searchParams.get('tab');
+    
+    // 탭 파라미터가 있는 경우 해당 탭으로 설정
+    if (tabParam === 'timeAttack') {
+      setRankingType('timeAttack');
+    } else if (tabParam === 'arena') {
+      setRankingType('arena');
+    } else if (tabParam === 'contest') {
+      setRankingType('contest');
+    }
+  }, [location.search]);
+
   // 랭킹 유형 변경 시 데이터 리셋
   useEffect(() => {
     // 랭킹 유형 변경 시 페이지 번호를 1로 리셋
     setCurrentPage(1);
-    // 초기 로드 플래그 리셋
-    isFirstLoad.current = true;
     // 선택된 유저 초기화
     setSelectedUser(null);
     setModalOpen(false);
+    
+    // 이미 해당 랭킹 데이터가 있다면 로딩 상태를 false로 설정
+    if (
+      (rankingType === 'timeAttack' && timeAttackRankings.length > 0) ||
+      (rankingType === 'arena' && arenaRankings.length > 0) ||
+      rankingType === 'contest'
+    ) {
+      setIsLoading(false);
+    }
   }, [rankingType]);
 
   // 랭킹 아이템 클릭 핸들러
@@ -489,16 +546,44 @@ const RankingPage: React.FC = () => {
     );
   };
 
+  // 현재 탭에 따른 데이터 선택
+  const currentRankings = (() => {
+    switch (rankingType) {
+      case "timeAttack":
+        return timeAttackRankings;
+      case "arena":
+        return arenaRankings;
+      case "contest":
+        return contestRankings;
+      default:
+        return [];
+    }
+  })();
+
+  // 현재 탭에 따른 TOP3 선택
+  const currentTopThree = (() => {
+    switch (rankingType) {
+      case "timeAttack":
+        return timeAttackTopThree;
+      case "arena":
+        return arenaTopThree;
+      case "contest":
+        return contestTopThree;
+      default:
+        return [];
+    }
+  })();
+
   // 상위 3명 데이터 가져오기
   const firstPlace =
-    topThreeUsers.find((user) => user.rank === 1) ||
-    (topThreeUsers.length > 0 ? topThreeUsers[0] : undefined);
+    currentTopThree.find((user) => user.rank === 1) ||
+    (currentTopThree.length > 0 ? currentTopThree[0] : undefined);
   const secondPlace =
-    topThreeUsers.find((user) => user.rank === 2) ||
-    (topThreeUsers.length > 1 ? topThreeUsers[1] : undefined);
+    currentTopThree.find((user) => user.rank === 2) ||
+    (currentTopThree.length > 1 ? currentTopThree[1] : undefined);
   const thirdPlace =
-    topThreeUsers.find((user) => user.rank === 3) ||
-    (topThreeUsers.length > 2 ? topThreeUsers[2] : undefined);
+    currentTopThree.find((user) => user.rank === 3) ||
+    (currentTopThree.length > 2 ? currentTopThree[2] : undefined);
 
   // 랭킹 유형에 따른 제목 반환
   const getRankingTitle = () => {
@@ -554,7 +639,7 @@ const RankingPage: React.FC = () => {
       </div>
 
       {/* TOP 3 섹션 - contest가 아니고 로딩 중이 아닀 때만 표시 */}
-      {rankingType !== "contest" && !isLoading && topThreeUsers.length > 0 && (
+      {rankingType !== "contest" && !isLoading && currentTopThree.length > 0 && (
         <div className="grid grid-cols-3 gap-2 p-4">
           {/* 2등 */}
           <TrophyCard user={secondPlace} rank={2} trophyImage={silverTrophy} />
@@ -641,14 +726,14 @@ const RankingPage: React.FC = () => {
           <div className="p-8 text-center text-red-500 bg-red-50 rounded-lg my-4">
             {error}
           </div>
-        ) : rankings.length === 0 ? (
+        ) : currentRankings.length === 0 ? (
           <div className="p-8 text-center text-gray-500 my-4">
             랭킹 정보가 없습니다
           </div>
         ) : rankingType === "arena" ? (
           /* 아레나 랭킹 목록 */
           <ul className="overflow-hidden rounded-b-lg border-x border-b border-gray-200">
-            {rankings.map((user, index) => (
+            {currentRankings.map((user, index) => (
               <li
                 key={user.userId}
                 className={`py-2.5 grid grid-cols-3 items-center cursor-pointer hover:bg-gray-50 transition-colors ${
@@ -709,7 +794,7 @@ const RankingPage: React.FC = () => {
         ) : (
           /* 타임어택 랭킹 목록 */
           <ul className="overflow-hidden rounded-b-lg border-x border-b border-gray-200">
-            {rankings.map((user, index) => (
+            {currentRankings.map((user, index) => (
               <li
                 key={user.userId}
                 className={`py-2.5 grid grid-cols-3 items-center cursor-pointer hover:bg-gray-50 transition-colors ${
@@ -772,7 +857,7 @@ const RankingPage: React.FC = () => {
         )}
 
         {/* 페이지네이션 - contest가 아니고 로딩 중이 아니고 데이터가 있을 때만 표시 */}
-        {rankingType !== "contest" && !isLoading && rankings.length > 0 && (
+        {rankingType !== "contest" && !isLoading && currentRankings.length > 0 && (
           <div className="flex justify-between items-center pt-5 mt-4 border-t border-gray-100">
             <button
               onClick={handlePrevPage}
