@@ -20,6 +20,23 @@ export default defineConfig({
     }),
     VitePWA({
       registerType: "autoUpdate",
+      workbox: {
+        // API 요청은 서비스 워커가 가로채지 않도록 설정
+        navigateFallbackDenylist: [/\/api\/.*/],
+        runtimeCaching: [
+          {
+            // 인증 관련 API 경로를 명시적으로 NetworkOnly로 설정
+            urlPattern: /\/auth\/|\/login\/|\/api\/user/,
+            handler: "NetworkOnly", // 항상 네트워크에서 가져오기
+          },
+          // 다른 리소스에 대한 캐싱 전략은 유지
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif)$/,
+            handler: "CacheFirst",
+          },
+          // ... 다른 캐싱 설정
+        ],
+      },
       manifest: {
         name: "PicScore",
         short_name: "P",
