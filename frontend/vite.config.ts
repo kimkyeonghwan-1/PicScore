@@ -20,26 +20,67 @@ export default defineConfig({
     }),
     VitePWA({
       registerType: "autoUpdate",
+      injectRegister: "auto",
       workbox: {
+        // 서비스 워커 즉시 활성화 설정
+        clientsClaim: true,
+        skipWaiting: true,
+
         // API 요청은 서비스 워커가 가로채지 않도록 설정
-        navigateFallbackDenylist: [/\/api\/.*/],
+        navigateFallbackDenylist: [/\/api\/.*/, /\/oauth2\/.*/],
+
         runtimeCaching: [
           {
-            // 인증 관련 API 경로를 명시적으로 NetworkOnly로 설정
-            urlPattern: /\/auth\/|\/login\/|\/api\/user/,
-            handler: "NetworkOnly", // 항상 네트워크에서 가져오기
+            // 모든 API 요청에 대해 NetworkOnly 전략 적용
+            urlPattern: ({ url }: { url: URL }) =>
+              url.pathname.startsWith("/api/"),
+            handler: "NetworkOnly",
+            // backgroundSync 속성 제거
+          },
+          // OAuth2 인증 엔드포인트 추가
+          {
+            urlPattern: ({ url }: { url: URL }) =>
+              url.pathname.startsWith("/oauth2/"),
+            handler: "NetworkOnly",
+            // 여기도 backgroundSync 속성 사용하지 않음
+          },
+          // 구체적인 인증 엔드포인트 추가
+          {
+            urlPattern: ({ url }: { url: URL }) => {
+              // 로그인 및 인증 관련 특정 경로들
+              return (
+                url.pathname.includes("/api/v1/user/") ||
+                url.pathname.includes("/api/v1/reissue") ||
+                url.pathname.includes("/oauth2/authorization/")
+              );
+            },
+            handler: "NetworkOnly",
           },
           // 다른 리소스에 대한 캐싱 전략은 유지
           {
             urlPattern: /\.(?:png|jpg|jpeg|svg|gif)$/,
             handler: "CacheFirst",
+            options: {
+              cacheName: "images",
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30일
+              },
+            },
           },
-          // ... 다른 캐싱 설정
+          // JS 및 CSS 파일에 대한 캐싱
+          {
+            urlPattern: /\.(?:js|css)$/,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "static-resources",
+            },
+          },
         ],
-      },
+      } as any,
       manifest: {
         name: "PicScore",
-        short_name: "P",
+        short_name: "PicScore",
         start_url: "/",
         display: "standalone",
         description: "PicScore",
