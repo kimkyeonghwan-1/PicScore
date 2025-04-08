@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { friendApi, FollowingUser, FollowerUser } from "../../../api/friendApi";
-import {
-  useMyFollowings,
-  useMyFollowers,
-  useUserFollowings,
-  useUserFollowers,
-} from "../../../hooks/friend";
+import { useMyFollowings, useMyFollowers, useUserFollowings, useUserFollowers } from "../../../hooks/friend";
 
 type TabType = "followers" | "followings";
 
@@ -15,60 +10,50 @@ interface FollowTabProps {
   initialTab?: TabType; // 초기 선택 탭
 }
 
-const FollowTab: React.FC<FollowTabProps> = ({
-  userId,
-  initialTab = "followers",
-}) => {
+const FollowTab: React.FC<FollowTabProps> = ({ userId, initialTab = "followers" }) => {
   const [currentTab, setCurrentTab] = useState<TabType>(initialTab);
   const [searchQuery, setSearchQuery] = useState("");
   const [followers, setFollowers] = useState<FollowerUser[]>([]);
   const [followings, setFollowings] = useState<FollowingUser[]>([]);
-  const [filteredFollowers, setFilteredFollowers] = useState<FollowerUser[]>(
-    []
-  );
-  const [filteredFollowings, setFilteredFollowings] = useState<FollowingUser[]>(
-    []
-  );
+  const [filteredFollowers, setFilteredFollowers] = useState<FollowerUser[]>([]);
+  const [filteredFollowings, setFilteredFollowings] = useState<FollowingUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-  const [modalAction, setModalAction] = useState<"unfollow" | "delete">(
-    "unfollow"
-  );
+  const [modalAction, setModalAction] = useState<"unfollow" | "delete">("unfollow");
 
   const navigate = useNavigate();
   const { urlUserId } = useParams<{ urlUserId: string }>();
-
+  
   // URL에서 userId를 가져오거나 prop으로 전달된 userId 사용
-  const targetUserId =
-    userId || (urlUserId ? parseInt(urlUserId, 10) : undefined);
-
+  const targetUserId = userId || (urlUserId ? parseInt(urlUserId, 10) : undefined);
+  
   // 내 정보 조회인지 확인 (없으면 내 정보로 간주)
   const isMyProfile = !targetUserId;
 
   // 데이터 쿼리
-  const {
-    data: myFollowersData,
-    refetch: refetchMyFollowers,
-    isFetching: isMyFollowersFetching,
+  const { 
+    data: myFollowersData, 
+    refetch: refetchMyFollowers, 
+    isFetching: isMyFollowersFetching 
   } = useMyFollowers();
-
-  const {
-    data: myFollowingsData,
-    refetch: refetchMyFollowings,
-    isFetching: isMyFollowingsFetching,
+  
+  const { 
+    data: myFollowingsData, 
+    refetch: refetchMyFollowings, 
+    isFetching: isMyFollowingsFetching 
   } = useMyFollowings();
 
   const {
     data: userFollowersData,
     refetch: refetchUserFollowers,
-    isFetching: isUserFollowersFetching,
+    isFetching: isUserFollowersFetching
   } = useUserFollowers(targetUserId || 0);
 
   const {
     data: userFollowingsData,
     refetch: refetchUserFollowings,
-    isFetching: isUserFollowingsFetching,
+    isFetching: isUserFollowingsFetching
   } = useUserFollowings(targetUserId || 0);
 
   // 팔로워/팔로잉 데이터 로드
@@ -76,14 +61,14 @@ const FollowTab: React.FC<FollowTabProps> = ({
     const fetchData = async () => {
       try {
         setIsLoading(true);
-
+        
         if (isMyProfile) {
           // 내 프로필 정보 로드
           if (myFollowersData?.data) {
             setFollowers(myFollowersData.data);
             setFilteredFollowers(myFollowersData.data);
           }
-
+          
           if (myFollowingsData?.data) {
             const followingsWithState = myFollowingsData.data.map((user) => ({
               ...user,
@@ -98,7 +83,7 @@ const FollowTab: React.FC<FollowTabProps> = ({
             setFollowers(userFollowersData.data);
             setFilteredFollowers(userFollowersData.data);
           }
-
+          
           if (userFollowingsData?.data) {
             setFollowings(userFollowingsData.data);
             setFilteredFollowings(userFollowingsData.data);
@@ -113,12 +98,12 @@ const FollowTab: React.FC<FollowTabProps> = ({
 
     fetchData();
   }, [
-    isMyProfile,
-    targetUserId,
-    myFollowersData,
+    isMyProfile, 
+    targetUserId, 
+    myFollowersData, 
     myFollowingsData,
     userFollowersData,
-    userFollowingsData,
+    userFollowingsData
   ]);
 
   // 최신 데이터 가져오기
@@ -131,12 +116,12 @@ const FollowTab: React.FC<FollowTabProps> = ({
       refetchUserFollowings();
     }
   }, [
-    isMyProfile,
-    targetUserId,
-    refetchMyFollowers,
+    isMyProfile, 
+    targetUserId, 
+    refetchMyFollowers, 
     refetchMyFollowings,
     refetchUserFollowers,
-    refetchUserFollowings,
+    refetchUserFollowings
   ]);
 
   // 검색어 변경 시 필터링
@@ -176,14 +161,14 @@ const FollowTab: React.FC<FollowTabProps> = ({
           user.userId === userId ? { ...user, isFollowing: false } : user
         )
       );
-
+      
       // 팔로워 목록에도 반영 (해당 사용자가 팔로워 목록에 있는 경우)
       setFollowers((prev) =>
         prev.map((user) =>
           user.userId === userId ? { ...user, isFollowing: false } : user
         )
       );
-
+      
       setFilteredFollowers((prev) =>
         prev.map((user) =>
           user.userId === userId ? { ...user, isFollowing: false } : user
@@ -211,14 +196,14 @@ const FollowTab: React.FC<FollowTabProps> = ({
           user.userId === userId ? { ...user, isFollowing: true } : user
         )
       );
-
+      
       // 팔로워 목록에도 반영
       setFollowers((prev) =>
         prev.map((user) =>
           user.userId === userId ? { ...user, isFollowing: true } : user
         )
       );
-
+      
       setFilteredFollowers((prev) =>
         prev.map((user) =>
           user.userId === userId ? { ...user, isFollowing: true } : user
@@ -249,10 +234,7 @@ const FollowTab: React.FC<FollowTabProps> = ({
   };
 
   // 버튼 클릭 시 동작
-  const handleActionButtonClick = (
-    userId: number,
-    action: "unfollow" | "delete"
-  ) => {
+  const handleActionButtonClick = (userId: number, action: "unfollow" | "delete") => {
     setSelectedUserId(userId);
     setModalAction(action);
     setShowModal(true);
@@ -282,9 +264,9 @@ const FollowTab: React.FC<FollowTabProps> = ({
   };
 
   // 로딩 상태 확인
-  const isDataLoading =
-    isLoading ||
-    (isMyProfile
+  const isDataLoading = 
+    isLoading || 
+    (isMyProfile 
       ? isMyFollowersFetching || isMyFollowingsFetching
       : isUserFollowersFetching || isUserFollowingsFetching);
 
@@ -407,9 +389,7 @@ const FollowTab: React.FC<FollowTabProps> = ({
                       )}
                       <button
                         className="px-3 py-1.5 rounded-md text-sm font-medium bg-pic-primary text-white"
-                        onClick={() =>
-                          handleActionButtonClick(user.userId, "delete")
-                        }
+                        onClick={() => handleActionButtonClick(user.userId, "delete")}
                       >
                         삭제
                       </button>
@@ -418,9 +398,7 @@ const FollowTab: React.FC<FollowTabProps> = ({
                   {!isMyProfile && user.isFollowing && (
                     <button
                       className="px-4 py-1.5 rounded-md text-sm font-medium bg-pic-primary text-white"
-                      onClick={() =>
-                        handleActionButtonClick(user.userId, "unfollow")
-                      }
+                      onClick={() => handleActionButtonClick(user.userId, "unfollow")}
                     >
                       팔로잉
                     </button>
@@ -440,57 +418,57 @@ const FollowTab: React.FC<FollowTabProps> = ({
                 {searchQuery ? "검색 결과가 없습니다." : "팔로워가 없습니다."}
               </div>
             )
-          ) : // 팔로잉 목록
-          filteredFollowings.length > 0 ? (
-            filteredFollowings.map((user) => (
-              <div
-                key={user.userId}
-                className="flex items-center p-4 border-b bg-white"
-              >
-                <div
-                  className="flex-1 flex items-center cursor-pointer"
-                  onClick={() => handleUserClick(user.userId)}
-                >
-                  <div className="w-12 h-12 rounded-full overflow-hidden mr-3">
-                    <img
-                      src={user.profileImage || "/default-profile.jpg"}
-                      alt={`${user.nickName}의 프로필`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = "/default-profile.jpg";
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <p className="font-medium">{user.nickName}</p>
-                  </div>
-                </div>
-                {user.isFollowing ? (
-                  <button
-                    className="px-4 py-1.5 rounded-md text-sm font-medium bg-pic-primary text-white"
-                    onClick={() =>
-                      handleActionButtonClick(user.userId, "unfollow")
-                    }
-                  >
-                    팔로잉
-                  </button>
-                ) : (
-                  <button
-                    className="px-4 py-1.5 rounded-md text-sm font-medium border border-pic-primary bg-white text-black"
-                    onClick={() => handleFollowUser(user.userId)}
-                  >
-                    팔로우
-                  </button>
-                )}
-              </div>
-            ))
           ) : (
-            <div className="p-4 text-center text-gray-500">
-              {searchQuery
-                ? "검색 결과가 없습니다."
-                : "팔로잉한 사용자가 없습니다."}
-            </div>
+            // 팔로잉 목록
+            filteredFollowings.length > 0 ? (
+              filteredFollowings.map((user) => (
+                <div
+                  key={user.userId}
+                  className="flex items-center p-4 border-b bg-white"
+                >
+                  <div
+                    className="flex-1 flex items-center cursor-pointer"
+                    onClick={() => handleUserClick(user.userId)}
+                  >
+                    <div className="w-12 h-12 rounded-full overflow-hidden mr-3">
+                      <img
+                        src={user.profileImage || "/default-profile.jpg"}
+                        alt={`${user.nickName}의 프로필`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/default-profile.jpg";
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <p className="font-medium">{user.nickName}</p>
+                    </div>
+                  </div>
+                  {user.isFollowing ? (
+                    <button
+                      className="px-4 py-1.5 rounded-md text-sm font-medium bg-pic-primary text-white"
+                      onClick={() => handleActionButtonClick(user.userId, "unfollow")}
+                    >
+                      팔로잉
+                    </button>
+                  ) : (
+                    <button
+                      className="px-4 py-1.5 rounded-md text-sm font-medium border border-pic-primary bg-white text-black"
+                      onClick={() => handleFollowUser(user.userId)}
+                    >
+                      팔로우
+                    </button>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="p-4 text-center text-gray-500">
+                {searchQuery
+                  ? "검색 결과가 없습니다."
+                  : "팔로잉한 사용자가 없습니다."}
+              </div>
+            )
           )}
         </div>
       )}

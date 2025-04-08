@@ -24,7 +24,12 @@ import ImageEvalResult from "../page/ImageEval/ImageEvalResult";
 import PrivateRouter from "./PrivateRouter";
 import Welcome from "../page/Welcome/Welcome";
 import { useAuthStore } from "../store/authStore";
-
+import { useEffect } from "react";
+// 기존 컴포넌트는 유지하되 리다이렉트를 위해 필요함
+import Following from "../page/UserPage/Following";
+import Follower from "../page/UserPage/Follower";
+import UserFollowing from "../page/UserPage/UserFollowing";
+import UserFollower from "../page/UserPage/UserFollower";
 // 새로운 통합 컴포넌트 추가
 import Follow from "../page/UserPage/Follow";
 import PhotoPost from "../page/Board/PhotoPost";
@@ -42,17 +47,6 @@ const HomeRouter = () => {
   }
   // 그 외에는 Welcome으로
   return <Welcome />;
-};
-
-// userId 매개변수를 전달하기 위한 래퍼 컴포넌트
-const UserFollowRedirect = () => {
-  const { userId } = useParams<{ userId: string }>();
-  return <Navigate to={`/user/follow/${userId}?tab=followings`} replace />;
-};
-
-const UserFollowerRedirect = () => {
-  const { userId } = useParams<{ userId: string }>();
-  return <Navigate to={`/user/follow/${userId}?tab=followers`} replace />;
 };
 
 const router = createBrowserRouter([
@@ -133,6 +127,10 @@ const router = createBrowserRouter([
             element: <ArchievePage />,
           },
           {
+            path: "/ranking",
+            element: <RankingPage />,
+          },
+          {
             path: "/board",
             element: <Board />,
           },
@@ -170,11 +168,11 @@ const router = createBrowserRouter([
           },
           {
             path: "/user/following/:userId", 
-            element: <UserFollowRedirect />,
+            element: <UserFollowing />, // URL 파라미터 문제로 Navigate 사용 불가, 컴포넌트 내에서 리다이렉트 처리
           },
           {
             path: "/user/follower/:userId",
-            element: <UserFollowerRedirect />,
+            element: <UserFollower />, // URL 파라미터 문제로 Navigate 사용 불가, 컴포넌트 내에서 리다이렉트 처리
           },
           {
             path: "photo",
