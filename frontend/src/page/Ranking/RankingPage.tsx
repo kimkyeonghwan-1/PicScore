@@ -78,13 +78,17 @@ const RankingPage: React.FC = () => {
   const location = useLocation();
   // 상태 관리
   const [arenaRankings, setArenaRankings] = useState<RankingUser[]>([]);
-  const [timeAttackRankings, setTimeAttackRankings] = useState<RankingUser[]>([]);
+  const [timeAttackRankings, setTimeAttackRankings] = useState<RankingUser[]>(
+    []
+  );
   const [contestRankings, setContestRankings] = useState<RankingUser[]>([]);
-  
+
   const [arenaTopThree, setArenaTopThree] = useState<RankingUser[]>([]);
-  const [timeAttackTopThree, setTimeAttackTopThree] = useState<RankingUser[]>([]);
+  const [timeAttackTopThree, setTimeAttackTopThree] = useState<RankingUser[]>(
+    []
+  );
   const [contestTopThree, setContestTopThree] = useState<RankingUser[]>([]);
-  
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -101,9 +105,13 @@ const RankingPage: React.FC = () => {
   // 첫 페이지 로드 여부 체크 ref
   const isFirstLoad = useRef(true);
 
-  // 랭킹 데이터 불러오기
+  // 랭킹 데이터 불러오기 (페이지 변경 시)
   useEffect(() => {
-    console.log(`페이지네이션 이벤트: rankingType=${rankingType}, currentPage=${currentPage}, totalPages=${totalPages}`);
+    // 현재 페이지 번호가 ref로 유지
+    const pageToFetch = currentPage;
+    console.log(
+      `페이지네이션 이벤트: rankingType=${rankingType}, currentPage=${pageToFetch}, totalPages=${totalPages}`
+    );
 
     // Contest 랭킹은 아직 데이터가 없으므로 API 호출하지 않음
     if (rankingType === "contest") {
@@ -112,20 +120,22 @@ const RankingPage: React.FC = () => {
       setIsLoading(false);
       return;
     }
-    
+
     // 로딩 처리
     setIsLoading(true);
     setError(null);
     requestDebugRef.current += 1;
     const requestId = requestDebugRef.current;
-    console.log(`[API 요청] ${rankingType} 페이지 ${currentPage} 요청 시작 (ID: ${requestId})`);
+    console.log(
+      `[API 요청] ${rankingType} 페이지 ${pageToFetch} 요청 시작 (ID: ${requestId})`
+    );
 
     const fetchTimeAttackRankings = async () => {
       try {
         // 타임어택 랭킹 API 호출
-        console.log(`TimeAttack API 호출, 페이지: ${currentPage}`);
-        const response = await timeAttackApi.getRanking(currentPage);
-        console.log('TimeAttack API 응답:', response);
+        console.log(`TimeAttack API 호출, 페이지: ${pageToFetch}`);
+        const response = await timeAttackApi.getRanking(pageToFetch);
+        console.log("TimeAttack API 응답:", response);
         const responseData = response.data;
         const data = responseData.data;
 
@@ -138,7 +148,9 @@ const RankingPage: React.FC = () => {
           // 첫 로드 시에만 상위 3명 설정
           if (currentPage === 1) {
             const topUsers = apiRankings
-              .filter((user) => (user.rank !== undefined && user.rank <= 3) || false)
+              .filter(
+                (user) => (user.rank !== undefined && user.rank <= 3) || false
+              )
               .slice(0, 3);
             setTimeAttackTopThree(topUsers);
           }
@@ -149,7 +161,7 @@ const RankingPage: React.FC = () => {
         console.error("Error fetching time attack rankings:", error);
         // 오류 처리: 페이지가 없는 경우 이전 페이지로 돌아가거나 최대 페이지를 조회
         if (axios.isAxiosError(error) && error.response?.status === 404) {
-          console.log('요청한 페이지가 없습니다. 최대 페이지 재조회 시도');
+          console.log("요청한 페이지가 없습니다. 최대 페이지 재조회 시도");
           // 타임어택 최대 페이지 가져오기(1페이지)
           try {
             const maxPageResponse = await timeAttackApi.getRanking(1);
@@ -159,16 +171,18 @@ const RankingPage: React.FC = () => {
               setTotalPages(maxPageData.totalPage);
               // 현재 페이지가 최대 페이지보다 큰 경우 최대 페이지로 이동
               if (currentPage > maxPageData.totalPage) {
-                console.log(`페이지 재설정: ${currentPage} -> ${maxPageData.totalPage}`);
+                console.log(
+                  `페이지 재설정: ${currentPage} -> ${maxPageData.totalPage}`
+                );
                 setCurrentPage(maxPageData.totalPage);
                 return; // 페이지 변경 후 재실행
               }
             }
           } catch (maxPageError) {
-            console.error('Max page fetch error:', maxPageError);
+            console.error("Max page fetch error:", maxPageError);
           }
         }
-        
+
         setTimeAttackRankings([]);
         if (rankingType === "timeAttack") {
           setError("타임어택 랭킹 데이터를 가져오는 중 오류가 발생했습니다.");
@@ -176,7 +190,9 @@ const RankingPage: React.FC = () => {
       } finally {
         if (rankingType === "timeAttack") {
           setIsLoading(false);
-          console.log(`[API 응답] timeAttack 페이지 ${currentPage} 요청 완료 (ID: ${requestId})`);
+          console.log(
+            `[API 응답] timeAttack 페이지 ${pageToFetch} 요청 완료 (ID: ${requestId})`
+          );
         }
       }
     };
@@ -184,9 +200,9 @@ const RankingPage: React.FC = () => {
     const fetchArenaRankings = async () => {
       try {
         // 아레나 랭킹 API 호출
-        console.log(`Arena API 호출, 페이지: ${currentPage}`);
-        const response = await arenaApi.getArenaRanking(currentPage);
-        console.log('Arena API 응답:', response);
+        console.log(`Arena API 호출, 페이지: ${pageToFetch}`);
+        const response = await arenaApi.getArenaRanking(pageToFetch);
+        console.log("Arena API 응답:", response);
         const responseData = response.data;
         const data = responseData.data;
 
@@ -217,7 +233,7 @@ const RankingPage: React.FC = () => {
         console.error("Error fetching arena rankings:", error);
         // 오류 처리: 페이지가 없는 경우 이전 페이지로 돌아가거나 최대 페이지를 조회
         if (axios.isAxiosError(error) && error.response?.status === 404) {
-          console.log('요청한 페이지가 없습니다. 최대 페이지 재조회 시도');
+          console.log("요청한 페이지가 없습니다. 최대 페이지 재조회 시도");
           // 아레나 최대 페이지 가져오기(1페이지)
           try {
             const maxPageResponse = await arenaApi.getArenaRanking(1);
@@ -227,16 +243,18 @@ const RankingPage: React.FC = () => {
               setTotalPages(maxPageData.totalPage);
               // 현재 페이지가 최대 페이지보다 큰 경우 최대 페이지로 이동
               if (currentPage > maxPageData.totalPage) {
-                console.log(`페이지 재설정: ${currentPage} -> ${maxPageData.totalPage}`);
+                console.log(
+                  `페이지 재설정: ${currentPage} -> ${maxPageData.totalPage}`
+                );
                 setCurrentPage(maxPageData.totalPage);
                 return; // 페이지 변경 후 재실행
               }
             }
           } catch (maxPageError) {
-            console.error('Max page fetch error:', maxPageError);
+            console.error("Max page fetch error:", maxPageError);
           }
         }
-        
+
         setArenaRankings([]);
         if (rankingType === "arena") {
           setError("아레나 랭킹 데이터를 가져오는 중 오류가 발생했습니다.");
@@ -244,7 +262,9 @@ const RankingPage: React.FC = () => {
       } finally {
         if (rankingType === "arena") {
           setIsLoading(false);
-          console.log(`[API 응답] arena 페이지 ${currentPage} 요청 완료 (ID: ${requestId})`);
+          console.log(
+            `[API 응답] arena 페이지 ${pageToFetch} 요청 완료 (ID: ${requestId})`
+          );
         }
       }
     };
@@ -256,7 +276,7 @@ const RankingPage: React.FC = () => {
       } else if (rankingType === "arena") {
         fetchArenaRankings();
       }
-      
+
       // 첫 번째 로드일 경우 두 랭킹 모두 불러오기
       if (isFirstLoad.current && currentPage === 1) {
         if (rankingType === "timeAttack") {
@@ -272,50 +292,49 @@ const RankingPage: React.FC = () => {
       setIsLoading(false);
       setError("로그인이 필요한 서비스입니다.");
     }
-  }, [currentPage, isLoggedIn, rankingType]);
+  }, [currentPage, isLoggedIn, rankingType, totalPages]); // 실제 페이지 데이터만 의존성으로 추가
 
   // URL 쿼리 파라미터에서 탭 설정 확인
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    const tabParam = searchParams.get('tab');
-    
+    const tabParam = searchParams.get("tab");
+
     // 탭 파라미터가 있는 경우 해당 탭으로 설정
-    if (tabParam === 'timeAttack') {
-      setRankingType('timeAttack');
-      console.log('타임어택 탭으로 설정');
-    } else if (tabParam === 'arena') {
-      setRankingType('arena');
-    } else if (tabParam === 'contest') {
-      setRankingType('contest');
+    if (tabParam === "timeAttack") {
+      setRankingType("timeAttack");
+      console.log("타임어택 탭으로 설정");
+    } else if (tabParam === "arena") {
+      setRankingType("arena");
+    } else if (tabParam === "contest") {
+      setRankingType("contest");
     }
   }, [location.search]);
 
-
-
   // 랭킹 유형 변경 시 데이터 리셋
   useEffect(() => {
-    // 랭킹 유형 변경 시 페이지 번호를 1로 리셋
-    setCurrentPage(1);
+    console.log(`랭킹 타입 변경 감지: ${rankingType}`);
     // 선택된 유저 초기화
     setSelectedUser(null);
     setModalOpen(false);
-    
+
     // 이미 해당 랭킹 데이터가 있다면 로딩 상태를 false로 설정
-    if (rankingType === 'timeAttack' && timeAttackRankings.length > 0) {
+    if (rankingType === "timeAttack" && timeAttackRankings.length > 0) {
       setIsLoading(false);
-      
+
       // TOP3가 없는 경우 다시 상위 3명 설정
       if (timeAttackTopThree.length === 0) {
         const topUsers = timeAttackRankings
-          .filter((user) => (user.rank !== undefined && user.rank <= 3) || false)
+          .filter(
+            (user) => (user.rank !== undefined && user.rank <= 3) || false
+          )
           .slice(0, 3);
         if (topUsers.length > 0) {
           setTimeAttackTopThree(topUsers);
         }
       }
-    } else if (rankingType === 'arena' && arenaRankings.length > 0) {
+    } else if (rankingType === "arena" && arenaRankings.length > 0) {
       setIsLoading(false);
-      
+
       // TOP3가 없는 경우 다시 상위 3명 설정
       if (arenaTopThree.length === 0) {
         const topUsers = arenaRankings.slice(0, 3);
@@ -323,14 +342,10 @@ const RankingPage: React.FC = () => {
           setArenaTopThree(topUsers);
         }
       }
-    } else if (rankingType === 'contest') {
+    } else if (rankingType === "contest") {
       setIsLoading(false);
     }
-    
-    console.log('Current ranking type:', rankingType);
-    console.log('Arena top three:', arenaTopThree);
-    console.log('Time attack top three:', timeAttackTopThree);
-  }, [rankingType, timeAttackRankings, arenaRankings, timeAttackTopThree, arenaTopThree]);
+  }, [rankingType]);
 
   // 랭킹 아이템 클릭 핸들러
   const handleRankingItemClick = (user: RankingUser) => {
@@ -352,21 +367,23 @@ const RankingPage: React.FC = () => {
   // 페이지 이동 핸들러
   const handleNextPage = () => {
     if (currentPage < totalPages) {
-      console.log(`다음 페이지로 이동: ${currentPage} -> ${currentPage + 1}`);
+      const nextPage = currentPage + 1;
+      console.log(`다음 페이지로 이동 시도: ${currentPage} -> ${nextPage}`);
       // 페이지 이동을 위해 함수형 업데이트 사용
-      setCurrentPage(prev => prev + 1);
+      setCurrentPage(nextPage); // 함수형 업데이트 대신 직접 값 설정
     } else {
-      console.log('이미 마지막 페이지입니다');
+      console.log("이미 마지막 페이지입니다");
     }
   };
 
   const handlePrevPage = () => {
     if (currentPage > 1) {
-      console.log(`이전 페이지로 이동: ${currentPage} -> ${currentPage - 1}`);
+      const prevPage = currentPage - 1;
+      console.log(`이전 페이지로 이동 시도: ${currentPage} -> ${prevPage}`);
       // 페이지 이동을 위해 함수형 업데이트 사용
-      setCurrentPage(prev => prev - 1);
+      setCurrentPage(prevPage); // 함수형 업데이트 대신 직접 값 설정
     } else {
-      console.log('이미 첫 번째 페이지입니다');
+      console.log("이미 첫 번째 페이지입니다");
     }
   };
 
@@ -380,9 +397,10 @@ const RankingPage: React.FC = () => {
   // 랭킹 유형 변경 핸들러
   const handleRankingTypeChange = (type: RankingType) => {
     if (type !== rankingType) {
-      console.log(`랭킹 타입 변경: ${rankingType} -> ${type}`);
-      // 페이지 번호를 1로 리셋
+      console.log(`랭킹 타입 변경 핸들러 실행: ${rankingType} -> ${type}`);
+      // 페이지 번호를 1로 리셋 (다른 탭으로 이동할 때만)
       setCurrentPage(1);
+
       // 랭킹 타입 변경
       setRankingType(type);
     }
@@ -716,18 +734,24 @@ const RankingPage: React.FC = () => {
       </div>
 
       {/* TOP 3 섹션 - contest가 아니고 로딩 중이 아닀 때만 표시 */}
-      {rankingType !== "contest" && !isLoading && currentTopThree.length > 0 && (
-        <div className="grid grid-cols-3 gap-2 p-4">
-          {/* 2등 */}
-          <TrophyCard user={secondPlace} rank={2} trophyImage={silverTrophy} />
+      {rankingType !== "contest" &&
+        !isLoading &&
+        currentTopThree.length > 0 && (
+          <div className="grid grid-cols-3 gap-2 p-4">
+            {/* 2등 */}
+            <TrophyCard
+              user={secondPlace}
+              rank={2}
+              trophyImage={silverTrophy}
+            />
 
-          {/* 1등 */}
-          <TrophyCard user={firstPlace} rank={1} trophyImage={goldTrophy} />
+            {/* 1등 */}
+            <TrophyCard user={firstPlace} rank={1} trophyImage={goldTrophy} />
 
-          {/* 3등 */}
-          <TrophyCard user={thirdPlace} rank={3} trophyImage={bronzeTrophy} />
-        </div>
-      )}
+            {/* 3등 */}
+            <TrophyCard user={thirdPlace} rank={3} trophyImage={bronzeTrophy} />
+          </div>
+        )}
 
       {/* 랭킹 목록 섹션 */}
       <div className="p-5 mt-2 bg-white rounded-lg mx-4 border border-gray-200 shadow-md">
@@ -934,74 +958,74 @@ const RankingPage: React.FC = () => {
         )}
 
         {/* 페이지네이션 - contest가 아니고 로딩 중이 아니고 데이터가 있을 때만 표시 */}
-        {rankingType !== "contest" && !isLoading && currentRankings.length > 0 && (
-          <div className="flex flex-col items-center pt-5 mt-4 border-t border-gray-100">
-            {/* 페이지 정보 표시 */}
-            <div className="mb-4 text-gray-700 text-center font-medium">
-              <span className="text-pic-primary font-bold">{currentPage}</span> <span className="text-gray-400">/</span> <span>{totalPages || 1}</span>
-              <div className="text-xs text-gray-500 mt-1">페이지</div>
-            </div>
+        {rankingType !== "contest" &&
+          !isLoading &&
+          currentRankings.length > 0 && (
+            <div className="flex flex-col items-center pt-5 mt-4 border-t border-gray-100">
+              {/* 페이지 정보 표시 */}
 
-            {/* 페이지 네비게이션 버튼 */}
-            <div className="flex justify-between w-full">
-              <button
-                onClick={handlePrevPage}
-                className={`flex items-center px-4 py-2 rounded-lg transition-colors ${currentPage === 1
-                  ? "text-gray-400 cursor-not-allowed bg-gray-50"
-                  : "text-gray-700 hover:bg-gray-200 active:bg-gray-200 bg-gray-100"
-                }`}
-                disabled={currentPage === 1 || isLoading}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="mr-1"
+              {/* 페이지 네비게이션 버튼 */}
+              <div className="flex justify-between w-full">
+                <button
+                  onClick={handlePrevPage}
+                  className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                    currentPage === 1
+                      ? "text-gray-400 cursor-not-allowed bg-gray-50"
+                      : "text-gray-700 hover:bg-gray-200 active:bg-gray-200 bg-gray-100"
+                  }`}
+                  disabled={currentPage === 1 || isLoading}
                 >
-                  <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-                이전 페이지
-              </button>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="mr-1"
+                  >
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                  이전 페이지
+                </button>
 
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-pic-primary flex items-center justify-center text-white font-bold shadow-sm">
-                  {currentPage}
+                <div className="flex items-center">
+                  <div className="w-10 h-10 rounded-full bg-pic-primary flex items-center justify-center text-white font-bold shadow-sm">
+                    {currentPage}
+                  </div>
                 </div>
-              </div>
 
-              <button
-                onClick={handleNextPage}
-                className={`flex items-center px-4 py-2 rounded-lg transition-colors ${currentPage === totalPages
-                  ? "text-gray-400 cursor-not-allowed bg-gray-50"
-                  : "text-gray-700 hover:bg-gray-200 active:bg-gray-200 bg-gray-100"
-                }`}
-                disabled={currentPage === totalPages || isLoading}
-              >
-                다음 페이지
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="ml-1"
+                <button
+                  onClick={handleNextPage}
+                  className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                    currentPage === totalPages
+                      ? "text-gray-400 cursor-not-allowed bg-gray-50"
+                      : "text-gray-700 hover:bg-gray-200 active:bg-gray-200 bg-gray-100"
+                  }`}
+                  disabled={currentPage === totalPages || isLoading}
                 >
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-              </button>
+                  다음 페이지
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="ml-1"
+                  >
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
 
       {/* 랭킹 사진 모달 */}
