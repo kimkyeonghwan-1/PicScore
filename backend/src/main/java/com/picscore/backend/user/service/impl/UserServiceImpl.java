@@ -32,6 +32,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,6 +65,15 @@ public class UserServiceImpl implements UserService {
     private final GameWeekUtil gameWeekUtil;
 
     private final PhotoService photoService;
+
+    @Value("${JWT_ACCESS_EXP}")
+    private String jwtAccessExp;
+
+    @Value("${JWT_REFRESH_EXP}")
+    private String jwtRefreshExp;
+
+    @Value("${JWT_REDIS_EXP}")
+    private String jwtRedisExp;
 
 
     /**
@@ -277,11 +287,11 @@ public class UserServiceImpl implements UserService {
         String userKey = "refresh:" + userId + ":" + deviceType;
 
         // 새로운 액세스 및 리프레시 토큰 생성
-        String newAccess = jwtUtil.createJwt("access", request.getNickName(), 600000L); // 10분 유효
-        String newRefresh = jwtUtil.createJwt("refresh", request.getNickName(), 86400000L); // 1일 유효
+        String newAccess = jwtUtil.createJwt("access", request.getNickName(), Long.parseLong(jwtAccessExp)); // 10분 유효
+        String newRefresh = jwtUtil.createJwt("refresh", request.getNickName(), Long.parseLong(jwtRefreshExp)); // 1일 유효
 
         // Redis에 새 리프레시 토큰 저장
-        redisUtil.setex(userKey, newRefresh, 86400L);
+        redisUtil.setex(userKey, newRefresh, Long.parseLong(jwtRedisExp));
 
         // 클라이언트에 새 토큰 쿠키로 설정
         response.addCookie(createCookie("access", newAccess));

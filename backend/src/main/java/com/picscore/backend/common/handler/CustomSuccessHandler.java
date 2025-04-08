@@ -30,6 +30,15 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     @Value("${FIRST_USER}")
     private String agreementURL;
 
+    @Value("${JWT_ACCESS_EXP}")
+    private String jwtAccessExp;
+
+    @Value("${JWT_REFRESH_EXP}")
+    private String jwtRefreshExp;
+
+    @Value("${JWT_REDIS_EXP}")
+    private String jwtRedisExp;
+
     /**
      * OAuth2 인증 성공 시 호출됩니다.
      * JWT 토큰을 생성하고 Redis에 Refresh 토큰을 저장한 후, 클라이언트에 쿠키를 설정합니다.
@@ -54,12 +63,12 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String deviceType = getDeviceType(userAgent); // 기기 유형 판별
         
         // Access Token 및 Refresh Token 생성
-        String access = jwtUtil.createJwt("access", nickName, 600000L); // 10분 유효
-        String refresh = jwtUtil.createJwt("refresh", nickName, 86400000L); // 1일 유효
+        String access = jwtUtil.createJwt("access", nickName, Long.parseLong(jwtAccessExp)); // 10분 유효
+        String refresh = jwtUtil.createJwt("refresh", nickName, Long.parseLong(jwtRefreshExp)); // 1일 유효
 
         // Redis에 Refresh Token 저장
         String userKey = "refresh:" + userRepository.findIdByNickName(nickName) + ":" + deviceType;
-        redisUtil.setex(userKey, refresh, 86400L); // 1일 TTL
+        redisUtil.setex(userKey, refresh, Long.parseLong(jwtRedisExp)); // 1일 TTL
 
         // 클라이언트에 Access Token 및 Refresh Token 쿠키로 설정
         response.addCookie(createCookie("access", access));

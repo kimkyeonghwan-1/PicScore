@@ -10,6 +10,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,15 @@ public class OAuthServiceImpl implements OAuthService {
     private final JWTUtil jwtUtil;
     private final RedisUtil redisUtil;
     private final UserRepository userRepository;
+
+    @Value("${JWT_ACCESS_EXP}")
+    private String jwtAccessExp;
+
+    @Value("${JWT_REFRESH_EXP}")
+    private String jwtRefreshExp;
+
+    @Value("${JWT_REDIS_EXP}")
+    private String jwtRedisExp;
 
 
     /**
@@ -77,11 +87,11 @@ public class OAuthServiceImpl implements OAuthService {
         }
 
         // 새로운 액세스 및 리프레시 토큰 생성
-        String newAccess = jwtUtil.createJwt("access", nickName, 600000L); // 10분 유효
-        String newRefresh = jwtUtil.createJwt("refresh", nickName, 86400000L); // 1일 유효
+        String newAccess = jwtUtil.createJwt("access", nickName, Long.parseLong(jwtAccessExp)); // 10분 유효
+        String newRefresh = jwtUtil.createJwt("refresh", nickName, Long.parseLong(jwtRefreshExp)); // 1일 유효
 
         // Redis에 새 리프레시 토큰 저장
-        redisUtil.setex(userKey, newRefresh, 86400L);
+        redisUtil.setex(userKey, newRefresh, Long.parseLong(jwtRedisExp));
 
         // 클라이언트에 새 토큰 쿠키로 설정
         response.addCookie(createCookie("access", newAccess));
