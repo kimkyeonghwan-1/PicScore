@@ -13,21 +13,21 @@ const FollowerStats: React.FC<FollowerStatsProps> = ({
   // 클릭 핸들러 정의 - 내 프로필과 다른 사용자 프로필 구분
   const handleFollowerClick = () => {
     if (userId) {
-      // 다른 사용자의 팔로워 페이지로 이동
-      navigate(`/user/follower/${userId}`);
+      // 다른 사용자의 팔로워 페이지로 이동 (통합 페이지)
+      navigate(`/user/follow/${userId}?tab=followers`);
     } else {
-      // 내 팔로워 페이지로 이동
-      navigate("/follower");
+      // 내 팔로워 페이지로 이동 (통합 페이지)
+      navigate("/follow?tab=followers");
     }
   };
 
   const handleFollowingClick = () => {
     if (userId) {
-      // 다른 사용자의 팔로잉 페이지로 이동
-      navigate(`/user/following/${userId}`);
+      // 다른 사용자의 팔로잉 페이지로 이동 (통합 페이지)
+      navigate(`/user/follow/${userId}?tab=followings`);
     } else {
-      // 내 팔로잉 페이지로 이동
-      navigate("/following");
+      // 내 팔로잉 페이지로 이동 (통합 페이지)
+      navigate("/follow?tab=followings");
     }
   };
 
