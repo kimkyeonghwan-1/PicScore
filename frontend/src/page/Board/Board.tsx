@@ -82,7 +82,7 @@ function Board() {
           점수순
         </div>
       </div>
-      <div className="overflow-y-auto flex-1 mb-16 ">
+      <div className="overflow-y-auto flex-1 ">
         {isLoading && (
           <div className="grid grid-cols-3 gap-0.5 w-full">
             {Array.from({ length: 24 }).map((_, i) => (
