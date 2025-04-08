@@ -31,8 +31,11 @@ public class PhotoController {
 
     // 임시저장
     @PostMapping("/photo")
-    public ResponseEntity<BaseResponse<UploadPhotoResponse>> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
-        return photoService.uploadFile(file);
+    public ResponseEntity<BaseResponse<UploadPhotoResponse>> uploadFile(
+            @RequestParam("file") MultipartFile file) throws IOException {
+
+        UploadPhotoResponse uploadPhotoResponse = photoService.uploadFile(file);
+        return ResponseEntity.ok(BaseResponse.success("임시 파일 저장 완료", uploadPhotoResponse));
     }
 
 
@@ -44,28 +47,14 @@ public class PhotoController {
      * @return ResponseEntity<BaseResponse<HttpStatus>> 업로드 결과 응답
      */
     @PostMapping("/photo/save")
-    public ResponseEntity<BaseResponse<SavePhotoResponse>> uploadFile(HttpServletRequest request,
-                                                                      @RequestBody UploadPhotoRequest payload) {
+    public ResponseEntity<BaseResponse<SavePhotoResponse>> uploadFile(
+            HttpServletRequest request, @RequestBody UploadPhotoRequest payload) {
 
-        System.out.println("hashTag = " + payload.getHashTag());
         // 토큰에서 사용자 정보 추출
         Long userId = oAuthService.findIdByNickName(request);
-        if (userId == null) {
-            throw new IllegalArgumentException("userId가 null입니다.");
-        }
-        if (payload.getPhotoType() == null || payload.getPhotoType().trim().isEmpty()) {
-            throw new IllegalArgumentException("photoType 값이 비어있습니다.");
-        }
-        return photoService.savePhoto(
-                userId,
-                payload.getImageName(),
-                payload.getScore(),
-                payload.getAnalysisChart(),
-                payload.getAnalysisText(),
-                payload.getIsPublic(),
-                payload.getPhotoType(),
-                payload.getHashTag()
-        );
+        SavePhotoResponse savePhotoResponse = photoService.savePhoto(userId, payload);
+
+        return ResponseEntity.ok(BaseResponse.success("사진 업로드 완료", savePhotoResponse));
     }
 
 
@@ -76,8 +65,12 @@ public class PhotoController {
      * @return ResponseEntity<BaseResponse<List<GetPhotosResponse>>> 검색된 사진 목록 응답
      */
     @GetMapping("/photo/search")
-    public ResponseEntity<BaseResponse<List<GetPhotosResponse>>> searchPhotosByHashtag(@RequestParam String keyword) {
-        return photoService.searchPhotosByHashtag(keyword);
+    public ResponseEntity<BaseResponse<List<GetPhotosResponse>>> searchPhotosByHashtag(
+            @RequestParam String keyword) {
+
+        List<GetPhotosResponse> getPhotosResponseList = photoService.searchPhotosByHashtag(keyword);
+
+        return ResponseEntity.ok(BaseResponse.success("사진 조회 성공", getPhotosResponseList));
     }
 
 
@@ -89,9 +82,13 @@ public class PhotoController {
      * @return ResponseEntity<BaseResponse<Void>> 설정 변경 결과 응답
      */
     @PatchMapping("/photo/{photoId}")
-    public ResponseEntity<BaseResponse<Void>> togglePublic(HttpServletRequest request, @PathVariable Long photoId) {
+    public ResponseEntity<BaseResponse<Void>> togglePublic(
+            HttpServletRequest request, @PathVariable Long photoId) {
+
         Long userId = oAuthService.findIdByNickName(request);
-        return photoService.togglePublic(photoId, userId);
+        photoService.togglePublic(photoId, userId);
+
+        return ResponseEntity.ok(BaseResponse.withMessage("사진 설정 완료"));
     }
 
 
@@ -103,9 +100,13 @@ public class PhotoController {
      * @return ResponseEntity<BaseResponse<Void>> 삭제 결과 응답
      */
     @DeleteMapping("/photo/{photoId}")
-    public ResponseEntity<BaseResponse<Void>> deletePhoto(HttpServletRequest request, @PathVariable Long photoId) {
+    public ResponseEntity<BaseResponse<Void>> deletePhoto(
+            HttpServletRequest request, @PathVariable Long photoId) {
+
         Long userId = oAuthService.findIdByNickName(request);
-        return photoService.deletePhoto(photoId, userId);
+        photoService.deletePhoto(photoId, userId);
+
+        return ResponseEntity.ok(BaseResponse.withMessage("사진 삭제 완료"));
     }
 
 
@@ -117,8 +118,7 @@ public class PhotoController {
      * @return ResponseEntity<BaseResponse<List<GetPhotosResponse>>> 사용자의 사진 목록 응답
      */
     @GetMapping("/user/photo/{userId}")
-    public ResponseEntity<BaseResponse<List<GetPhotosResponse>>>
-    getPhotosByUserId(
+    public ResponseEntity<BaseResponse<List<GetPhotosResponse>>> getPhotosByUserId(
             @PathVariable Long userId, @RequestParam(required = false) Boolean isPublic) {
 
         List<GetPhotosResponse> getPhotosResponseList = photoService.getPhotosByUserId(userId, isPublic);
@@ -135,8 +135,7 @@ public class PhotoController {
      * @return ResponseEntity<BaseResponse<List<GetPhotosResponse>>> 현재 사용자의 사진 목록 응답
      */
     @GetMapping("/user/photo/me")
-    public ResponseEntity<BaseResponse<List<GetPhotosResponse>>>
-    getMyPhotos(
+    public ResponseEntity<BaseResponse<List<GetPhotosResponse>>> getMyPhotos(
             HttpServletRequest request, @RequestParam(required = false) Boolean isPublic) {
 
         Long userId = oAuthService.findIdByNickName(request);
