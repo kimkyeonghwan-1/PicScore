@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { testApi } from "../../api/api";
 import Button from "../../components/Button";
+import imageCompression from "browser-image-compression";
+import { useInView } from "react-intersection-observer";
 
 // 컨테스트 참가작 타입 정의
 interface ContestEntry {
@@ -47,44 +49,7 @@ function Contest() {
     status: "ongoing",
   });
   const [daysLeft, setDaysLeft] = useState<number>(5);
-  const [entries, setEntries] = useState<ContestEntry[]>([
-    {
-      id: 1,
-      userId: "user1",
-      userNickname: "사진작가123",
-      imageUrl: "https://picsum.photos/400/300?random=1",
-      title: "산 속의 아침 풍경",
-      description: "해돋이 순간의 아름다운 산 풍경을 담았습니다.",
-      likes: 24,
-      rating: 4.7,
-      timestamp: "2025-04-03",
-      isLiked: false,
-    },
-    {
-      id: 2,
-      userId: "user2",
-      userNickname: "풍경사진가",
-      imageUrl: "https://picsum.photos/400/300?random=2",
-      title: "바다의 일몰",
-      description: "저녁 노을이 비치는 평화로운 해변 풍경입니다.",
-      likes: 18,
-      rating: 4.5,
-      timestamp: "2025-04-04",
-      isLiked: false,
-    },
-    {
-      id: 3,
-      userId: "user3",
-      userNickname: "naturelover",
-      imageUrl: "https://picsum.photos/400/300?random=3",
-      title: "푸른 호수 반영",
-      description: "고요한 호수에 반영된 산과 나무의 모습",
-      likes: 31,
-      rating: 4.9,
-      timestamp: "2025-04-02",
-      isLiked: true,
-    },
-  ]);
+  const [entries, setEntries] = useState<ContestEntry[]>([]);
   const [newEntry, setNewEntry] = useState({
     title: "",
     description: "",
@@ -95,6 +60,116 @@ function Contest() {
   const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  
+  // 무한스크롤 관련 상태
+  const [page, setPage] = useState<number>(1);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const observer = useRef<IntersectionObserver | null>(null);
+  
+  // 시작시 처음 데이터 로드
+  useEffect(() => {
+    // 처음 데이터 로드
+    loadMoreEntries();
+  }, []);
+  
+  // Board 페이지의 useInView 사용하여 무한스크롤 구현
+  const { ref: scrollRef, inView } = useInView({
+    rootMargin: "0px 0px 400px 0px",  // 하단에서 400px 지점에 도달하면 추가 로드
+    threshold: 0
+  });
+
+  // inView가 변할 때 추가 데이터 로드
+  useEffect(() => {
+    if (inView && hasMore && !loading) {
+      console.log('추가 데이터 로드 중...');
+      loadMoreEntries();
+    }
+  }, [inView, hasMore, loading]);
+
+  // 추가 게시글 로드 함수
+  const loadMoreEntries = async () => {
+    if (loading) return;
+    
+    setLoading(true);
+    try {
+      // 테스트 데이터를 위한 임시 지연
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // 실제 API 호출
+      // const response = await testApi.get(`/api/v1/contest/entries?page=${page}&size=5`);
+      // const newEntries = response.data.data.content;
+      // setHasMore(response.data.data.hasNext);
+      
+      // 테스트용 데이터 생성
+      const newEntries: ContestEntry[] = Array.from({ length: 3 }, (_, i) => ({
+        id: entries.length + i + 1,
+        userId: `user${entries.length + i + 1}`,
+        userNickname: `사용자${entries.length + i + 1}`,
+        imageUrl: `https://picsum.photos/400/300?random=${entries.length + i + 10}`,
+        title: `참가작 ${entries.length + i + 1}`,
+        description: `무한스크롤로 로드된 참가작입니다. ${page} 페이지의 ${i + 1}번째 게시글`,
+        likes: Math.floor(Math.random() * 20),
+        rating: 0,
+        timestamp: new Date().toISOString().split("T")[0],
+        isLiked: false,
+      }));
+      
+      setEntries(prev => [...prev, ...newEntries]);
+      setPage(prev => prev + 1);
+      
+      // 테스트를 위해 5페이지 이후로는 더 이상 로드하지 않도록 설정
+      if (page >= 5) {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error('게시글 로드 오류:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // 이미지 압축 함수 - ImageEval 참고
+  const compressImageIfNeeded = async (file: File): Promise<File> => {
+    // 파일 크기가 5MB 미만이면 압축하지 않음
+    const FILE_SIZE_LIMIT = 5; // 5MB
+    const TARGET_SIZE = 4; // 4MB
+    const fileSizeMB = file.size / (1024 * 1024);
+
+    if (fileSizeMB < FILE_SIZE_LIMIT) {
+      console.log(`압축 불필요: 파일 크기 ${fileSizeMB.toFixed(2)}MB (5MB 미만)`);
+      return file;
+    }
+
+    try {
+      // 압축 옵션 설정
+      const options = {
+        maxSizeMB: TARGET_SIZE, // 최대 파일 크기 (MB)
+        maxWidthOrHeight: 1920, // 최대 너비/높이 (픽셀) - 고해상도 유지
+        useWebWorker: true, // WebWorker 사용 (성능 향상)
+        initialQuality: 0.8, // 초기 품질
+        alwaysKeepResolution: true, // 해상도 유지
+      };
+
+      console.log(`압축 시작: 원본 크기 ${fileSizeMB.toFixed(2)}MB (5MB 이상)`);
+
+      // 이미지 압축 실행
+      const compressedFile = await imageCompression(file, options);
+      const compressedSizeMB = compressedFile.size / (1024 * 1024);
+
+      console.log(
+        `압축 완료: ${compressedSizeMB.toFixed(2)}MB (${Math.round(
+          (compressedFile.size / file.size) * 100
+        )}% 크기)`
+      );
+
+      return compressedFile;
+    } catch (error) {
+      console.error("이미지 압축 실패:", error);
+      // 압축 실패 시 원본 파일 반환
+      return file;
+    }
+  };
   const [previousContests, setPreviousContests] = useState<PreviousContest[]>([
     {
       id: 1,
@@ -125,6 +200,18 @@ function Contest() {
     return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
   });
 
+  // 참가작 정렬 재실행
+  useEffect(() => {
+    // 정렬 옵션이 변경될 때 마다 정렬 적용
+    const sorted = [...entries].sort((a, b) => {
+      if (sortOption === "likes") return b.likes - a.likes;
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    });
+    
+    // 정렬된 배열을 새로운 배열로 설정하지 않고 정렬만 처리
+    setEntries(sorted);
+  }, [sortOption]);
+  
   // 남은 일수 계산
   useEffect(() => {
     if (currentTheme) {
@@ -158,13 +245,39 @@ function Contest() {
     // }
   };
 
-  // 파일 선택 핸들러
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 파일 선택 핸들러 - ImageEval 참고
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setNewEntry({
-        ...newEntry,
-        file: e.target.files[0],
-      });
+      try {
+        const originalFile = e.target.files[0];
+        
+        // 파일 크기 확인 (100MB 제한)
+        const fileSizeMB = originalFile.size / (1024 * 1024);
+        const MAX_FILE_SIZE = 100; // 100MB 제한
+
+        if (fileSizeMB > MAX_FILE_SIZE) {
+          alert(
+            `파일 크기가 너무 큽니다. (${fileSizeMB.toFixed(
+              1
+            )}MB)\n\n최대 ${MAX_FILE_SIZE}MB 크기의 이미지만 업로드 가능합니다.`
+          );
+          
+          // 파일 선택 초기화
+          if (e.target) e.target.value = "";
+          return;
+        }
+        
+        // 원본 이미지 미리보기 설정 (압축 전)
+        setNewEntry({
+          ...newEntry,
+          file: originalFile,
+        });
+        
+        console.log(`원본 이미지 크기: ${fileSizeMB.toFixed(2)}MB`);
+      } catch (error) {
+        console.error('파일 처리 오류:', error);
+        setUploadError('파일 처리 중 오류가 발생했습니다.');
+      }
     }
   };
 
@@ -193,75 +306,81 @@ function Contest() {
       return;
     }
 
-    // 실제 API 제출 로직 (백엔드 개발 완료 후 주석 해제)
-    // try {
-    //   const formData = new FormData();
-    //   formData.append("title", newEntry.title);
-    //   formData.append("description", newEntry.description);
-    //   formData.append("image", newEntry.file);
-    //   formData.append("contestThemeId", currentTheme.id.toString());
-    
-    //   const response = await testApi.post("/api/v1/contest/entry", formData, {
-    //     headers: {
-    //       "Content-Type": "multipart/form-data",
-    //     },
-    //   });
-    
-    //   if (response.status === 201) {
-    //     // 성공 시 처리
-    //     const newEntryData = response.data.data;
-    //     setEntries([newEntryData, ...entries]);
-    //     setHasSubmitted(true);
-    //     setShowUploadModal(false);
-    //     setNewEntry({
-    //       title: "",
-    //       description: "",
-    //       file: null,
-    //     });
-    //   }
-    // } catch (error) {
-    //   console.error("업로드 오류:", error);
-    //   setUploadError("업로드 중 오류가 발생했습니다. 다시 시도해주세요.");
-    // }
-    
-    // 임시 처리 (백엔드 개발 전)
-    setTimeout(() => {
-      const mockEntry: ContestEntry = {
-        id: entries.length + 1,
-        userId: "currentUser",
-        userNickname: "나의닉네임",
-        imageUrl: URL.createObjectURL(newEntry.file as Blob),
-        title: newEntry.title,
-        description: newEntry.description,
-        likes: 0,
-        rating: 0,
-        timestamp: new Date().toISOString().split("T")[0],
-        isLiked: false,
-      };
+    try {
+      // 이미지 압축 적용 (필요한 경우에만 - 5MB 이상일 때)
+      const processedFile = await compressImageIfNeeded(newEntry.file);
       
-      setEntries([mockEntry, ...entries]);
-      setHasSubmitted(true);
-      setShowUploadModal(false);
-      setNewEntry({
-        title: "",
-        description: "",
-        file: null,
-      });
+      // FormData 생성
+      const formData = new FormData();
+      formData.append("title", newEntry.title);
+      formData.append("description", newEntry.description);
+      formData.append("image", processedFile);
+      formData.append("contestThemeId", currentTheme.id.toString());
+      
+      // 실제 API 호출 (백엔드 개발 완료 후 주석 해제)
+      // try {
+      //   const response = await testApi.post("/api/v1/contest/entry", formData, {
+      //     headers: {
+      //       "Content-Type": "multipart/form-data",
+      //     },
+      //   });
+      //   
+      //   if (response.status === 201) {
+      //     // 성공 시 처리
+      //     const newEntryData = response.data.data;
+      //     setEntries([newEntryData, ...entries]);
+      //     setHasSubmitted(true);
+      //     setShowUploadModal(false);
+      //     setNewEntry({
+      //       title: "",
+      //       description: "",
+      //       file: null,
+      //     });
+      //   }
+      // } catch (error) {
+      //   console.error("업로드 오류:", error);
+      //   setUploadError("업로드 중 오류가 발생했습니다. 다시 시도해주세요.");
+      // }
+      
+      // 임시 처리 (백엔드 개발 전)
+      setTimeout(() => {
+        // 새로운 게시글을 만들어 상단에 추가
+        const mockEntry: ContestEntry = {
+          id: Date.now(), // 유니크한 ID 생성
+          userId: "currentUser",
+          userNickname: "나의닉네임",
+          imageUrl: URL.createObjectURL(processedFile), // 압축된 이미지 사용
+          title: newEntry.title,
+          description: newEntry.description,
+          likes: 0,
+          rating: 0,
+          timestamp: new Date().toISOString().split("T")[0],
+          isLiked: false,
+        };
+        
+        setEntries([mockEntry, ...entries]);
+        setHasSubmitted(true);
+        setShowUploadModal(false);
+        setNewEntry({
+          title: "",
+          description: "",
+          file: null,
+        });
+        setIsUploading(false);
+      }, 1500);
+    } catch (error) {
+      console.error('이미지 처리 중 오류:', error);
+      setUploadError('이미지 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
       setIsUploading(false);
-    }, 1500);
+    }
   };
 
   return (
     <div className="flex flex-col w-full max-w-md mx-auto bg-white min-h-screen pb-16">
-      {/* 헤더 */}
-      <div className="sticky top-0 z-10 bg-white shadow-md p-4">
-        <div className="flex justify-center">
-          <div className="w-10 h-1 bg-pic-primary rounded-full"></div>
-        </div>
-      </div>
 
       {/* 현재 컨테스트 정보 */}
       <div className="bg-gradient-to-r from-pic-primary/5 to-pic-primary/10 p-6 mb-4">
+        <h2 className="text-lg font-bold text-gray-800 mb-3">컨테스트 기간</h2>
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-pic-primary mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -333,67 +452,73 @@ function Contest() {
 
       {/* 참가 작품 목록 */}
       <div className="px-6 space-y-6">
-        {sortedEntries.length > 0 ? (
-          sortedEntries.map((entry) => (
-            <div key={entry.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4">
-                <div className="flex items-center mb-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden mr-3 border border-gray-200">
-                    <img
-                      src={`https://picsum.photos/50/50?random=${entry.id}`}
-                      alt={entry.userNickname}
-                      className="w-full h-full object-cover"
-                    />
+        {entries.length > 0 ? (
+          entries.map((entry, index) => {
+            // 마지막 게시글인 경우 ref 적용
+            const isLastEntry = entries.length === index + 1;
+            return (
+              <div
+              key={entry.id}
+              className="bg-white rounded-xl shadow-sm overflow-hidden"
+              >
+                <div className="p-4">
+                  <div className="flex items-center mb-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden mr-3 border border-gray-200">
+                      <img
+                        src={`https://picsum.photos/50/50?random=${entry.id}`}
+                        alt={entry.userNickname}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800">{entry.userNickname}</h3>
+                      <p className="text-xs text-gray-500">{entry.timestamp}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-gray-800">{entry.userNickname}</h3>
-                    <p className="text-xs text-gray-500">{entry.timestamp}</p>
-                  </div>
+
+                  <h3 className="font-bold text-lg mb-1.5 text-gray-800">{entry.title}</h3>
+                  <p className="text-gray-700 text-sm mb-3">{entry.description}</p>
                 </div>
 
-                <h3 className="font-bold text-lg mb-1.5 text-gray-800">{entry.title}</h3>
-                <p className="text-gray-700 text-sm mb-3">{entry.description}</p>
-              </div>
+                <div className="mb-3 overflow-hidden bg-gray-50 max-h-80 flex items-center justify-center">
+                  <img
+                    src={entry.imageUrl}
+                    alt={entry.title}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
 
-              <div className="mb-3 overflow-hidden bg-gray-50 max-h-80 flex items-center justify-center">
-                <img
-                  src={entry.imageUrl}
-                  alt={entry.title}
-                  className="w-full h-full object-contain"
-                />
-              </div>
-
-              <div className="px-4 py-3 border-t border-gray-100">
-                <div className="flex justify-between items-center">
-                  <button
-                    onClick={() => handleLike(entry.id)}
-                    className={`flex items-center py-1 px-3 rounded-full ${
-                      entry.isLiked 
-                        ? "text-red-500 bg-red-50" 
-                        : "text-gray-600 bg-gray-50 hover:bg-gray-100"
-                    } transition-colors`}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill={entry.isLiked ? "currentColor" : "none"}
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="mr-1.5"
+                <div className="px-4 py-3 border-t border-gray-100">
+                  <div className="flex justify-between items-center">
+                    <button
+                      onClick={() => handleLike(entry.id)}
+                      className={`flex items-center py-1 px-3 rounded-full ${
+                        entry.isLiked 
+                          ? "text-red-500 bg-red-50" 
+                          : "text-gray-600 bg-gray-50 hover:bg-gray-100"
+                      } transition-colors`}
                     >
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                    </svg>
-                    <span className="font-medium">{entry.likes}</span>
-                  </button>
-                  {/* 별점 섹션 제거됨 */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill={entry.isLiked ? "currentColor" : "none"}
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-1.5"
+                      >
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                      </svg>
+                      <span className="font-medium">{entry.likes}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           <div className="p-12 text-center text-gray-500 bg-white rounded-xl shadow-sm">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -403,52 +528,19 @@ function Contest() {
             <p className="mt-1">첫 번째 참가자가 되어보세요!</p>
           </div>
         )}
+        
+        {/* 로딩 표시 */}
+        {loading && (
+          <div className="flex justify-center items-center py-4">
+            <div className="animate-spin h-8 w-8 border-4 border-pic-primary border-r-transparent rounded-full"></div>
+          </div>
+        )}
+        
+        {/* 무한스크롤을 위한 관찰 요소 */}
+        <div ref={scrollRef} className="w-full h-4"></div>
       </div>
 
-      {/* 이전 컨테스트 */}
-      <div className="px-6 mt-10 mb-8">
-        <h2 className="font-bold text-lg text-gray-800 mb-4">이전 컨테스트 우승자</h2>
-        <div className="space-y-4">
-          {previousContests.map((contest) => (
-            <div
-              key={contest.id}
-              className="flex items-center bg-white p-4 rounded-xl shadow-sm border border-gray-50"
-            >
-              <div className="w-14 h-14 rounded-full overflow-hidden mr-4 border-2 border-yellow-400 p-0.5">
-                <img
-                  src={contest.winnerImageUrl}
-                  alt={contest.winnerNickname}
-                  className="w-full h-full object-cover rounded-full"
-                />
-              </div>
-              <div className="flex-1">
-                <p className="text-xs text-gray-500 mb-0.5">{contest.date}</p>
-                <h3 className="font-bold text-gray-800">테마: {contest.theme}</h3>
-                <p className="text-sm mt-1">
-                  우승자: <span className="font-semibold text-pic-primary">{contest.winnerNickname}</span>
-                </p>
-              </div>
-              <div className="flex items-center justify-center w-10 h-10 bg-yellow-50 rounded-full ml-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="22"
-                  height="22"
-                  viewBox="0 0 24 24"
-                  fill="#FFD700"
-                  stroke="#FFA000"
-                  strokeWidth="1"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12"></path>
-                  <path d="M15 7a4 4 0 1 0-8 0"></path>
-                  <path d="M17.5 17a6.5 6.5 0 1 0-13 0"></path>
-                </svg>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* 이전 컨테스트 우승자 섹션 제거 */}
 
       {/* 사진 업로드 모달 */}
       {showUploadModal && (
