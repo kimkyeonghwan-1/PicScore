@@ -235,7 +235,7 @@ function Home() {
               </div>
             </div>
             <span className="font-bold text-gray-700 text-sm relative z-10">
-              ACTIVITY
+              액티비티
             </span>
           </div>
 
@@ -313,7 +313,9 @@ function Home() {
             <form onSubmit={handleChickenSubmit}>
               {/* 전화번호 입력 필드 */}
               <div className="mb-4">
-                <label className="block text-gray-700 mb-1 text-sm">전화번호</label>
+                <label className="block text-gray-700 mb-1 text-sm">
+                  전화번호
+                </label>
                 <input
                   type="tel"
                   className="w-full border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-pic-primary"
@@ -391,7 +393,9 @@ function Home() {
                 <div className="w-14 h-14 rounded-full bg-pic-primary/100 flex items-center justify-center mb-2">
                   <img src={time} alt="타임어택" className="w-9 h-9" />
                 </div>
-                <span className="font-bold text-gray-700 text-sm">타임어택</span>
+                <span className="font-bold text-gray-700 text-sm">
+                  타임어택
+                </span>
                 <p className="text-sm text-gray-500 text-center mt-1">
                   빠르게 찍어 올리기기
                 </p>

@@ -1,5 +1,5 @@
 // page/Arena/ArenaResult.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   arenaApi,
@@ -123,20 +123,21 @@ const AnimationModal: React.FC<AnimationModalProps> = ({
 
 const ArenaResultPage: React.FC = () => {
   const navigate = useNavigate(); // 결과 데이터 상태
-
   const [resultData, setResultData] = useState<ArenaResultData | null>(null); // Local state 관리
-
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [xpEarned, setXpEarned] = useState<number>(0);
   const [showErrorModal, setShowErrorModal] = useState<boolean>(false); // 애니메이션 모달 상태
-
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [modalDestination, setModalDestination] = useState<"ranking" | "arena">(
-    "ranking"
-  ); // 컴포넌트 마운트 시 데이터 확인 및 결과 저장
+  const [modalDestination, setModalDestination] = useState<"ranking" | "arena">("ranking");
+  
+  // 결과가 이미 저장되었는지 추적하는 ref
+  const resultSavedRef = useRef<boolean>(false);
+  // 페이지를 벗어나는지 감지하는 state
+  const [isLeavingPage, setIsLeavingPage] = useState<boolean>(false);
 
+  // 컴포넌트 마운트 시 데이터 확인 및 결과 저장
   useEffect(() => {
     // 세션 스토리지에서 결과 데이터 가져오기
     const storedResult = sessionStorage.getItem("arenaResult");
@@ -148,22 +149,68 @@ const ArenaResultPage: React.FC = () => {
     }
 
     try {
-      const parsedResult = JSON.parse(storedResult); // 결과 데이터 설정
+      const parsedResult = JSON.parse(storedResult);
+      
+      // 이미 저장된 결과인지 확인
+      if (parsedResult.resultSaved) {
+        resultSavedRef.current = true;
+      }
 
+      // 결과 데이터 설정
       setResultData(parsedResult);
-      setIsLoading(false); // 결과 자동 저장 - 페이지 로드 시 바로 실행
+      setIsLoading(false);
 
-      saveResult(parsedResult);
+      // 결과가 아직 저장되지 않았다면 저장 진행
+      if (!parsedResult.resultSaved) {
+        saveResult(parsedResult);
+      }
+
+      // 브라우저 history state 설정
+      window.history.replaceState(
+        { resultSaved: true },
+        document.title,
+        window.location.pathname
+      );
     } catch (error) {
       console.error("결과 데이터 파싱 오류:", error);
       navigate("/arena");
     }
-  }, [navigate]); // 결과 저장
 
+    // 브라우저 뒤로가기 이벤트 리스너 등록
+    const handlePopState = (event: PopStateEvent) => {
+      // 페이지를 벗어나는 상태로 설정
+      setIsLeavingPage(true);
+      
+      // 이미 결과가 저장되었다면 아레나 페이지로 리다이렉트
+      if (resultSavedRef.current) {
+        navigate("/arena", { replace: true });
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [navigate]);
+
+  // 페이지를 벗어날 때 처리
+  useEffect(() => {
+    if (isLeavingPage && resultSavedRef.current) {
+      navigate("/arena", { replace: true });
+    }
+  }, [isLeavingPage, navigate]);
+
+  // 결과 저장
   const saveResult = async (resultDataParam?: ArenaResultData) => {
     try {
       const dataToUse = resultDataParam || resultData;
       if (!dataToUse) return;
+      
+      // 이미 결과가 저장되었다면 저장 건너뛰기
+      if (resultSavedRef.current) {
+        return;
+      }
 
       setIsSaving(true); // 백엔드에 결과 전송
 
@@ -172,14 +219,14 @@ const ArenaResultPage: React.FC = () => {
         time: dataToUse.remainingTime, // 남은 시간
       };
 
-      const response = await arenaApi.saveArenaResult(requestData); // 백엔드 응답의 data 필드는 이제 경험치(number)를 직접 포함합니다.
+      const response = await arenaApi.saveArenaResult(requestData);
+      const responseData = response.data.data;
+      setXpEarned(responseData);
 
-      const responseData = response.data.data; // responseData는 이제 number 타입입니다.
-      // responseData (경험치 값)를 직접 사용하여 상태 업데이트
-      setXpEarned(responseData); // <--- 수정됨: responseData.xp -> responseData
+      console.log("저장 결과 (획득 XP):", responseData);
 
-      console.log("저장 결과 (획득 XP):", responseData); // 로그도 수정된 데이터 반영 // 결과가 이미 저장됨을 표시 (이 로직은 그대로 유지)
-
+      // 결과가 저장되었음을 표시
+      resultSavedRef.current = true;
       const updatedResultData = { ...dataToUse, resultSaved: true };
       setResultData(updatedResultData);
       sessionStorage.setItem("arenaResult", JSON.stringify(updatedResultData));
@@ -190,22 +237,26 @@ const ArenaResultPage: React.FC = () => {
     } finally {
       setIsSaving(false);
     }
-  }; // 다시 도전하기 핸들러
+  };
 
+  // 다시 도전하기 핸들러
   const handlePlayAgain = () => {
     sessionStorage.removeItem("arenaResult");
-    navigate("/arena");
-  }; // 랭킹 보기 핸들러
+    navigate("/arena", { replace: true });
+  };
 
+  // 랭킹 보기 핸들러
   const handleViewRanking = () => {
     // 모달 표시 없이 바로 랭킹 페이지로 이동
     navigate("/ranking", { replace: true });
-  }; // 모달 닫기 핸들러
+  };
 
+  // 모달 닫기 핸들러
   const handleCloseModal = () => {
     setShowModal(false);
-  }; // 로딩 중이면 로딩 화면 표시
+  };
 
+  // 로딩 중이면 로딩 화면 표시
   if (isLoading) {
     return (
       <Container>
