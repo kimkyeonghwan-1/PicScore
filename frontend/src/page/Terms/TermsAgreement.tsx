@@ -107,7 +107,7 @@ const TermsAgreement: React.FC = () => {
             : "bg-pic-primary"
         }`}
         onClick={() => {
-          navigate("/");
+          navigate("/?loginSuccess=true");
         }}
         disabled={isSubmitting || !requiredTermsChecked}
       >
