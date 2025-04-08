@@ -5,7 +5,6 @@ import { useAuthStore } from "../../store/authStore";
 const TermsAgreement: React.FC = () => {
   const navigate = useNavigate();
   const [requiredTermsChecked, setRequiredTermsChecked] = useState(false);
-  const [marketingTermsChecked, setMarketingTermsChecked] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   return (
@@ -65,6 +64,30 @@ const TermsAgreement: React.FC = () => {
             2. 회사는 서비스의 내용을 변경할 수 있으며, 이 경우에는 변경된
             서비스의 내용 및 제공일자를 명시하여 서비스 화면에 공지합니다.
           </p>
+
+          <p className="mb-2">제 5 조 (사진 콘텐츠의 이용)</p>
+          <p className="text-gray-700 mb-3">
+            1. 회원이 서비스 내에 업로드한 사진은 다른 이용자들이 다운로드하거나
+            공유할 수 있습니다.
+            <br />
+            2. 회원은 자신이 업로드한 사진에 대해 공개 비공개 여부를 설정할 수
+            있습니다.
+            <br />
+            3. 다른 회원의 사진을 다운로드하거나 공유할 경우, 원작자의 권리를
+            존중하고 출처를 명시해야 합니다.
+            <br />
+            4. 회사는 이용자가 업로드한 사진에 대해 서비스 홍보, 개선 등의
+            목적으로 사용할 수 있는 권한을 가집니다. 단, 이용자의 명시적 동의
+            없이 상업적 목적으로 활용하지 않습니다.
+            <br />
+            5. 회사는 이용자의 콘텐츠가 타인의 권리를 침해하거나, 불쾌감을 줄 수
+            있다고 판단되는 경우 사전 통지 없이 해당 콘텐츠를 삭제하거나 비공개
+            처리할 수 있습니다.
+            <br />
+            6. 이용자는 타인의 콘텐츠를 무단으로 저장, 배포, 복제, 2차 이용하는
+            행위를 해서는 안 되며, 이를 위반할 경우 관련 법령에 따른 책임을 질
+            수 있습니다.
+          </p>
         </div>
         <label className="flex items-center text-sm">
           <input
@@ -74,31 +97,6 @@ const TermsAgreement: React.FC = () => {
             onChange={(e) => setRequiredTermsChecked(e.target.checked)}
           />
           서비스 이용 약관에 동의합니다. (필수)
-        </label>
-      </div>
-
-      {/* 선택 약관 */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <h2 className="text-lg font-semibold mb-2">
-          마케팅 정보 수신 동의 (선택)
-        </h2>
-        <div className="h-24 overflow-y-auto bg-gray-50 p-3 rounded mb-3 text-sm">
-          <p className="mb-2">마케팅 정보 수신 동의</p>
-          <p className="text-gray-700 mb-3">
-            PicScore는 이용자의 마케팅 정보 수신 동의를 받고 다양한 이벤트,
-            프로모션, 뉴스레터, 서비스 업데이트 등의 정보를 이메일, SMS, 앱 푸시
-            알림 등의 방법으로 제공할 수 있습니다. 이 동의는 선택사항이며,
-            동의하지 않더라도 기본 서비스 이용에는 제한이 없습니다.
-          </p>
-        </div>
-        <label className="flex items-center text-sm">
-          <input
-            type="checkbox"
-            className="w-4 h-4 mr-2 accent-pic-primary"
-            checked={marketingTermsChecked}
-            onChange={(e) => setMarketingTermsChecked(e.target.checked)}
-          />
-          마케팅 정보 수신에 동의합니다. (선택)
         </label>
       </div>
 
