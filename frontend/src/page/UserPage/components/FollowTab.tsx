@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { friendApi, FollowingUser, FollowerUser } from "../../../api/friendApi";
 import {
@@ -70,12 +70,6 @@ const FollowTab: React.FC<FollowTabProps> = ({
     refetch: refetchUserFollowings,
     isFetching: isUserFollowingsFetching,
   } = useUserFollowings(targetUserId || 0);
-
-  // 팔로워 수와 팔로잉 수를 실시간으로 계산
-  // isFollowing이 true인 사용자만 팔로잉 수에 포함
-  const followingCount = useMemo(() => {
-    return followings.filter((user) => user.isFollowing).length;
-  }, [followings]);
 
   // 팔로워/팔로잉 데이터 로드
   useEffect(() => {
@@ -297,6 +291,24 @@ const FollowTab: React.FC<FollowTabProps> = ({
   return (
     <div className="flex flex-col h-screen w-full bg-gray-50">
       {/* 헤더 */}
+      <div className="flex items-center p-4 bg-white border-b">
+        <button onClick={handleGoBack} className="p-1">
+          <svg
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+            stroke="currentColor"
+            strokeWidth="2"
+            fill="none"
+          >
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h1 className="flex-1 text-center font-bold text-lg">
+          {currentTab === "followers" ? "팔로워" : "팔로잉"}
+        </h1>
+        <div className="w-6"></div> {/* 균형을 위한 더미 요소 */}
+      </div>
 
       {/* 탭 */}
       <div className="flex border-b">
@@ -318,7 +330,7 @@ const FollowTab: React.FC<FollowTabProps> = ({
           }`}
           onClick={() => setCurrentTab("followings")}
         >
-          {followingCount} 팔로잉
+          {followings.length} 팔로잉
         </button>
       </div>
 
