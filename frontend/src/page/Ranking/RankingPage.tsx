@@ -76,6 +76,7 @@ type TimeFrame = "today" | "week" | "month" | "all";
 const RankingPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const myId = useAuthStore((state) => state.userId);
   // 상태 관리
   const [arenaRankings, setArenaRankings] = useState<RankingUser[]>([]);
   const [timeAttackRankings, setTimeAttackRankings] = useState<RankingUser[]>(
@@ -360,7 +361,11 @@ const RankingPage: React.FC = () => {
 
   // 프로필로 이동 핸들러
   const handleGoToProfile = (userId: number) => {
-    navigate(`/user/profile/${userId}`);
+    if (userId === myId) {
+      navigate(`/mypage`);
+    } else {
+      navigate(`/user/profile/${userId}`);
+    }
     setModalOpen(false);
   };
 
