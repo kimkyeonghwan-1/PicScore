@@ -140,9 +140,14 @@ const RankingPage: React.FC = () => {
         const data = responseData.data;
 
         if (data && data.ranking && Array.isArray(data.ranking)) {
-          // API 응답을 애플리케이션 타입으로 명시적 변환
           const apiRankings = data.ranking as RankingApiUser[];
-          setTimeAttackRankings(apiRankings);
+          // 백엔드에서 전달한 rank가 페이지별로 올바르지 않을 수 있으므로 클라이언트에서 재계산
+          const correctedRankings = apiRankings.map((user, index) => ({
+            ...user,
+            rank: ((pageToFetch - 1) * 5) + index + 1, // 페이지에 따른 랭킹 계산
+          }));
+          
+          setTimeAttackRankings(correctedRankings);
           setTotalPages(data.totalPage || 1);
 
           // 첫 로드 시에만 상위 3명 설정
@@ -215,7 +220,7 @@ const RankingPage: React.FC = () => {
             .sort((a, b) => b.score - a.score)
             .map((user, index) => ({
               ...user,
-              rank: index + 1, // 점수 기준으로 랭킹 부여
+              rank: ((pageToFetch - 1) * 5) + index + 1, // 페이지에 따른 랭킹 계산
             }));
 
           setArenaRankings(rankedUsers);
