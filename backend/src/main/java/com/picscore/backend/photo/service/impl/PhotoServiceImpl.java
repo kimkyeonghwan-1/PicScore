@@ -13,6 +13,7 @@ import com.picscore.backend.photo.service.PhotoService;
 import com.picscore.backend.user.model.entity.User;
 import com.picscore.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +26,10 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
+import javax.imageio.ImageIO;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -59,39 +63,74 @@ public class PhotoServiceImpl implements PhotoService {
      */
     @Override
     @Transactional
-    public SavePhotoResponse savePhoto(
-            Long userId, UploadPhotoRequest request) {
-
+    public SavePhotoResponse savePhoto(Long userId, UploadPhotoRequest request) {
         String tempFolder = "temp/";
         String permanentFolder = "permanent/";
+        String thumbnailFolder = "thumbnail/";
 
-        // S3에서 임시 폴더에서 영구 폴더로 이미지 이동
+        String imageName = request.getImageName();
+
+        // 1. 원본 이미지 S3 이동
         CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
-                .sourceBucket(bucketName)    // 원본 버킷
-                .sourceKey(tempFolder+request.getImageName())        // 원본 경로
-                .destinationBucket(bucketName) // 동일한 버킷 내 복사
-                .destinationKey(permanentFolder+request.getImageName()) // 새로운 경로
+                .sourceBucket(bucketName)
+                .sourceKey(tempFolder + imageName)
+                .destinationBucket(bucketName)
+                .destinationKey(permanentFolder + imageName)
                 .build();
         s3Client.copyObject(copyObjectRequest);
 
-        String permanImageUrl = getFileUrl(permanentFolder,request.getImageName());
-        if (permanImageUrl == null || permanImageUrl.trim().isEmpty()) {
-            throw new CustomException(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 URL이 생성되지 않았습니다: " + request.getImageName());
+        // 2. S3에서 temp 이미지 InputStream 가져오기
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(tempFolder + imageName)
+                .build();
+
+        try (InputStream originalImageStream = s3Client.getObject(getObjectRequest)) {
+
+            // 3. Thumbnailator로 150x150 썸네일 생성
+            ByteArrayOutputStream thumbnailOutputStream = new ByteArrayOutputStream();
+            Thumbnails.of(originalImageStream)
+                    .size(150, 150)
+                    .outputFormat("jpg") // 필요시 png 등으로 바꿔도 됨
+                    .toOutputStream(thumbnailOutputStream);
+
+            byte[] thumbnailBytes = thumbnailOutputStream.toByteArray();
+
+            // 4. 리사이징된 이미지 S3에 업로드
+            PutObjectRequest putThumbnailRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(thumbnailFolder + imageName)
+                    .contentType("image/jpeg")
+                    .build();
+
+            s3Client.putObject(putThumbnailRequest, RequestBody.fromBytes(thumbnailBytes));
+
+        } catch (IOException e) {
+            throw new CustomException(HttpStatus.INTERNAL_SERVER_ERROR, "썸네일 생성 중 오류 발생");
         }
 
-        // mySQL에 저장
+        // 5. URL 생성 및 DB 저장
+        String permanImageUrl = getFileUrl(permanentFolder, imageName);
+        if (permanImageUrl == null || permanImageUrl.trim().isEmpty()) {
+            throw new CustomException(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 URL이 생성되지 않았습니다: " + imageName);
+        }
+
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없음: " + userId));
+                .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없음: " ));
+
         Photo photo = new Photo(
-                user, permanImageUrl, request.getScore(),request.getIsPublic(),
+                user, permanImageUrl, request.getScore(), request.getIsPublic(),
                 request.getPhotoType(), request.getAnalysisChart(), request.getAnalysisText());
+
         photoRepository.save(photo);
         SavePhotoResponse response = new SavePhotoResponse(photo.getId());
-        // 해시태그 저장은 HashtagService에 위임
+
         hashtagService.saveHashtags(photo, request.getHashTag());
 
         return response;
     }
+
+
 
 
     /**
@@ -231,14 +270,13 @@ public class PhotoServiceImpl implements PhotoService {
     @Override
     public Map<String, Object> getPaginatedPhotos(
             int pageNum, String sort) {
-
         if (pageNum < 1) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "페이지 번호는 1 이상의 값이어야 합니다.");
         }
 
         Page<Photo> photoPage;
         PageRequest pageRequest;
-
+        
         if (sort == null || sort.equalsIgnoreCase("latest")) {
             pageRequest = PageRequest.of(pageNum - 1, 24, Sort.by(Sort.Direction.DESC, "createdAt"));
             photoPage = photoRepository.findAllWithPublic(pageRequest);
@@ -260,18 +298,19 @@ public class PhotoServiceImpl implements PhotoService {
             throw new CustomException(HttpStatus.NOT_FOUND, "해당 페이지에 랭킹 정보가 없습니다");
         }
 
-        // DTO 변환
+        // ✅ URL 경로 수정: permanent → thumbnail
         List<GetPhotosResponse> photoResponses = photoPage.getContent().stream()
-                .map(photo -> new GetPhotosResponse(photo.getId(), photo.getImageUrl()))
+                .map(photo -> {
+                    String thumbnailUrl = photo.getImageUrl().replace("permanent", "thumbnail");
+                    return new GetPhotosResponse(photo.getId(), thumbnailUrl);
+                })
                 .collect(Collectors.toList());
 
-        // 응답 데이터 구성
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("totalPages", photoPage.getTotalPages());
         responseData.put("currentPage", pageNum);
         responseData.put("photos", photoResponses);
 
-        // 응답 반환
         return responseData;
     }
 
