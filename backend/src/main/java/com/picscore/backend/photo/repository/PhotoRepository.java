@@ -66,15 +66,17 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
     List<Object[]> findTop5PhotosWithLikeCount(Pageable pageable);
 
     // 랜덤하게 is_public=true인 사진 4장 가져오기 (score 값이 중복되지 않도록)
-    @Query(value = "SELECT p.photo_id, p.score, p.image_url FROM photo p " +
-            "WHERE p.is_public = 1 AND p.photo_type = 'article' " +
-            "AND p.photo_id IN ( " +
-            "    SELECT MIN(photo_id) FROM photo " +
-            "    WHERE is_public = 1 AND photo_type = 'article' " +
-            "    GROUP BY score " +
-            ") " +
-            "ORDER BY RAND() LIMIT 4", nativeQuery = true)
+    @Query(value = "SELECT photo_id, score, image_url FROM ( " +
+            "    SELECT p.photo_id, p.score, p.image_url, " +
+            "           ROW_NUMBER() OVER (PARTITION BY p.score ORDER BY RAND()) AS rn " +
+            "    FROM photo p " +
+            "    WHERE p.is_public = 1 AND p.photo_type = 'article' " +
+            ") AS sub " +
+            "WHERE sub.rn = 1 " +
+            "ORDER BY RAND() " +
+            "LIMIT 4", nativeQuery = true)
     List<Object[]> getRandomPublicPhotos();
+
 
     int countByUserId(Long userId);
 
