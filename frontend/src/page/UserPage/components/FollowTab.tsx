@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { friendApi, FollowingUser, FollowerUser } from "../../../api/friendApi";
 import { useMyFollowings, useMyFollowers, useUserFollowings, useUserFollowers } from "../../../hooks/friend";
@@ -56,6 +56,11 @@ const FollowTab: React.FC<FollowTabProps> = ({ userId, initialTab = "followers" 
     isFetching: isUserFollowingsFetching
   } = useUserFollowings(targetUserId || 0);
 
+  // 실제 팔로잉 중인 사용자 수 계산
+  const followingCount = useMemo(() => {
+    return followings.filter(user => user.isFollowing).length;
+  }, [followings]);
+
   // 팔로워/팔로잉 데이터 로드
   useEffect(() => {
     const fetchData = async () => {
@@ -70,6 +75,7 @@ const FollowTab: React.FC<FollowTabProps> = ({ userId, initialTab = "followers" 
           }
           
           if (myFollowingsData?.data) {
+            // 내 팔로잉 목록일 경우, API에서 반환된 데이터는 모두 내가 팔로잉 중인 사용자이므로 isFollowing = true로 설정
             const followingsWithState = myFollowingsData.data.map((user) => ({
               ...user,
               isFollowing: true,
@@ -312,7 +318,7 @@ const FollowTab: React.FC<FollowTabProps> = ({ userId, initialTab = "followers" 
           }`}
           onClick={() => setCurrentTab("followings")}
         >
-          {followings.length} 팔로잉
+          {followingCount} 팔로잉
         </button>
       </div>
 
