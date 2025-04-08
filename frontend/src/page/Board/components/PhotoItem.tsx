@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useInView } from "react-intersection-observer";
-
+import defaultImage from "../../../assets/Board/default-image.webp";
 interface PhotoItemProps {
   photo: {
     id: number;
@@ -38,6 +38,10 @@ function PhotoItem({ photo, index, onClick }: PhotoItemProps) {
         onLoad={() => {
           setIsLoaded(true);
           fullImageLoaded.current = true;
+        }}
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = defaultImage;
+          setIsLoaded(true);
         }}
       />
     </div>
