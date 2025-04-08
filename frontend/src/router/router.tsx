@@ -2,6 +2,7 @@ import {
   createBrowserRouter,
   useParams,
   useSearchParams,
+  Navigate,
 } from "react-router-dom";
 import App from "../App";
 import Home from "../page/Home/Home";
@@ -24,10 +25,13 @@ import PrivateRouter from "./PrivateRouter";
 import Welcome from "../page/Welcome/Welcome";
 import { useAuthStore } from "../store/authStore";
 import { useEffect } from "react";
+// 기존 컴포넌트는 유지하되 리다이렉트를 위해 필요함
 import Following from "../page/UserPage/Following";
 import Follower from "../page/UserPage/Follower";
 import UserFollowing from "../page/UserPage/UserFollowing";
 import UserFollower from "../page/UserPage/UserFollower";
+// 새로운 통합 컴포넌트 추가
+import Follow from "../page/UserPage/Follow";
 import PhotoPost from "../page/Board/PhotoPost";
 import Loading from "../components/Loading";
 import SearchResult from "../page/Board/SearchResult";
@@ -122,7 +126,6 @@ const router = createBrowserRouter([
             path: "/archieve",
             element: <ArchievePage />,
           },
-
           {
             path: "/ranking",
             element: <RankingPage />,
@@ -135,7 +138,6 @@ const router = createBrowserRouter([
             path: "/search/:search",
             element: <SearchResult />,
           },
-
           {
             path: "/contest",
             element: <Contest />,
@@ -144,23 +146,33 @@ const router = createBrowserRouter([
             path: "/login",
             element: <Login />,
           },
-          // 내 팔로잉/팔로워 페이지
+          
+          // 새로운 통합 팔로우 페이지
+          {
+            path: "/follow",
+            element: <Follow />,
+          },
+          {
+            path: "/user/follow/:userId",
+            element: <Follow />,
+          },
+          
+          // 기존 URL과의 호환성을 위한 리다이렉트
           {
             path: "/following",
-            element: <Following />,
+            element: <Navigate to="/follow?tab=followings" replace />,
           },
           {
             path: "/follower",
-            element: <Follower />,
+            element: <Navigate to="/follow?tab=followers" replace />,
           },
-          // 다른 사용자의 팔로잉/팔로워 페이지
           {
-            path: "/user/following/:userId",
-            element: <UserFollowing />,
+            path: "/user/following/:userId", 
+            element: <UserFollowing />, // URL 파라미터 문제로 Navigate 사용 불가, 컴포넌트 내에서 리다이렉트 처리
           },
           {
             path: "/user/follower/:userId",
-            element: <UserFollower />,
+            element: <UserFollower />, // URL 파라미터 문제로 Navigate 사용 불가, 컴포넌트 내에서 리다이렉트 처리
           },
           {
             path: "photo",

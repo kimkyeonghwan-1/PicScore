@@ -85,6 +85,38 @@ const routeLayouts: { [key: string]: LayoutConfig } = {
     showBottomBar: false,
     content: "아레나",
   },
+  // 새로운 통합 팔로우 페이지 추가
+  "/follow": {
+    showNavBar: true,
+    showBottomBar: false,
+    content: "팔로우",
+  },
+  "/user/follow/:userId": {
+    showNavBar: true,
+    showBottomBar: false,
+    content: "팔로우",
+  },
+  // 기존 페이지 유지 (리다이렉트 처리를 위해)
+  "/following": {
+    showNavBar: true,
+    showBottomBar: false,
+    content: "팔로잉",
+  },
+  "/follower": {
+    showNavBar: true,
+    showBottomBar: false,
+    content: "팔로워",
+  },
+  "/user/following/:userId": {
+    showNavBar: true,
+    showBottomBar: false,
+    content: "팔로잉",
+  },
+  "/user/follower/:userId": {
+    showNavBar: true,
+    showBottomBar: false,
+    content: "팔로워",
+  },
 };
 
 function RouteListener() {
