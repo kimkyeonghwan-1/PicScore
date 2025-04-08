@@ -5,7 +5,6 @@ import useLayoutStore from "./store/layoutStore";
 import ContentNavBar from "./components/NavBar/ContentNavBar";
 import { usePWAStore } from "./store/pwaStore";
 import { useEffect } from "react";
-import InstallPWA from "./components/InstallPWA";
 import {
   BeforeInstallPromptEvent,
   NavigatorWithStandalone,
