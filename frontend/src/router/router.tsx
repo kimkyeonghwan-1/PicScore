@@ -14,6 +14,7 @@ import { ArchievePage } from "../page/Archieve";
 import { ChangeInfoPage } from "../page/ChangeInfo";
 import Board from "../page/Board/Board";
 import Contest from "../page/Contest/Contest";
+import BestContests from "../page/Contest/BestContests";
 import Login from "../page/Login/Login";
 import TimeAttack from "../page/Timeattack/Timeattack";
 import TimeAttackResult from "../page/Timeattack/TimeAttackResult";
@@ -142,6 +143,10 @@ const router = createBrowserRouter([
           {
             path: "/contest",
             element: <Contest />,
+          },
+          {
+            path: "/contest/best",
+            element: <BestContests />,
           },
           {
             path: "/login",

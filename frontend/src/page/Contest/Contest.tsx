@@ -55,7 +55,7 @@ function Contest() {
     description: "",
     file: null as File | null,
   });
-  const [sortOption, setSortOption] = useState<"likes" | "newest">("likes");
+  const [sortOption, setSortOption] = useState<"likes" | "newest" | "random">("random"); // 기본값을 random으로 변경
   const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
   const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -197,18 +197,33 @@ function Contest() {
   // 참가작 정렬
   const sortedEntries = [...entries].sort((a, b) => {
     if (sortOption === "likes") return b.likes - a.likes;
-    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    if (sortOption === "newest") return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    // 랜덤 정렬
+    if (sortOption === "random") {
+      // 랜덤한 값을 만들어 정렬
+      return Math.random() - 0.5;
+    }
+    return 0;
   });
 
   // 참가작 정렬 재실행
   useEffect(() => {
     // 정렬 옵션이 변경될 때 마다 정렬 적용
-    const sorted = [...entries].sort((a, b) => {
-      if (sortOption === "likes") return b.likes - a.likes;
-      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-    });
+    const sorted = [...entries];
     
-    // 정렬된 배열을 새로운 배열로 설정하지 않고 정렬만 처리
+    if (sortOption === "likes") {
+      sorted.sort((a, b) => b.likes - a.likes);
+    } else if (sortOption === "newest") {
+      sorted.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    } else if (sortOption === "random") {
+      // 랜덤 정렬 - Fisher-Yates 셔플 알고리즘
+      for (let i = sorted.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [sorted[i], sorted[j]] = [sorted[j], sorted[i]];
+      }
+    }
+    
+    // 정렬된 배열을 설정
     setEntries(sorted);
   }, [sortOption]);
   
@@ -380,7 +395,15 @@ function Contest() {
 
       {/* 현재 컨테스트 정보 */}
       <div className="bg-gradient-to-r from-pic-primary/5 to-pic-primary/10 p-6 mb-4">
-        <h2 className="text-lg font-bold text-gray-800 mb-3">컨테스트 기간</h2>
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-lg font-bold text-gray-800">컨테스트 기간</h2>
+          <button
+            onClick={() => navigate('/contest/best')}
+            className="bg-pic-primary/90 text-white text-sm px-4 py-1.5 rounded-full font-medium hover:bg-pic-primary transition-colors shadow-sm"
+          >
+            우수작 보러가기
+          </button>
+        </div>
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-pic-primary mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -426,7 +449,17 @@ function Contest() {
       {/* 정렬 옵션 */}
       <div className="flex justify-between items-center px-6 mb-4">
         <h2 className="font-bold text-gray-800 text-lg">참가 작품</h2>
-        <div className="flex space-x-3">
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setSortOption("random")}
+            className={`px-3 py-1.5 text-xs rounded-full transition-all ${
+              sortOption === "random"
+                ? "bg-pic-primary text-white font-medium shadow-sm"
+                : "bg-gray-50 text-gray-600 border border-gray-200"
+            }`}
+          >
+            랜덤
+          </button>
           <button
             onClick={() => setSortOption("likes")}
             className={`px-3 py-1.5 text-xs rounded-full transition-all ${
