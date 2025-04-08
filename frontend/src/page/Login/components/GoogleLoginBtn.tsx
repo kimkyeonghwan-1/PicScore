@@ -5,7 +5,7 @@ const baseURL = import.meta.env.VITE_BASE_URL;
 
 function GoogleLoginBtn() {
   const locateGoogleLogin = () => {
-    window.location.href = `${baseURL}/api/v1/user`;
+    window.location.href = `${baseURL}/api/v1/user/google`;
   };
   return (
     <button onClick={locateGoogleLogin}>

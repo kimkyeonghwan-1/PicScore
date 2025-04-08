@@ -2,6 +2,15 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.3'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id "org.sonarqube" version "4.0.0.2929"
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "picscore-backend"
+        property "sonar.projectName", "PicScore Backend"
+        property "sonar.sources", "src/main"
+    }
 }
 
 group = 'com.picscore'
@@ -29,7 +38,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework:spring-webflux'
-	implementation 'net.coobird:thumbnailator:0.4.8'
+	implementation 'net.coobird:thumbnailator:0.4.20'
 
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
@@ -58,6 +67,11 @@ dependencies {
 	// health, prometheus
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'io.micrometer:micrometer-registry-prometheus'
+
+	// sentry
+	implementation 'io.sentry:sentry-spring-boot-starter-jakarta:8.6.0'
+	implementation 'io.sentry:sentry-logback:8.6.0'
+
 }
 
 tasks.named('test') {

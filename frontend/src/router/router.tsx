@@ -2,6 +2,7 @@ import {
   createBrowserRouter,
   useParams,
   useSearchParams,
+  Navigate,
 } from "react-router-dom";
 import App from "../App";
 import Home from "../page/Home/Home";
@@ -16,21 +17,19 @@ import Contest from "../page/Contest/Contest";
 import Login from "../page/Login/Login";
 import TimeAttack from "../page/Timeattack/Timeattack";
 import TimeAttackResult from "../page/Timeattack/TimeAttackResult";
-// import Arena from "../page/Arena/Arena";
-// import ArenaResult from "../page/Arena/ArenaResult";
+import Arena from "../page/Arena/Arena";
+import ArenaResult from "../page/Arena/ArenaResult";
 import ImageUpload from "../page/ImageEval/ImageUpload";
 import ImageEvalResult from "../page/ImageEval/ImageEvalResult";
 import PrivateRouter from "./PrivateRouter";
 import Welcome from "../page/Welcome/Welcome";
 import { useAuthStore } from "../store/authStore";
-import { useEffect } from "react";
-import Following from "../page/UserPage/Following";
-import Follower from "../page/UserPage/Follower";
-import UserFollowing from "../page/UserPage/UserFollowing";
-import UserFollower from "../page/UserPage/UserFollower";
+// 새로운 통합 컴포넌트 추가
+import Follow from "../page/UserPage/Follow";
 import PhotoPost from "../page/Board/PhotoPost";
 import Loading from "../components/Loading";
 import SearchResult from "../page/Board/SearchResult";
+import TermsAgreement from "../page/Terms/TermsAgreement";
 
 const HomeRouter = () => {
   const [params] = useSearchParams();
@@ -42,6 +41,17 @@ const HomeRouter = () => {
   }
   // 그 외에는 Welcome으로
   return <Welcome />;
+};
+
+// userId 매개변수를 전달하기 위한 래퍼 컴포넌트
+const UserFollowRedirect = () => {
+  const { userId } = useParams<{ userId: string }>();
+  return <Navigate to={`/user/follow/${userId}?tab=followings`} replace />;
+};
+
+const UserFollowerRedirect = () => {
+  const { userId } = useParams<{ userId: string }>();
+  return <Navigate to={`/user/follow/${userId}?tab=followers`} replace />;
 };
 
 const router = createBrowserRouter([
@@ -75,6 +85,10 @@ const router = createBrowserRouter([
         element: <PhotoPost />,
       },
       {
+        path: "/agreement",
+        element: <TermsAgreement />,
+      },
+      {
         element: <PrivateRouter />,
         children: [
           {
@@ -89,14 +103,14 @@ const router = createBrowserRouter([
             path: "/time-attack/result",
             element: <TimeAttackResult />,
           },
-          // {
-          //   path: "/arena",
-          //   element: <Arena />,
-          // },
-          // {
-          //   path: "/arena/result",
-          //   element: <ArenaResult />,
-          // },
+          {
+            path: "/arena",
+            element: <Arena />,
+          },
+          {
+            path: "/arena/result",
+            element: <ArenaResult />,
+          },
           {
             path: "/ranking",
             element: <RankingPage />,
@@ -117,11 +131,6 @@ const router = createBrowserRouter([
             path: "/archieve",
             element: <ArchievePage />,
           },
-
-          {
-            path: "/ranking",
-            element: <RankingPage />,
-          },
           {
             path: "/board",
             element: <Board />,
@@ -130,7 +139,6 @@ const router = createBrowserRouter([
             path: "/search/:search",
             element: <SearchResult />,
           },
-
           {
             path: "/contest",
             element: <Contest />,
@@ -139,23 +147,33 @@ const router = createBrowserRouter([
             path: "/login",
             element: <Login />,
           },
-          // 내 팔로잉/팔로워 페이지
+          
+          // 새로운 통합 팔로우 페이지
+          {
+            path: "/follow",
+            element: <Follow />,
+          },
+          {
+            path: "/user/follow/:userId",
+            element: <Follow />,
+          },
+          
+          // 기존 URL과의 호환성을 위한 리다이렉트
           {
             path: "/following",
-            element: <Following />,
+            element: <Navigate to="/follow?tab=followings" replace />,
           },
           {
             path: "/follower",
-            element: <Follower />,
+            element: <Navigate to="/follow?tab=followers" replace />,
           },
-          // 다른 사용자의 팔로잉/팔로워 페이지
           {
-            path: "/user/following/:userId",
-            element: <UserFollowing />,
+            path: "/user/following/:userId", 
+            element: <UserFollowRedirect />,
           },
           {
             path: "/user/follower/:userId",
-            element: <UserFollower />,
+            element: <UserFollowerRedirect />,
           },
           {
             path: "photo",

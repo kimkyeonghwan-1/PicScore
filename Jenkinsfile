@@ -10,6 +10,10 @@ pipeline {
         EC2_DEPLOY_PATH = "/home/ubuntu/picscore"
         GCP_DEPLOY_HOST = "rublin322@picscore.net"
         GCP_DEPLOY_PATH = "/home/rublin322/picscore"
+
+        SONAR_HOST = "http://3.36.77.223:9000"
+        SONAR_PROJECT_KEY_BACKEND = "picscore-backend"
+        SONAR_PROJECT_KEY_FRONTEND = "picscore-frontend"
     }
 
     stages {
@@ -47,6 +51,43 @@ pipeline {
                     script {
                         def envfrontprodContent = readFile(ENV_FRONT_PROD_PATH)
                         writeFile file: '.env.front.prod', text: envfrontprodContent
+                    }
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            when {
+                     branch 'develop'
+            }
+            steps {
+                // 백엔드 분석
+                dir('backend') {
+                    withCredentials([string(credentialsId: 'sonarqube-backend-token', variable: 'SONAR_BACK_TOKEN')]) {
+                        sh "chmod +x ./gradlew"
+                        sh """
+                        ./gradlew clean build -x test
+                        ./gradlew sonarqube \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY_BACKEND} \
+                            -Dsonar.host.url=${SONAR_HOST} \
+                            -Dsonar.login=${SONAR_BACK_TOKEN} \
+                        """
+                    }
+                }
+                
+                // 프론트엔드 분석
+                dir('frontend') {
+                    withCredentials([string(credentialsId: 'sonarqube-frontend-token', variable: 'SONAR_FRONT_TOKEN')]) {
+                        sh """
+                        npm install
+                        npx sonar-scanner \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY_FRONTEND} \
+                            -Dsonar.host.url=${SONAR_HOST} \
+                            -Dsonar.login=${SONAR_FRONT_TOKEN} \
+                            -Dsonar.tests='' \
+                            -Dsonar.test.inclusions='' \
+                            -Dsonar.coverage.exclusions='**/*'
+                        """
                     }
                 }
             }

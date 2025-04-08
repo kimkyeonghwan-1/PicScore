@@ -48,7 +48,6 @@ import SuccessResult from "./components/SuccessResult";
 import { LocationState } from "../../types";
 import { TimeAttackResultData } from "../../types";
 import { timeAttackApi } from "../../api/timeAttackApi";
-import ContentNavBar from "../../components/NavBar/ContentNavBar";
 import BottomBar from "../../components/BottomBar/BottomBar";
 
 // 애니메이션 모달 컴포넌트
@@ -67,36 +66,21 @@ const AnimationModal: React.FC<AnimationModalProps> = ({
   xpGained,
   destination,
 }) => {
-  const [countdown, setCountdown] = useState(3);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (isOpen) {
-      // XP 표시 후 카운트다운 시작
-      const countdownInterval = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(countdownInterval);
-            // 카운트다운 완료 후 목적지로 이동
-            setTimeout(() => {
-              onClose();
-              if (destination === "ranking") {
-                navigate("/ranking");
-              } else {
-                navigate("/time-attack");
-              }
-            }, 500);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(countdownInterval);
-    }
-  }, [isOpen, navigate, onClose, destination]);
-
   if (!isOpen) return null;
+
+  const handleGoToRanking = () => {
+    onClose();
+    // 타임어택 랭킹 탭으로 이동
+    console.log("타임어택에서 랭킹보기 클릭, 이동 URL: /ranking?tab=timeAttack");
+    navigate("/ranking?tab=timeAttack", { replace: true });
+  };
+
+  const handleGoToTimeAttack = () => {
+    onClose();
+    navigate("/time-attack");
+  };
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
@@ -108,34 +92,28 @@ const AnimationModal: React.FC<AnimationModalProps> = ({
             <p className="text-5xl font-bold text-white">{score}</p>
           </div>
           <div className="mb-8">
-            <p className="text-xl text-pic-primary">경험치 획득</p>
+            <p className="text-xl text-green-300">경험치 획득</p>
             <div className="flex items-center justify-center">
               <span className="text-5xl font-bold text-white">+{xpGained}</span>
               <span className="text-xl text-white ml-1">XP</span>
             </div>
           </div>
-          {countdown > 0 ? (
-            <p className="text-gray-200">
-              {countdown}초 후{" "}
-              {destination === "ranking" ? "랭킹 페이지" : "타임어택 페이지"}로
-              이동합니다...
-            </p>
-          ) : (
-            <p className="text-gray-200">이동 중...</p>
-          )}
-          <button
-            onClick={() => {
-              onClose();
-              if (destination === "ranking") {
-                navigate("/ranking");
-              } else {
-                navigate("/time-attack");
-              }
-            }}
-            className="mt-4 bg-pic-primary text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-pic-primary/90 transition"
-          >
-            바로 이동하기
-          </button>
+
+          {/* 버튼 그룹 - 두 개의 버튼 */}
+          <div className="grid grid-cols-2 gap-3 mt-6">
+            <button
+              onClick={handleGoToRanking}
+              className="bg-pic-primary text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-pic-primary/90 transition"
+            >
+              랭킹 보기
+            </button>
+            <button
+              onClick={handleGoToTimeAttack}
+              className="bg-white text-gray-800 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-100 transition"
+            >
+              다시 도전하기
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -281,9 +259,13 @@ const TimeAttackResult: React.FC = () => {
     }
   };
 
-  // 랭킹 보기 핸들러
   const handleViewRanking = async () => {
     await saveResultAndCheckAchievement();
+  };
+
+  // 애니메이션 모달에서 랭킹 보기 클릭 시 타임어택 랭킹 탭으로 이동하도록 설정
+  const handleGoToRanking = () => {
+    navigate("/ranking?tab=timeAttack", { replace: true });
   };
 
   // 모달 닫기 핸들러
@@ -344,7 +326,6 @@ const TimeAttackResult: React.FC = () => {
         />
       ) : (
         <>
-          <ContentNavBar content="타임어택 결과" />
           <main className="flex-1 p-3">
             {localResult?.score !== undefined &&
               localResult?.topicAccuracy !== undefined &&

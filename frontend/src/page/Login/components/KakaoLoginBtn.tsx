@@ -1,8 +1,13 @@
 import kakaoLoginBtn from "../../../assets/Login/kakao-login-btn.svg";
 
+const baseURL = import.meta.env.VITE_BASE_URL;
+
 function KakaoLoginBtn() {
+  const locateKakaoLogin = () => {
+    window.location.href = `${baseURL}/api/v1/user/kakao`;
+  };
   return (
-    <button>
+    <button onClick={locateKakaoLogin}>
       <img
         src={kakaoLoginBtn}
         alt="Google Login"

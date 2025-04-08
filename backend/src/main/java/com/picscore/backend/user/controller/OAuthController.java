@@ -27,9 +27,14 @@ public class OAuthController {
      * @param response HTTP 응답 객체
      * @throws IOException 리다이렉트 중 발생할 수 있는 입출력 예외
      */
-    @GetMapping("/user")
-    public void redirectToGoogleLogin(HttpServletResponse response) throws IOException {
-        response.sendRedirect("/oauth2/authorization/google");
+    @GetMapping("/user/{type}")
+    public void redirectToGoogleLogin(
+            @PathVariable String type, HttpServletResponse response) throws IOException {
+        if (type.equals("google")) {
+            response.sendRedirect("/oauth2/authorization/google");
+        } else if (type.equals("kakao")) {
+            response.sendRedirect("/oauth2/authorization/kakao");
+        }
     }
 
 

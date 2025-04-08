@@ -7,8 +7,8 @@ import com.picscore.backend.common.jwt.CustomLogoutFilter;
 import com.picscore.backend.common.jwt.JWTFilter;
 import com.picscore.backend.common.jwt.JWTUtil;
 import com.picscore.backend.user.repository.UserRepository;
-import com.picscore.backend.user.service.CustomOAuth2UserService;
 import com.picscore.backend.user.service.OAuthService;
+import com.picscore.backend.common.service.CustomOAuth2UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -105,7 +105,8 @@ public class SecurityConfig {
         // URL 별 접근 권한 설정
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/", "/api/v1/user", "/api/v1/photo", "/api/v1/image/analyze").permitAll()
+                        .requestMatchers("/", "/api/v1/photo", "/api/v1/image/analyze", "/actuator/**").permitAll()
+                        .requestMatchers("/api/v1/user/{type}").permitAll()
                         .requestMatchers("/api/v1/user/photo/{userId}").permitAll()
                         .requestMatchers("/api/v1/photo/{photoId}").permitAll()
                         .anyRequest().authenticated());

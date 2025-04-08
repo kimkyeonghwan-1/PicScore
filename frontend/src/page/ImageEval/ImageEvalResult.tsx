@@ -1,11 +1,8 @@
-import { Share } from "lucide-react";
-import processResult from "../../assets/ImageEval/process-result.svg";
+import processResult from "../../assets/ImageEval/process-result.webp";
 import Button from "../../components/Button";
-import testImage from "../../assets/ImageEval/test-image.jpg";
 import {
   MagnifyingGlassIcon,
   ArrowUpTrayIcon,
-  ShareIcon,
 } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import ImageEvalDetail from "./ImageEvalDetail";
@@ -14,13 +11,14 @@ import Modal from "../../components/Modal";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ImageEvalResponse } from "../../types/evalTypes";
 import { useUploadImage } from "../../hooks/useEvalImage";
+import groupImage from "../../assets/Group 88.png"; // 이미지 import 추가
 
 function ImageEvalResult() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-  const imageUploadMutation = useUploadImage();
+  const { mutate, isPending } = useUploadImage();
   const location = useLocation();
 
   const evalData = location.state?.evalData;
@@ -53,28 +51,44 @@ function ImageEvalResult() {
   };
 
   const handleImagePost = (evalData: ImageEvalResponse) => {
-    if (evalData) {
-      if (isLoggedIn) {
-        imageUploadMutation.mutate(evalData, {
-          onSuccess: (data: any) => {
-            navigate(`/board`);
-          },
-        });
-      } else {
-        setIsModalOpen(true);
-      }
+    if (!evalData) return;
+
+    if (!isLoggedIn) {
+      setIsModalOpen(true);
+      return;
+    }
+
+    if (!isPending) {
+      mutate(evalData, {
+        onSuccess: () => {
+          navigate("/board");
+        },
+      });
     }
   };
-
   return (
     <div className="flex flex-col w-full mb-16 items-center justify-center ">
       <Modal
         description={
-          <>
-            더 자세한 정보는 로그인 후 <br></br> 확인하실 수 있습니다!
-          </>
+          <div className="flex flex-col items-center">
+            {/* 이미지 컨테이너에 애니메이션 및 그림자 효과 추가 */}
+            <div className="overflow-hidden rounded-lg shadow-md mb-6 transform transition-transform duration-500 hover:scale-[1.02]">
+              <img
+                src={groupImage}
+                alt="PICSCORE 기능"
+                className="w-full max-w-[300px] object-cover"
+              />
+            </div>
+
+            {/* 텍스트 스타일 개선 - 한 줄로 표시되도록 너비 확보 */}
+            <div className="text-center w-full px-4">
+              <p className="text-gray-600 text-sm whitespace-nowrap">
+                PICSCORE의 모든 기능을 이용해보세요
+              </p>
+            </div>
+          </div>
         }
-        title="알림"
+        title="PICSCORE 더 알아보기"
         isOpen={isModalOpen}
         onClose={closeModal}
         buttons={[
@@ -84,7 +98,7 @@ function ImageEvalResult() {
             onClick: navigateLogin,
           },
           {
-            label: "취소",
+            label: "다음에 하기",
             textColor: "gray",
             onClick: closeModal,
           },
@@ -98,7 +112,7 @@ function ImageEvalResult() {
         analysisFeedback={analysisText}
       />
 
-      <img src={processResult} alt="결과" className="mb-5  mt-2" />
+      <img src={processResult} alt="결과" className="mb-5  mt-2 w-84" />
       <div
         className="w-[80%]  shadow p-3 rounded flex flex-col items-center"
         style={{ boxShadow: "0px 0px 3px 0px rgba(0, 0, 0, 0.3)" }}
@@ -133,7 +147,9 @@ function ImageEvalResult() {
             width={30}
             height={10}
             onClick={() => {
-              handleImagePost(evalData);
+              if (!isPending) {
+                handleImagePost(evalData);
+              }
             }}
           >
             <ArrowUpTrayIcon width={15} />

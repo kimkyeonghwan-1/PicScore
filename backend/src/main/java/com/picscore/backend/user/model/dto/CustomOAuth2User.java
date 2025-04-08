@@ -58,5 +58,7 @@ public class CustomOAuth2User implements OAuth2User {
     public String getSocialId() {
         return userDto.getSocialId();
     }
+
+    public Boolean getFistUser() { return userDto.getFistUser(); }
 }
 

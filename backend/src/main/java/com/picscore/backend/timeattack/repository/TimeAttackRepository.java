@@ -12,8 +12,6 @@ import java.util.Map;
 
 public interface TimeAttackRepository extends JpaRepository<TimeAttack, Long> {
 
-    List<TimeAttack> findByUserId(Long userId);
-
     @Query("SELECT " +
             "AVG(t.score) as avgScore " +
             "FROM TimeAttack t " +
@@ -23,28 +21,34 @@ public interface TimeAttackRepository extends JpaRepository<TimeAttack, Long> {
     @Query(value = """
             SELECT t FROM TimeAttack t
             WHERE t.score = (
-                SELECT MAX(t2.score) FROM TimeAttack t2 WHERE t2.user = t.user
+                SELECT MAX(t2.score) FROM TimeAttack t2 WHERE t2.user = t.user AND t2.activityWeek = :activityWeek
             )
             AND t.createdAt = (
-                SELECT MAX(t3.createdAt) FROM TimeAttack t3 WHERE t3.user = t.user AND t3.score = t.score
+                SELECT MAX(t3.createdAt) FROM TimeAttack t3 WHERE t3.user = t.user AND t3.score = t.score AND t3.activityWeek = :activityWeek
             )
+            AND t.activityWeek = :activityWeek
             ORDER BY t.score DESC, t.createdAt DESC
         """,
-            countQuery = "SELECT COUNT(DISTINCT t.user) FROM TimeAttack t")
-    Page<TimeAttack> findHighestScoresPerUser(Pageable pageable);
+            countQuery = "SELECT COUNT(DISTINCT t.user) FROM TimeAttack t WHERE t.activityWeek = :activityWeek")
+    Page<TimeAttack> findHighestScoresPerUser(@Param("activityWeek") String activityWeek, Pageable pageable);
 
     @Query(value = """
         SELECT t FROM TimeAttack t
         WHERE t.score = (
-            SELECT MAX(t2.score) FROM TimeAttack t2 WHERE t2.user = t.user
+            SELECT MAX(t2.score) FROM TimeAttack t2 WHERE t2.user = t.user AND t2.activityWeek = :activityWeek
         )
         AND t.createdAt = (
-            SELECT MAX(t3.createdAt) FROM TimeAttack t3 WHERE t3.user = t.user AND t3.score = t.score
+            SELECT MAX(t3.createdAt) FROM TimeAttack t3 WHERE t3.user = t.user AND t3.score = t.score AND t3.activityWeek = :activityWeek
         )
+        AND t.activityWeek = :activityWeek
         ORDER BY t.score DESC, t.createdAt DESC
     """)
-    List<TimeAttack> findHighestScoresAllUser();
+    List<TimeAttack> findHighestScoresAllUser(@Param("activityWeek") String activityWeek);
 
+    int countByUserId(Long userId);
 
+    Boolean existsByUserIdAndRanking(Long userId, int ranking);
+
+    Boolean existsByUserIdAndScoreGreaterThanEqual(Long userId, float score);
 
 }

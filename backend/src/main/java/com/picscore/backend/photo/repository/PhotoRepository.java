@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public interface PhotoRepository extends JpaRepository<Photo, Long> {
@@ -34,11 +35,27 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
             countQuery = "SELECT COUNT(p) FROM Photo p WHERE p.isPublic = true AND p.photoType = 'article'")
     Page<Photo> findAllWithPublic(Pageable pageable);
 
+    @Query(
+            value = """
+        SELECT p FROM Photo p
+        LEFT JOIN PhotoLike pl ON pl.photo.id = p.id
+        WHERE p.isPublic = true
+        GROUP BY p
+        ORDER BY COUNT(pl) DESC
+    """,
+            countQuery = """
+        SELECT COUNT(DISTINCT p) FROM Photo p
+        WHERE p.isPublic = true AND p.photoType = 'article'
+    """
+    )
+    Page<Photo> findAllOrderByLikeCount(Pageable pageable);
+
 
     @Modifying
     @Transactional
-    @Query("UPDATE Photo p SET p.isPublic = NOT p.isPublic WHERE p.id = :id")
+    @Query("UPDATE Photo p SET p.isPublic = CASE WHEN p.isPublic = true THEN false ELSE true END WHERE p.id = :id")
     void togglePublic(@Param("id") Long id);
+
 
     @Query("SELECT p, COUNT(pl) " +
             "FROM Photo p " +
@@ -47,4 +64,30 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
             "GROUP BY p.id " +
             "ORDER BY COUNT(pl) DESC, p.createdAt DESC") // ← 동점시 최신순
     List<Object[]> findTop5PhotosWithLikeCount(Pageable pageable);
+
+    // 랜덤하게 is_public=true인 사진 4장 가져오기 (score 값이 중복되지 않도록)
+    @Query(value = "SELECT p.photo_id, p.score, p.image_url FROM photo p " +
+            "WHERE p.is_public = 1 AND p.photo_type = 'article' " +
+            "AND p.photo_id IN ( " +
+            "    SELECT MIN(photo_id) FROM photo " +
+            "    WHERE is_public = 1 AND photo_type = 'article' " +
+            "    GROUP BY score " +
+            ") " +
+            "ORDER BY RAND() LIMIT 4", nativeQuery = true)
+    List<Object[]> getRandomPublicPhotos();
+
+    int countByUserId(Long userId);
+
+    Boolean existsByUserIdAndScoreGreaterThanEqual(Long userId, Float score);
+
+    List<Photo> findByUserId(Long userId);
+
+    @Query("SELECT p.id FROM Photo p WHERE p.user.id = :userId")
+    List<Long> findPhotoIdsByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT " +
+            "AVG(p.score) as avgScore " +
+            "FROM Photo p " +
+            "WHERE p.user.id = :userId")
+    Map<String, Object> calculateStats(@Param("userId") Long userId);
 }

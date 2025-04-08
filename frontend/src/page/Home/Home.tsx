@@ -21,6 +21,7 @@ function Home() {
   const [showChickenModal, setShowChickenModal] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [message, setMessage] = useState("");
+  const [showGameModal, setShowGameModal] = useState(false); // 게임 선택 모달 상태
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
   const setUserId = useAuthStore((state) => state.setUserId);
@@ -173,18 +174,18 @@ function Home() {
 
   return (
     <>
-      <div className="flex flex-col w-full items-center justify-center">
+      <div className="flex flex-col w-full items-center justify-center pt-6 px-3">
         <HomeNavBar />
 
         {/* 프로필 이미지 섹션 */}
         <Link
           to="/mypage"
-          className="flex flex-col items-center mb-10 mt-4 border-2 border-gray-300 rounded-3xl shadow-lg p-5 bg-white w-[90%]"
+          className="flex flex-col items-center mb-3 mt-2 border-2 border-gray-300 rounded-3xl shadow-lg p-4 bg-white w-[90%]"
           cursor-pointer
         >
-          <div className="flex flex-row items-center w-full px-5 gap-5">
+          <div className="flex flex-row items-center w-full px-4 gap-4">
             {/* 프로필 이미지 */}
-            <div className="w-[100px] h-[100px] rounded-full overflow-hidden border-4 border-white">
+            <div className="w-[80px] h-[80px] rounded-full overflow-hidden border-4 border-white">
               <img
                 src={
                   profileData?.data?.profileImage ||
@@ -204,11 +205,11 @@ function Home() {
           </div>
 
           {/* 레벨과 레벨 바 */}
-          <div className="w-[200px] text-center flex items-center mt-4">
+          <div className="w-[200px] text-center flex items-center mt-3 mb-1">
             <span className="font-bold text-gray-800 mr-2">
               LV.{profileData?.data?.level || userData?.data?.level || 0}
             </span>
-            <div className="bg-gray-200 h-2.5 rounded-full flex-1">
+            <div className="bg-gray-200 h-3 rounded-full flex-1">
               <div
                 className="h-full bg-pic-primary rounded-full"
                 style={{
@@ -220,34 +221,35 @@ function Home() {
         </Link>
         {/* 기존 사진 분석 버튼 제거 */}
         {/* 메뉴 그리드 섹션 */}
-        <div className="grid grid-cols-2 gap-5 w-full p-4 max-w-[400px]">
-          {/* 타임어택 */}
-          <Link to="/time-attack">
-            <div className="bg-white rounded-xl p-5 flex flex-col items-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
-              <div className="absolute inset-0 bg-white rounded-xl shadow-xl"></div>
-              <div className="relative mb-2 z-10">
-                <div className="absolute -inset-[0.625rem] rounded-full bg-pic-primary opacity-40 blur-sm -z-10 transition-opacity duration-300 group-hover:opacity-60"></div>
-                <div className="w-20 h-20 rounded-full bg-pic-primary flex items-center justify-center shadow-sm relative transition-transform duration-300 hover:scale-105">
-                  <img src={time} alt="시계 아이콘" className="w-10 h-10" />
-                </div>
+        <div className="grid grid-cols-2 gap-3 w-full p-2 max-w-[380px]">
+          {/* ACTIVITY 버튼 (이전 타임어택) */}
+          <div
+            onClick={() => setShowGameModal(true)}
+            className="bg-white rounded-xl p-3 flex flex-col items-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer"
+          >
+            <div className="absolute inset-0 bg-white rounded-xl shadow-xl"></div>
+            <div className="relative mb-2 z-10">
+              <div className="absolute -inset-[0.5rem] rounded-full bg-pic-primary opacity-40 blur-sm -z-10 transition-opacity duration-300 group-hover:opacity-60"></div>
+              <div className="w-16 h-16 rounded-full bg-pic-primary flex items-center justify-center shadow-sm relative transition-transform duration-300 hover:scale-105">
+                <img src={time} alt="시계 아이콘" className="w-8 h-8" />
               </div>
-              <span className="font-bold text-gray-700 relative z-10">
-                타임어택
-              </span>
             </div>
-          </Link>
+            <span className="font-bold text-gray-700 text-sm relative z-10">
+              ACTIVITY
+            </span>
+          </div>
 
           {/* 사진 분석 */}
           <Link to="/image-upload">
-            <div className="bg-white rounded-xl p-5 flex flex-col items-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
+            <div className="bg-white rounded-xl p-3 flex flex-col items-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
               <div className="absolute inset-0 bg-white rounded-xl shadow-xl"></div>
               <div className="relative mb-2 z-10">
-                <div className="absolute -inset-[0.625rem] rounded-full bg-pic-primary opacity-40 blur-sm -z-10 transition-opacity duration-300 group-hover:opacity-60"></div>
-                <div className="w-20 h-20 rounded-full bg-pic-primary flex items-center justify-center shadow-sm relative transition-transform duration-300 hover:scale-105">
-                  <img src={camera} alt="사진기 아이콘" className="w-10 h-10" />
+                <div className="absolute -inset-[0.5rem] rounded-full bg-pic-primary opacity-40 blur-sm -z-10 transition-opacity duration-300 group-hover:opacity-60"></div>
+                <div className="w-16 h-16 rounded-full bg-pic-primary flex items-center justify-center shadow-sm relative transition-transform duration-300 hover:scale-105">
+                  <img src={camera} alt="사진기 아이콘" className="w-8 h-8" />
                 </div>
               </div>
-              <span className="font-bold text-gray-700 relative z-10">
+              <span className="font-bold text-gray-700 text-sm relative z-10">
                 사진 분석
               </span>
             </div>
@@ -255,15 +257,15 @@ function Home() {
 
           {/* 게시글 */}
           <Link to="/board">
-            <div className="bg-white rounded-xl p-5 flex flex-col items-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
+            <div className="bg-white rounded-xl p-3 flex flex-col items-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
               <div className="absolute inset-0 bg-white rounded-xl shadow-xl"></div>
               <div className="relative mb-2 z-10">
                 <div className="absolute -inset-[0.625rem] rounded-full bg-pic-primary opacity-40 blur-sm -z-10 transition-opacity duration-300 group-hover:opacity-60"></div>
-                <div className="w-20 h-20 rounded-full bg-pic-primary flex items-center justify-center shadow-sm relative transition-transform duration-300 hover:scale-105">
-                  <img src={board} alt="게시판 아이콘" className="w-10 h-10" />
+                <div className="w-16 h-16 rounded-full bg-pic-primary flex items-center justify-center shadow-sm relative transition-transform duration-300 hover:scale-105">
+                  <img src={board} alt="게시판 아이콘" className="w-8 h-8" />
                 </div>
               </div>
-              <span className="font-bold text-gray-700 relative z-10">
+              <span className="font-bold text-gray-700 text-sm relative z-10">
                 게시글
               </span>
             </div>
@@ -271,49 +273,30 @@ function Home() {
 
           {/* 랭킹 */}
           <Link to="/ranking">
-            <div className="bg-white rounded-xl p-5 flex flex-col items-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
+            <div className="bg-white rounded-xl p-3 flex flex-col items-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
               <div className="absolute inset-0 bg-white rounded-xl shadow-xl"></div>
               <div className="relative mb-2 z-10">
                 <div className="absolute -inset-[0.625rem] rounded-full bg-pic-primary opacity-40 blur-sm -z-10 transition-opacity duration-300 group-hover:opacity-60"></div>
-                <div className="w-20 h-20 rounded-full bg-pic-primary flex items-center justify-center shadow-sm relative transition-transform duration-300 hover:scale-105">
-                  <img src={ranking} alt="차트 아이콘" className="w-10 h-10" />
+                <div className="w-16 h-16 rounded-full bg-pic-primary flex items-center justify-center shadow-sm relative transition-transform duration-300 hover:scale-105">
+                  <img src={ranking} alt="차트 아이콘" className="w-8 h-8" />
                 </div>
               </div>
-              <span className="font-bold text-gray-700 relative z-10">
+              <span className="font-bold text-gray-700 text-sm relative z-10">
                 랭킹
               </span>
             </div>
           </Link>
-
-          {/* 아레나
-          <Link to="/arena">
-            <div className="bg-white rounded-xl p-5 flex flex-col items-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
-              <div className="absolute inset-0 bg-white rounded-xl shadow-xl"></div>
-              <div className="relative mb-2 z-10">
-                <div className="absolute -inset-[0.625rem] rounded-full bg-pic-primary opacity-40 blur-sm -z-10 transition-opacity duration-300 group-hover:opacity-60"></div>
-                <div className="w-20 h-20 rounded-full bg-pic-primary flex items-center justify-center shadow-sm relative transition-transform duration-300 hover:scale-105">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                  </svg>
-                </div>
-              </div>
-              <span className="font-bold text-gray-700 relative z-10">
-                아레나
-              </span>
-            </div>
-          </Link> */}
         </div>
 
         {/* 치킨받기 가로로 긴 버튼 */}
-        <div className="w-full max-w-[400px] px-4 mb-8 mt-2">
+        <div className="w-full max-w-[380px] px-3 mb-3 mt-2">
           <div
-            className="bg-white rounded-xl p-4 flex items-center justify-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer w-full"
+            className="bg-white rounded-xl p-3 flex items-center justify-center shadow-lg relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer w-full"
             onClick={() => setShowChickenModal(true)}
           >
             <div className="absolute inset-0 bg-white rounded-xl shadow-xl"></div>
-            <div className="relative flex items-center z-10">
-              <span className="text-2xl mr-3">🍗</span>
-              <span className="font-bold text-gray-700 text-lg">치킨받기</span>
+            <div className="relative flex items-center">
+              <span className="text-2xl mr-3">🐣</span>
             </div>
           </div>
         </div>
@@ -322,18 +305,18 @@ function Home() {
       {/* 치킨받기 모달 */}
       {showChickenModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-xl shadow-lg w-[90%] max-w-md">
-            <h2 className="text-2xl font-bold mb-4 text-center text-pic-primary">
+          <div className="bg-white p-4 rounded-xl shadow-lg w-[85%] max-w-md">
+            <h2 className="text-xl font-bold mb-3 text-center text-pic-primary">
               피드백 보내기
             </h2>
 
             <form onSubmit={handleChickenSubmit}>
               {/* 전화번호 입력 필드 */}
               <div className="mb-4">
-                <label className="block text-gray-700 mb-2">전화번호</label>
+                <label className="block text-gray-700 mb-1 text-sm">전화번호</label>
                 <input
                   type="tel"
-                  className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pic-primary"
+                  className="w-full border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-pic-primary"
                   placeholder="01012345678"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
@@ -347,15 +330,14 @@ function Home() {
               <div className="mb-6">
                 <label className="block text-gray-700 mb-2">메시지</label>
                 <textarea
-                  className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pic-primary h-32"
+                  className="w-full border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-pic-primary h-24"
                   placeholder="피드백을 자유롭게 적어주세요."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   required
                 />
                 <p className="text-sm text-pic-primary font-bold mt-2 border-t border-b border-pic-primary py-2 px-1 text-center">
-                  양질의 피드백을 보내주시면 추첨을 통해 맛있는 치킨 🍗을
-                  보내드립니다!
+                  함께 성장하는 PICSCORE! 불편한 점이 있다면 피드백 부탁드려요!
                 </p>
               </div>
 
@@ -363,7 +345,7 @@ function Home() {
               <div className="flex justify-end space-x-4">
                 <button
                   type="button"
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                  className="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded-md hover:bg-gray-300"
                   onClick={() => setShowChickenModal(false)}
                   disabled={chickenMutation.isPending}
                 >
@@ -371,7 +353,7 @@ function Home() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-pic-primary text-white rounded-md hover:bg-opacity-90 flex items-center"
+                  className="px-3 py-1 bg-pic-primary text-white text-sm rounded-md hover:bg-opacity-90 flex items-center"
                   disabled={chickenMutation.isPending}
                 >
                   {chickenMutation.isPending ? (
@@ -385,6 +367,63 @@ function Home() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 게임 선택 모달 */}
+      {showGameModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-xl shadow-lg w-[85%] max-w-md">
+            <h2 className="text-xl font-bold mb-3 text-center text-pic-primary">
+              게임 선택
+            </h2>
+
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {/* 타임어택 버튼 */}
+              <div
+                className="bg-white border-2 border-pic-primary rounded-xl p-2 flex flex-col items-center justify-center shadow-md hover:shadow-lg transition-all cursor-pointer"
+                onClick={() => {
+                  setShowGameModal(false);
+                  navigate("/time-attack");
+                }}
+              >
+                <div className="w-14 h-14 rounded-full bg-pic-primary/100 flex items-center justify-center mb-2">
+                  <img src={time} alt="타임어택" className="w-9 h-9" />
+                </div>
+                <span className="font-bold text-gray-700 text-sm">타임어택</span>
+                <p className="text-sm text-gray-500 text-center mt-1">
+                  빠르게 찍어 올리기기
+                </p>
+              </div>
+
+              {/* 아레나 버튼 */}
+              <div
+                className="bg-white border-2 border-pic-primary rounded-xl p-2 flex flex-col items-center justify-center shadow-md hover:shadow-lg transition-all cursor-pointer"
+                onClick={() => {
+                  setShowGameModal(false);
+                  navigate("/arena");
+                }}
+              >
+                <div className="w-14 h-14 rounded-full bg-pic-primary/100 flex items-center justify-center mb-2">
+                  <img src={ranking} alt="아레나" className="w-9 h-9" />
+                </div>
+                <span className="font-bold text-gray-700 text-sm">아레나</span>
+                <p className="text-sm text-gray-500 text-center mt-1">
+                  사진 점수 맞추기
+                </p>
+              </div>
+            </div>
+
+            {/* 닫기 버튼 */}
+            <div className="flex justify-center">
+              <button
+                className="px-4 py-1 bg-gray-200 text-gray-700 text-sm rounded-md hover:bg-gray-300 transition-colors"
+                onClick={() => setShowGameModal(false)}
+              >
+                닫기
+              </button>
+            </div>
           </div>
         </div>
       )}

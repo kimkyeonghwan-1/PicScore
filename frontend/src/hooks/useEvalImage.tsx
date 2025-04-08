@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { evalApi } from "../api/evalApi";
 import { data } from "react-router-dom";
 import { ImageEvalResponse } from "../types/evalTypes";
@@ -33,6 +33,8 @@ export const useEvalImage = (tempImageUrl: string) => {
 };
 
 export const useUploadImage = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationKey: ["image-upload"],
     mutationFn: async (evalResult: ImageEvalResponse) => {
@@ -43,6 +45,7 @@ export const useUploadImage = () => {
     },
     onSuccess: (data) => {
       console.log("업로드에 성공했습니다", data);
+      queryClient.invalidateQueries({ queryKey: ["photos"] });
     },
     onError: (error) => {
       console.log("업로드 실패", error);

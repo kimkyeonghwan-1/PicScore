@@ -157,12 +157,25 @@ const TimeAttack: React.FC = () => {
 
   // TimeAttack 게임 시작 시 Zustand 상태 업데이트
   useEffect(() => {
+    // 현재 단계에 따라 URL 과매개변수 설정
+    const newUrl = new URL(window.location.href);
+    
+    // 이전 값 삭제 후 현재 단계로 설정
+    newUrl.searchParams.delete('step');
+    newUrl.searchParams.set('step', step.toString());
+    
+    // URL 업데이트 (새로고침 없이)
+    window.history.replaceState({step}, '', newUrl.toString());
+    
+    // Zustand 상태 업데이트
     setGameState({
       currentStep: step,
       timeLeft,
       isTimerActive,
       challengeTopic,
     });
+    
+    console.log(`타임어택 단계 변경: ${step}, URL: ${newUrl.toString()}`);
   }, [step, timeLeft, isTimerActive, challengeTopic, setGameState]);
 
   const handleStartGame = (): void => {
@@ -287,7 +300,8 @@ const TimeAttack: React.FC = () => {
 
       // 연관도 및 점수 설정 (API 응답에서 받아옴)
       const topicAccuracy = Math.round(analysisData.confidence * 100);
-      const score = Math.round(analysisData.score * 100); // API에서 반환된 점수를 직접 사용
+      // 소수점 첫째 자리까지 유지하도록 반올림 (100을 곱하고 10으로 나눔)
+      const score = Math.round(analysisData.score * 1000) / 10; // API에서 반환된 점수를 직접 사용
 
       // 분석 결과 Zustand에 저장
       setResult({

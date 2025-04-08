@@ -1,12 +1,17 @@
 import { useEffect, useState } from "react";
 import { useGetPhotos } from "../../hooks/useBoard";
 import { useInView } from "react-intersection-observer";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FadeLoader } from "react-spinners";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import SearchBar from "./components/SearchBar";
+import BoardPhotoGrid from "./components/BoardPhotoGrid";
+import PhotoItem from "./components/PhotoItem";
+import { BoardCategory } from "../../types/boardTypes";
 
 function Board() {
+  const [category, setCategory] = useState<BoardCategory>("latest");
+
   const navigate = useNavigate();
   const {
     data,
@@ -15,10 +20,9 @@ function Board() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useGetPhotos();
+  } = useGetPhotos(category);
   const photos = data?.pages.flatMap((page) => page.photos) || [];
   const totalPage = data?.pages[0].totalPages || 0;
-
   if (error) {
     console.log(error);
     <div>에러 났어요</div>;
@@ -38,35 +42,71 @@ function Board() {
     navigate(`/photo/${photoId}`);
   };
 
+  const initialVisibleImages = 12;
   return (
     <div className="w-full h-screen flex flex-col">
       <SearchBar />
 
-      <div
-        className={`overflow-y-auto flex-1 mb-16 ${
-          isLoading && "pt-16 flex flex-col items-center justify-center"
-        }`}
-      >
-        {isLoading && <FadeLoader color="#a4e857" height={12} radius={8} />}
+      <div className="h-10 flex cursor-pointer">
+        <div
+          className={`flex-1 flex h-full justify-center items-center text-sm font-semibold 
+            ${
+              category === "latest"
+                ? "border-b-2 border-black text-black"
+                : "text-gray-500"
+            }`}
+          onClick={() => setCategory("latest")}
+        >
+          최신순
+        </div>
+        <div
+          className={`flex-1 flex h-full justify-center items-center text-sm font-semibold 
+            ${
+              category === "like"
+                ? "border-b-2 border-black text-black"
+                : "text-gray-500"
+            }`}
+          onClick={() => setCategory("like")}
+        >
+          좋아요
+        </div>
+        <div
+          className={`flex-1 flex h-full justify-center items-center text-sm font-semibold 
+            ${
+              category === "score"
+                ? "border-b-2 border-black text-black"
+                : "text-gray-500"
+            }`}
+          onClick={() => setCategory("score")}
+        >
+          점수순
+        </div>
+      </div>
+      <div className="overflow-y-auto flex-1 mb-16 ">
+        {isLoading && (
+          <div className="grid grid-cols-3 gap-0.5 w-full">
+            {Array.from({ length: 24 }).map((_, i) => (
+              <div
+                key={i}
+                className="aspect-square bg-gray-200 animate-pulse"
+              />
+            ))}
+          </div>
+        )}
         {Array.from({ length: totalPage * 8 }, (_, rowIndex) => (
-          <div key={rowIndex} className="flex w-full ">
+          <div key={rowIndex} className="flex w-full">
             {photos
               .slice(rowIndex * 3, rowIndex * 3 + 3)
-              .map((photo, index) => (
-                <div
-                  key={index}
-                  className={`w-1/3 aspect-square ${
-                    index === 2 ? "mt-0.5" : "mr-0.5 mt-0.5"
-                  }`}
-                  onClick={() => navigatePhotoDetail(photo.id)}
-                >
-                  <img
-                    src={photo.imageUrl}
-                    alt="이미지 입니다."
-                    className="h-full w-full"
+              .map((photo, index) => {
+                return (
+                  <PhotoItem
+                    key={index}
+                    photo={photo}
+                    index={index}
+                    onClick={() => navigatePhotoDetail(photo.id)}
                   />
-                </div>
-              ))}
+                );
+              })}
           </div>
         ))}
         <div ref={ref} className="w-full h-20 flex items-center justify-center">
