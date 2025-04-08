@@ -1,21 +1,13 @@
-import processEval from "../../assets/ImageEval/process-upload.svg";
+import processEval from "../../assets/ImageEval/process-upload.webp";
 import { ArrowUpTrayIcon } from "@heroicons/react/24/solid";
 import { CameraIcon } from "@heroicons/react/24/outline";
 import Button from "../../components/Button";
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import imageCompression from "browser-image-compression";
 
-import { boardApi } from "../../api/boardApi";
-import { evalApi } from "../../api/evalApi";
-import {
-  useEvalImage,
-  usePostTempImage,
-  useUploadImage,
-} from "../../hooks/useEvalImage";
+import { useEvalImage, usePostTempImage } from "../../hooks/useEvalImage";
 import Loading from "../../components/Loading";
-import { ImageEvalResponse } from "../../types/evalTypes";
 
 /**
  * 이미지 압축 함수
@@ -245,8 +237,8 @@ function ImageUpload() {
           </div>
         </div>
       )}
-      <div className="mb-13">
-        <img src={processEval} alt="" />
+      <div className="mb-12">
+        <img src={processEval} className="w-84" alt="" />
       </div>
       <div className="text-center">
         <div className="text-3xl font-bold mb-1">사진을 올려주세요!</div>

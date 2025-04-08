@@ -1,11 +1,8 @@
-import { Share } from "lucide-react";
-import processResult from "../../assets/ImageEval/process-result.svg";
+import processResult from "../../assets/ImageEval/process-result.webp";
 import Button from "../../components/Button";
-import testImage from "../../assets/ImageEval/test-image.jpg";
 import {
   MagnifyingGlassIcon,
   ArrowUpTrayIcon,
-  ShareIcon,
 } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import ImageEvalDetail from "./ImageEvalDetail";
@@ -115,7 +112,7 @@ function ImageEvalResult() {
         analysisFeedback={analysisText}
       />
 
-      <img src={processResult} alt="결과" className="mb-5  mt-2" />
+      <img src={processResult} alt="결과" className="mb-5  mt-2 w-84" />
       <div
         className="w-[80%]  shadow p-3 rounded flex flex-col items-center"
         style={{ boxShadow: "0px 0px 3px 0px rgba(0, 0, 0, 0.3)" }}
