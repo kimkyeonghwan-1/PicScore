@@ -146,7 +146,7 @@ function Home() {
 
   // 프로필 데이터가 로딩되면 한 번만 경험치 계산
   useEffect(() => {
-    if (userData.data.experience) {
+    if (userData) {
       const experience = userData.data.experience;
       const currentLevel = userData.data.level;
 
