@@ -317,14 +317,18 @@ public class UserServiceImpl implements UserService {
         float avgScore = stats.get("avgScore") != null ? ((Double) stats.get("avgScore")).floatValue() : 0f;
 
         // 타임어택 랭크
-        List<TimeAttack> timeAttackList = timeAttackRepository.findHighestScoresAllUser(activityWeek);
-        int timeAttackRank = 0;
-        for (int i = 0; i < timeAttackList.size(); i++) {
-            if (timeAttackList.get(i).getUser().getId().equals(userId)) {
-                timeAttackRank = i + 1; // 등수는 1부터 시작
-                break;
-            }
-        }
+//        List<TimeAttack> timeAttackList = timeAttackRepository.findHighestScoresAllUser(activityWeek);
+//        int timeAttackRank = 0;
+//        for (int i = 0; i < timeAttackList.size(); i++) {
+//            if (timeAttackList.get(i).getUser().getId().equals(userId)) {
+//                timeAttackRank = i + 1; // 등수는 1부터 시작
+//                break;
+//            }
+//        }
+        String weekKey = "time-attack:" + activityWeek + ":score";
+        String userKey = "user:" + userId;
+        Long rank = redisUtil.getUserRank(weekKey, userKey);
+        int timeAttackRank = (rank != null) ? rank.intValue() + 1 : 0;
 
         // 아레나 랭크
         List<Arena> arenaList = arenaRepository.getRankAllUser(activityWeek);
