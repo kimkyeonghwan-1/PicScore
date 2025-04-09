@@ -18,6 +18,7 @@ export interface UserStatsData {
   contestRank: string;
   timeAttackRank: string;
   arenaRank: string;
+  postsCount?: number; // 게시물 수 필드 추가
 }
 
 // 사진 아이템 인터페이스

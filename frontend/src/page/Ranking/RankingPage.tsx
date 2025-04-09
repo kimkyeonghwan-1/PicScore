@@ -5,7 +5,6 @@ import axios from "axios";
 import { useAuthStore } from "../../store/authStore";
 import { timeAttackApi } from "../../api/timeAttackApi";
 import { arenaApi, ArenaRankingUser } from "../../api/arenaApi";
-import ContentNavBar from "../../components/NavBar/ContentNavBar";
 
 // Import medal images
 import goldTrophy from "../../assets/gold.png";
@@ -145,9 +144,9 @@ const RankingPage: React.FC = () => {
           // 백엔드에서 전달한 rank가 페이지별로 올바르지 않을 수 있으므로 클라이언트에서 재계산
           const correctedRankings = apiRankings.map((user, index) => ({
             ...user,
-            rank: ((pageToFetch - 1) * 5) + index + 1, // 페이지에 따른 랭킹 계산
+            rank: (pageToFetch - 1) * 5 + index + 1, // 페이지에 따른 랭킹 계산
           }));
-          
+
           setTimeAttackRankings(correctedRankings);
           setTotalPages(data.totalPage || 1);
 
@@ -221,7 +220,7 @@ const RankingPage: React.FC = () => {
             .sort((a, b) => b.score - a.score)
             .map((user, index) => ({
               ...user,
-              rank: ((pageToFetch - 1) * 5) + index + 1, // 페이지에 따른 랭킹 계산
+              rank: (pageToFetch - 1) * 5 + index + 1, // 페이지에 따른 랭킹 계산
             }));
 
           setArenaRankings(rankedUsers);
@@ -727,17 +726,6 @@ const RankingPage: React.FC = () => {
         >
           타임어택
           {rankingType === "timeAttack" && (
-            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-pic-primary"></div>
-          )}
-        </button>
-        <button
-          className={`flex-1 py-4 text-center font-medium relative ${
-            rankingType === "contest" ? "text-pic-primary" : "text-gray-600"
-          }`}
-          onClick={() => handleRankingTypeChange("contest")}
-        >
-          컨테스트
-          {rankingType === "contest" && (
             <div className="absolute bottom-0 left-0 w-full h-0.5 bg-pic-primary"></div>
           )}
         </button>

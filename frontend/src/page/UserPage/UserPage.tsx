@@ -106,13 +106,6 @@ const UserPage: React.FC<UserPageProps> = ({ userId, apiEndpoint }) => {
 
         // 통계 정보 처리
         const statsData = statsResponse.data.data;
-        setUserStats({
-          averageScore: statsData.scoreAvg,
-          contestRank: "N/A", // 실제 데이터로 교체 필요
-          timeAttackRank: statsData.timeAttackRank.toString(),
-          arenaRank: statsData.arenaRank.toString(),
-        });
-
         // 사진 정보 처리
         const photoItems: PhotoItem[] = photosResponse.data.data.map(
           (photo: any) => ({
@@ -122,6 +115,14 @@ const UserPage: React.FC<UserPageProps> = ({ userId, apiEndpoint }) => {
             isPrivate: activeTab === "hidden", // 비공개 탭일 때만 true
           })
         );
+        
+        setUserStats({
+          averageScore: statsData.scoreAvg,
+          contestRank: "N/A", // 실제 데이터로 교체 필요
+          timeAttackRank: statsData.timeAttackRank.toString(),
+          arenaRank: statsData.arenaRank.toString(),
+          postsCount: photoItems.length, // 게시물 수 추가
+        });
 
         console.log("photoItems", photoItems);
         setPhotos(photoItems);
@@ -150,14 +151,7 @@ const UserPage: React.FC<UserPageProps> = ({ userId, apiEndpoint }) => {
 
         // 통계 정보 처리
         const statsData = statsResponse.data.data;
-        setUserStats({
-          averageScore: statsData.scoreAvg,
-          contestRank: "N/A", // 실제 데이터로 교체 필요
-          timeAttackRank: statsData.timeAttackRank.toString(),
-          arenaRank: statsData.arenaRank.toString(),
-        });
-
-        // 사진 정보 처리 - 다른 사용자의 경우 항상 공개 사진
+        // 사진 정보 처리
         const photoItems: PhotoItem[] = photosResponse.data.data.map(
           (photo: any) => ({
             id: photo.id.toString(),
@@ -166,6 +160,14 @@ const UserPage: React.FC<UserPageProps> = ({ userId, apiEndpoint }) => {
             isPrivate: false, // 다른 사용자의 사진은 항상 공개 상태
           })
         );
+        
+        setUserStats({
+          averageScore: statsData.scoreAvg,
+          contestRank: "N/A", // 실제 데이터로 교체 필요
+          timeAttackRank: statsData.timeAttackRank.toString(),
+          arenaRank: statsData.arenaRank.toString(),
+          postsCount: photoItems.length, // 게시물 수 추가
+        });
 
         console.log("other user photoItems", photoItems);
         setPhotos(photoItems);

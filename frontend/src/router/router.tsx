@@ -13,8 +13,6 @@ import { MyPage, UserDetailPage } from "../page/UserPage";
 import { ArchievePage } from "../page/Archieve";
 import { ChangeInfoPage } from "../page/ChangeInfo";
 import Board from "../page/Board/Board";
-import Contest from "../page/Contest/Contest";
-import BestContests from "../page/Contest/BestContests";
 import Login from "../page/Login/Login";
 import TimeAttack from "../page/Timeattack/Timeattack";
 import TimeAttackResult from "../page/Timeattack/TimeAttackResult";
@@ -141,18 +139,10 @@ const router = createBrowserRouter([
             element: <SearchResult />,
           },
           {
-            path: "/contest",
-            element: <Contest />,
-          },
-          {
-            path: "/contest/best",
-            element: <BestContests />,
-          },
-          {
             path: "/login",
             element: <Login />,
           },
-          
+
           // 새로운 통합 팔로우 페이지
           {
             path: "/follow",
@@ -162,7 +152,7 @@ const router = createBrowserRouter([
             path: "/user/follow/:userId",
             element: <Follow />,
           },
-          
+
           // 기존 URL과의 호환성을 위한 리다이렉트
           {
             path: "/following",
@@ -173,7 +163,7 @@ const router = createBrowserRouter([
             element: <Navigate to="/follow?tab=followers" replace />,
           },
           {
-            path: "/user/following/:userId", 
+            path: "/user/following/:userId",
             element: <UserFollowRedirect />,
           },
           {
