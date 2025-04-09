@@ -1,6 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
 import React, { useEffect, useState, useMemo } from "react";
-import profileImage from "../../assets/profile.jpg";
 import contest from "../../assets/contest.png";
 import time from "../../assets/time.png";
 import board from "../../assets/board.png";
@@ -47,20 +46,15 @@ function Home() {
   };
 
   // 기존 useUserData는 유지 (userId 설정 등 필요)
-  const {
-    isLoading: userDataLoading,
-    isError: userDataError,
-    data: userData,
-  } = useUserData();
+  const { isLoading, isError, data: userData } = useUserData();
 
   const chickenMutation = useMutation({
     mutationFn: (data: { phoneNumber: string; message: string }) => {
-      sendUserFeedback(userData.nickName, data.message);
+      sendUserFeedback(userData.data.nickname, data.message);
       return chickenService.requestChicken(data);
     },
     onSuccess: () => {
       // 요청 성공 시 실행할 코드
-
       setShowChickenModal(false);
       setPhoneNumber("");
       setMessage("");
@@ -146,22 +140,21 @@ function Home() {
   useEffect(() => {
     // userId 설정 유지
     if (userData && loginSuccess) {
-      setUserId(userData.data.userId, userData.data.nickName);
+      setUserId(userData.data.userId, userData.data.nickname);
     }
   }, [userData, loginSuccess]);
 
   // 프로필 데이터가 로딩되면 한 번만 경험치 계산
   useEffect(() => {
-    if (userData?.data?.experience || userData?.data?.experience) {
-      const experience =
-        userData?.data?.experience || userData?.data?.experience || 0;
-      const currentLevel = userData?.data?.level || userData?.data?.level || 0;
+    if (userData.data.experience) {
+      const experience = userData.data.experience;
+      const currentLevel = userData.data.level;
 
       // 경험치 퍼센티지 계산
       const percentage = calcExpPercentage(experience, currentLevel);
       setExpPercentage(percentage);
     }
-  }, [userData, userData]);
+  }, [userData]);
 
   // 로딩 및 에러 처리 (프로필 API와 유저 데이터 API 모두 확인)
   // if (userData || userDataLoading) {
@@ -170,7 +163,9 @@ function Home() {
   // if (userData || userDataError) {
   //   return <>에러입니다</>;
   // }
-
+  if (isLoading) {
+    return <></>;
+  }
   return (
     <>
       <div className="flex flex-col w-full items-center justify-center pt-6 px-3">
@@ -186,25 +181,21 @@ function Home() {
             {/* 프로필 이미지 */}
             <div className="w-[80px] h-[80px] rounded-full overflow-hidden border-4 border-white">
               <img
-                src={
-                  userData?.data?.profileImage ||
-                  userData?.data?.profileImage ||
-                  profileImage
-                }
+                src={userData.data.profileImage}
                 alt="프로필 이미지"
                 className="w-full h-full object-cover"
               />
             </div>
             {/* 이름 */}
             <h2 className="font-bold text-gray-800 text-2xl">
-              {userData?.data?.nickName || userData?.data?.nickName || "사용자"}
+              {userData.data.nickname}
             </h2>
           </div>
 
           {/* 레벨과 레벨 바 */}
           <div className="w-[200px] text-center flex items-center mt-3 mb-1">
             <span className="font-bold text-gray-800 mr-2">
-              LV.{userData?.data?.level || userData?.data?.level || 0}
+              LV.{userData.data.level || userData.data.level || 0}
             </span>
             <div className="bg-gray-200 h-3 rounded-full flex-1">
               <div
