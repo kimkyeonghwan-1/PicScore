@@ -75,12 +75,12 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.addCookie(createCookie("refresh", refresh));
 
          //인증 성공 후 리다이렉트
-        boolean firstUser = customUserDetails.getFistUser();
-        if (firstUser) {
-            response.sendRedirect(agreementURL);
-        } else {
-            response.sendRedirect(successURL);
-        }
+//        boolean firstUser = customUserDetails.getFistUser();
+//        if (firstUser) {
+//            response.sendRedirect(agreementURL);
+//        } else {
+//            response.sendRedirect(successURL);
+//        }
     }
 
     /**

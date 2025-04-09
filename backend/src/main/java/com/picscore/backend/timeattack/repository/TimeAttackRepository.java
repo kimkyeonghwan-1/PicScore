@@ -51,4 +51,19 @@ public interface TimeAttackRepository extends JpaRepository<TimeAttack, Long> {
 
     Boolean existsByUserIdAndScoreGreaterThanEqual(Long userId, float score);
 
+    @Query("""
+    SELECT t FROM TimeAttack t
+    WHERE t.user.id IN :userIds
+    AND t.activityWeek = :week
+    AND t.score = (
+        SELECT MAX(t2.score) FROM TimeAttack t2
+        WHERE t2.user = t.user AND t2.activityWeek = :week
+    )
+    AND t.createdAt = (
+        SELECT MAX(t3.createdAt) FROM TimeAttack t3
+        WHERE t3.user = t.user AND t3.activityWeek = :week AND t3.score = t.score
+    )
+    """)
+    List<TimeAttack> findBestRecordByUsers(@Param("userIds") List<Long> userIds,
+                                           @Param("week") String week);
 }
