@@ -15,9 +15,9 @@ export interface UserProfileData {
 // 사용자 통계 데이터 인터페이스
 export interface UserStatsData {
   averageScore: number;
-  contestRank: string;
   timeAttackRank: string;
   arenaRank: string;
+  postsCount?: number; // 게시물 수 필드
 }
 
 // 사진 아이템 인터페이스

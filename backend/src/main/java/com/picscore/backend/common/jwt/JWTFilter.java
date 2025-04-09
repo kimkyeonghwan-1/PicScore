@@ -39,8 +39,8 @@ public class JWTFilter extends OncePerRequestFilter {
                 || path.startsWith("/actuator/")
                 || (path.equals("/api/v1/photo") && "POST".equalsIgnoreCase(method))
                 || (path.equals("/api/v1/image/analyze") && "GET".equalsIgnoreCase(method))
-                || (path.matches("/api/v1/user/[^/]+") && "GET".equalsIgnoreCase(method))
-                || (path.matches("/api/v1/user/photo/\\d+") && "GET".equalsIgnoreCase(method))
+                || (path.equals("/api/v1/user/google") && "GET".equalsIgnoreCase(method))
+                || (path.equals("/api/v1/user/kakao") && "GET".equalsIgnoreCase(method))
                 || (path.matches("/api/v1/photo/\\d+") && "GET".equalsIgnoreCase(method));
     }
 

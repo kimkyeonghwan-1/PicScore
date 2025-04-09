@@ -40,9 +40,9 @@ const UserPage: React.FC<UserPageProps> = ({ userId, apiEndpoint }) => {
 
   const [userStats, setUserStats] = useState<UserStatsData>({
     averageScore: 0,
-    contestRank: "0",
     timeAttackRank: "0",
     arenaRank: "0",
+    postsCount: 0,
   });
 
   const [activeTab, setActiveTab] = useState<string>("gallery");
@@ -82,11 +82,16 @@ const UserPage: React.FC<UserPageProps> = ({ userId, apiEndpoint }) => {
         // 내 프로필 데이터 조회
         const profileResponse = await userApi.getMyProfile();
         const statsResponse = await userApi.getMyStatistics();
-        // 내 프로필일 경우 activeTab에 따라 다른 API 호출
+        
+        // 내 프로필일 경우 현재 탭에 따른 사진 가져오기
         const photosResponse = await userApi.getMyPhotos(
-          activeTab !== "hidden" // 'gallery' 또는 'contest' 일때 true, 'hidden' 일때 false
+          activeTab !== "hidden" // 'gallery' 일 경우 true(공개), 'hidden' 일 경우 false(비공개)
         );
-
+        
+        // 출력 용도의 전체 게시물 수를 가져오기 위해 추가 조회
+        const publicPhotosResponse = await userApi.getMyPhotos(true);  // 공개 사진
+        const privatePhotosResponse = await userApi.getMyPhotos(false); // 비공개 사진
+        
         console.log("profileResponse", profileResponse);
         console.log("statsResponse", statsResponse);
         console.log("photosResponse", photosResponse);
@@ -106,13 +111,6 @@ const UserPage: React.FC<UserPageProps> = ({ userId, apiEndpoint }) => {
 
         // 통계 정보 처리
         const statsData = statsResponse.data.data;
-        setUserStats({
-          averageScore: statsData.scoreAvg,
-          contestRank: "N/A", // 실제 데이터로 교체 필요
-          timeAttackRank: statsData.timeAttackRank.toString(),
-          arenaRank: statsData.arenaRank.toString(),
-        });
-
         // 사진 정보 처리
         const photoItems: PhotoItem[] = photosResponse.data.data.map(
           (photo: any) => ({
@@ -122,6 +120,16 @@ const UserPage: React.FC<UserPageProps> = ({ userId, apiEndpoint }) => {
             isPrivate: activeTab === "hidden", // 비공개 탭일 때만 true
           })
         );
+        
+        // 공개 및 비공개 게시물 전체 수 계산
+        const totalPostsCount = publicPhotosResponse.data.data.length + privatePhotosResponse.data.data.length;
+        
+        setUserStats({
+          averageScore: statsData.scoreAvg,
+          timeAttackRank: statsData.timeAttackRank.toString(),
+          arenaRank: statsData.arenaRank.toString(),
+          postsCount: totalPostsCount, // 공개 + 비공개 게시물 수
+        });
 
         console.log("photoItems", photoItems);
         setPhotos(photoItems);
@@ -150,14 +158,7 @@ const UserPage: React.FC<UserPageProps> = ({ userId, apiEndpoint }) => {
 
         // 통계 정보 처리
         const statsData = statsResponse.data.data;
-        setUserStats({
-          averageScore: statsData.scoreAvg,
-          contestRank: "N/A", // 실제 데이터로 교체 필요
-          timeAttackRank: statsData.timeAttackRank.toString(),
-          arenaRank: statsData.arenaRank.toString(),
-        });
-
-        // 사진 정보 처리 - 다른 사용자의 경우 항상 공개 사진
+        // 사진 정보 처리
         const photoItems: PhotoItem[] = photosResponse.data.data.map(
           (photo: any) => ({
             id: photo.id.toString(),
@@ -166,6 +167,13 @@ const UserPage: React.FC<UserPageProps> = ({ userId, apiEndpoint }) => {
             isPrivate: false, // 다른 사용자의 사진은 항상 공개 상태
           })
         );
+        
+        setUserStats({
+          averageScore: statsData.scoreAvg,
+          timeAttackRank: statsData.timeAttackRank.toString(),
+          arenaRank: statsData.arenaRank.toString(),
+          postsCount: photoItems.length, // 게시물 수 추가
+        });
 
         console.log("other user photoItems", photoItems);
         setPhotos(photoItems);
@@ -227,12 +235,10 @@ const UserPage: React.FC<UserPageProps> = ({ userId, apiEndpoint }) => {
       return [
         { id: "gallery", label: "게시글" },
         { id: "hidden", label: "비공개" },
-        { id: "contest", label: "컨테스트" },
       ];
     } else {
       return [
         { id: "gallery", label: "게시글" },
-        { id: "contest", label: "컨테스트" },
       ];
     }
   };
@@ -268,26 +274,6 @@ const UserPage: React.FC<UserPageProps> = ({ userId, apiEndpoint }) => {
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pic-primary"></div>
-          </div>
-        ) : activeTab === "contest" ? (
-          // 컨테스트 탭일 경우 "준비중입니다" 메시지 표시
-          <div className="p-8 text-center my-4">
-            <div className="mb-4">
-              {/* SVG 아이콘 */}
-              <svg /* ... SVG 속성들 ... */ className="mx-auto text-gray-400">
-                {/* ... path 등 ... */}
-
-                <line x1="9" y1="9" x2="15" y2="15"></line>
-                <line x1="15" y1="9" x2="9" y2="15"></line>
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">
-              컨테스트 게시판 준비 중
-            </h3>
-            <p className="text-gray-500">
-              현재 컨테스트 기능을 준비 중입니다.
-              <br />곧 서비스를 이용하실 수 있습니다.
-            </p>
           </div>
         ) : (
           <PhotoGrid

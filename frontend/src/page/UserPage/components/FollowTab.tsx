@@ -7,6 +7,7 @@ import {
   useUserFollowings,
   useUserFollowers,
 } from "../../../hooks/friend";
+import { useAuthStore } from "../../../store";
 
 type TabType = "followers" | "followings";
 
@@ -19,6 +20,7 @@ const FollowTab: React.FC<FollowTabProps> = ({
   userId,
   initialTab = "followers",
 }) => {
+  const myId = useAuthStore((state) => state.userId);
   const [currentTab, setCurrentTab] = useState<TabType>(initialTab);
   const [searchQuery, setSearchQuery] = useState("");
   const [followers, setFollowers] = useState<FollowerUser[]>([]);
@@ -251,7 +253,11 @@ const FollowTab: React.FC<FollowTabProps> = ({
 
   // 사용자 클릭 시 프로필 페이지로 이동
   const handleUserClick = (userId: number) => {
-    navigate(`/user/profile/${userId}`);
+    if (userId === myId) {
+      navigate(`/mypage`);
+    } else {
+      navigate(`/user/profile/${userId}`);
+    }
   };
 
   // 버튼 클릭 시 동작
