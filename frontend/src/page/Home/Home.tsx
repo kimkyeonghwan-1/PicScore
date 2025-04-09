@@ -164,12 +164,12 @@ function Home() {
   }, [userData, userData]);
 
   // 로딩 및 에러 처리 (프로필 API와 유저 데이터 API 모두 확인)
-  if (userData || userDataLoading) {
-    return <>로딩중 입니다</>;
-  }
-  if (userData || userDataError) {
-    return <>에러입니다</>;
-  }
+  // if (userData || userDataLoading) {
+  //   return <>로딩중 입니다</>;
+  // }
+  // if (userData || userDataError) {
+  //   return <>에러입니다</>;
+  // }
 
   return (
     <>
