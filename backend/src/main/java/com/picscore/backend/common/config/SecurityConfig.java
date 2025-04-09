@@ -106,8 +106,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/", "/api/v1/photo", "/api/v1/image/analyze", "/actuator/**").permitAll()
-                        .requestMatchers("/api/v1/user/{type}").permitAll()
-                        .requestMatchers("/api/v1/user/photo/{userId}").permitAll()
+                        .requestMatchers("/api/v1/user/google", "/api/v1/user/kakao").permitAll()
                         .requestMatchers("/api/v1/photo/{photoId}").permitAll()
                         .anyRequest().authenticated());
 
