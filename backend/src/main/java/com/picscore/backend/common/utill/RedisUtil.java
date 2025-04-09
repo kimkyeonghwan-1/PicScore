@@ -81,8 +81,8 @@ public class RedisUtil {
         // 기존 점수보다 클 때만 갱신
         if (newScore > currentScore) {
             long now = System.currentTimeMillis();
-            double finalScore = newScore * 1e13 + now;
-
+//            double finalScore = newScore * 1e13 + now;
+            double finalScore = -(newScore * 1e13 + now); // ✅ 음수로 저장!
             redisTemplate.opsForZSet().add(key, userId, finalScore);
 
             // key가 처음 생긴 경우에만 TTL 설정
@@ -93,7 +93,8 @@ public class RedisUtil {
     }
 
     public Set<String> getTopRankers(String key, int start, int end) {
-        Set<Object> rawSet = redisTemplate.opsForZSet().reverseRange(key, start, end);
+//        Set<Object> rawSet = redisTemplate.opsForZSet().reverseRange(key, start, end);
+        Set<Object> rawSet = redisTemplate.opsForZSet().range(key, start, end); // ✅ reverseRange → range
         return rawSet.stream()
                 .map(Object::toString)
                 .collect(Collectors.toSet());
@@ -109,7 +110,8 @@ public class RedisUtil {
 
     // 점수 추출 (score = 점수 * 1e13 + timestamp 이기 때문에 원래 점수만 추출)
     private double extractOriginalScore(double rawScore) {
-        return Math.floor(rawScore / 1e13);
+//        return Math.floor(rawScore / 1e13);
+        return Math.floor(-rawScore / 1e13); // ✅ 음수 기준 반대로
     }
 }
 
