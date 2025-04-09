@@ -30,11 +30,11 @@ function Home() {
   const params = new URLSearchParams(window.location.search);
   const loginSuccess = params.get("loginSuccess");
 
-  const {
-    isLoading: profileLoading,
-    isError: profileError,
-    data: profileData,
-  } = useMyProfile();
+  // const {
+  //   isLoading: profileLoading,
+  //   isError: profileError,
+  //   data: profileData,
+  // } = useMyProfile();
 
   const useUserData = () => {
     return useQuery({
@@ -152,23 +152,22 @@ function Home() {
 
   // 프로필 데이터가 로딩되면 한 번만 경험치 계산
   useEffect(() => {
-    if (profileData?.data?.experience || userData?.data?.experience) {
+    if (userData?.data?.experience || userData?.data?.experience) {
       const experience =
-        profileData?.data?.experience || userData?.data?.experience || 0;
-      const currentLevel =
-        profileData?.data?.level || userData?.data?.level || 0;
+        userData?.data?.experience || userData?.data?.experience || 0;
+      const currentLevel = userData?.data?.level || userData?.data?.level || 0;
 
       // 경험치 퍼센티지 계산
       const percentage = calcExpPercentage(experience, currentLevel);
       setExpPercentage(percentage);
     }
-  }, [profileData, userData]);
+  }, [userData, userData]);
 
   // 로딩 및 에러 처리 (프로필 API와 유저 데이터 API 모두 확인)
-  if (profileLoading || userDataLoading) {
+  if (userData || userDataLoading) {
     return <>로딩중 입니다</>;
   }
-  if (profileError || userDataError) {
+  if (userData || userDataError) {
     return <>에러입니다</>;
   }
 
@@ -188,7 +187,7 @@ function Home() {
             <div className="w-[80px] h-[80px] rounded-full overflow-hidden border-4 border-white">
               <img
                 src={
-                  profileData?.data?.profileImage ||
+                  userData?.data?.profileImage ||
                   userData?.data?.profileImage ||
                   profileImage
                 }
@@ -198,16 +197,14 @@ function Home() {
             </div>
             {/* 이름 */}
             <h2 className="font-bold text-gray-800 text-2xl">
-              {profileData?.data?.nickName ||
-                userData?.data?.nickName ||
-                "사용자"}
+              {userData?.data?.nickName || userData?.data?.nickName || "사용자"}
             </h2>
           </div>
 
           {/* 레벨과 레벨 바 */}
           <div className="w-[200px] text-center flex items-center mt-3 mb-1">
             <span className="font-bold text-gray-800 mr-2">
-              LV.{profileData?.data?.level || userData?.data?.level || 0}
+              LV.{userData?.data?.level || userData?.data?.level || 0}
             </span>
             <div className="bg-gray-200 h-3 rounded-full flex-1">
               <div
