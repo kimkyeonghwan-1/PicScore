@@ -10,6 +10,7 @@ public class LoginInfoResponse {
     private Long userId;
     private String nickname;
     private String message;
+    private String profileImage;
     private int level;
     private int experience;
 }

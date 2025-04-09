@@ -117,7 +117,7 @@ public class UserServiceImpl implements UserService {
         // 유저 정보 + 토큰 반환
         return new LoginInfoResponse(
                 user.getId(), user.getNickName(), user.getMessage(),
-                user.getLevel(), user.getExperience());
+                user.getProfileImage(), user.getLevel(), user.getExperience());
     }
 
 
