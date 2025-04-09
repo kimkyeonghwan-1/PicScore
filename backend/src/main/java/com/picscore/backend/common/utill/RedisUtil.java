@@ -6,6 +6,7 @@ import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -75,13 +76,14 @@ public class RedisUtil {
     public void addScoreToZSetWithTTL(String key, String userId, double newScore, long days) {
         // 현재 저장된 score 가져오기
         Double currentRawScore = redisTemplate.opsForZSet().score(key, userId);
+        double currentScore = currentRawScore != null ? currentRawScore : -1;
 
-        double currentScore = currentRawScore != null ? extractOriginalScore(currentRawScore) : -1;
+        long now = System.currentTimeMillis();
+        double finalScore = newScore * 1e13 + now;
 
         // 기존 점수보다 클 때만 갱신
-        if (newScore > currentScore) {
-            long now = System.currentTimeMillis();
-            double finalScore = newScore * 1e13 - now;
+        if (finalScore > currentScore) {
+
             redisTemplate.opsForZSet().add(key, userId, finalScore);
 
             // key가 처음 생긴 경우에만 TTL 설정
@@ -92,12 +94,14 @@ public class RedisUtil {
     }
 
 
-    public Set<String> getTopRankers(String key, int start, int end) {
-        Set<Object> rawSet = redisTemplate.opsForZSet().reverseRange(key, start, end);
-        return rawSet.stream()
-                .map(Object::toString)
-                .collect(Collectors.toCollection(LinkedHashSet::new)); // ✅ 순서 보장
+    public List<String> getTopRankersInOrder(String key, int start, int end) {
+        Set<ZSetOperations.TypedTuple<Object>> tuples = redisTemplate.opsForZSet()
+                .reverseRangeWithScores(key, start, end);
+        return tuples.stream()
+                .map(t -> t.getValue().toString())
+                .collect(Collectors.toList()); // List로 변환 → 순서 보장
     }
+
 
     public Long getUserRank(String key, String userId) {
         return redisTemplate.opsForZSet().reverseRank(key, userId);

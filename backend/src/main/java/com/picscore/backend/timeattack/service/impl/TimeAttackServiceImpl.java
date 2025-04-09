@@ -15,10 +15,12 @@ import com.picscore.backend.timeattack.service.TimeAttackService;
 import com.picscore.backend.user.model.entity.User;
 import com.picscore.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +52,8 @@ public class TimeAttackServiceImpl implements TimeAttackService {
 
     private final RestTemplate restTemplate;
     private final S3Client s3Client;
+
+    private final RedisTemplate<String, Object> redisTemplate;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -86,16 +90,16 @@ public class TimeAttackServiceImpl implements TimeAttackService {
         int end = start + pageSize - 1;
 
         // 1. Redis에서 랭킹 상위 유저 아이디 추출
-        Set<String> userKeys = redisUtil.getTopRankers(weekKey, start, end);  // ex: "user:1", "user:3" ...
+        List<String> userKeys = redisUtil.getTopRankersInOrder(weekKey, start, end);
         if (userKeys == null || userKeys.isEmpty()) {
             throw new CustomException(HttpStatus.NOT_FOUND, "해당 페이지에 랭킹 정보가 없습니다");
         }
-        System.out.println("userKeys = " + userKeys);
+
         // 2. userId(Long) 리스트로 변환
         List<Long> userIds = userKeys.stream()
                 .map(key -> Long.parseLong(key.replace("user:", "")))
                 .toList();
-        System.out.println("userIds = " + userIds);
+
         // 3. 유저들의 최고 기록 DB에서 조회
         List<TimeAttack> timeAttacks = timeAttackRepository.findBestRecordByUsers(userIds, activityWeek);
 
