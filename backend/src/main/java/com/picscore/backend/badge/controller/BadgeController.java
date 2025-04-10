@@ -41,6 +41,7 @@ public class BadgeController {
         return ResponseEntity.ok(BaseResponse.success("전체 뱃지 목록 조회", getBadgeResponseList));
     }
 
+
     /**
      * 사용자의 업적(뱃지) 달성 여부를 확인하는 API
      *
@@ -75,7 +76,6 @@ public class BadgeController {
         // 업적 달성 상태를 포함한 응답 반환
         return ResponseEntity.ok(BaseResponse.success("업적 완료 확인", response));
     }
-
 
 
     /**

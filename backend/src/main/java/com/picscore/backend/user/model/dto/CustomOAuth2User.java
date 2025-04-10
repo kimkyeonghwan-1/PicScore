@@ -15,6 +15,7 @@ public class CustomOAuth2User implements OAuth2User {
 
     private final UserDto userDto;
 
+
     /**
      * OAuth2User의 속성을 반환합니다.
      * 이 구현에서는 사용하지 않으므로 null을 반환합니다.
@@ -25,6 +26,7 @@ public class CustomOAuth2User implements OAuth2User {
     public Map<String, Object> getAttributes() {
         return null;
     }
+
 
     /**
      * 사용자의 권한 목록을 반환합니다.
@@ -45,6 +47,7 @@ public class CustomOAuth2User implements OAuth2User {
         return collection;
     }
 
+
     /**
      * 사용자의 이름(여기서는 닉네임)을 반환합니다.
      *
@@ -55,10 +58,22 @@ public class CustomOAuth2User implements OAuth2User {
         return userDto.getNickName();
     }
 
+
+    /**
+     * 사용자의 소셜ID를 반환합니다.
+     *
+     * @return 사용자의 소셜ID
+     */
     public String getSocialId() {
         return userDto.getSocialId();
     }
 
+
+    /**
+     * 첫 사용자인지 여부를 반환합니다.
+     *
+     * @return 첫 사용자 여부
+     */
     public Boolean getFistUser() { return userDto.getFistUser(); }
 }
 

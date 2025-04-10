@@ -9,6 +9,7 @@ import java.util.List;
  */
 public interface HashtagService {
 
+
     /**
      * 사진에 해시태그를 연결하여 저장하는 메서드
      */

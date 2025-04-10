@@ -6,8 +6,20 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+/**
+ * 해시태그 관련 DB 작업을 처리하는 Repository
+ */
 @Repository
 public interface HashtagRepository extends JpaRepository<Hashtag, Long> {
-    Optional<Hashtag> findByName(String name); // 해시태그 이름으로 조회
+
+
+    /**
+     * 해시태그 이름으로 해시태그를 조회합니다.
+     *
+     * @param name 해시태그 이름
+     * @return 해당 이름을 가진 해시태그가 존재하면 Optional로 반환
+     */
+    Optional<Hashtag> findByName(String name);
 }
+
 

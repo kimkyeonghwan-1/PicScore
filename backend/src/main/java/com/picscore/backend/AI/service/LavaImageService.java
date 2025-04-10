@@ -17,15 +17,35 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * 이미지 분석을 위해 LAVA API와 연동하는 서비스 클래스입니다.
+ *
+ * 기능:
+ *     원본 이미지를 리사이징
+ *     리사이징된 이미지를 S3에 업로드
+ *     리사이징된 이미지 URL을 LAVA API에 POST 요청
+ *     응답을 Map으로 변환하여 반환
+ */
 @Service
 @RequiredArgsConstructor
 public class LavaImageService {
+
     private final RestTemplate restTemplate;
     private final S3Client s3Client;
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
     private final OpenAiImageService openAiImageService;
-    public ResponseEntity<BaseResponse<Map<String, Object>>> analyzeImage(String originalImageUrl) throws IOException {
+
+
+    /**
+     * 원본 이미지 URL을 기반으로 이미지를 리사이징하고, LAVA API에 분석 요청을 보냅니다.
+     *
+     * @param originalImageUrl S3 또는 외부 URL의 이미지 경로
+     * @return 분석 결과가 포함된 {@link BaseResponse}
+     * @throws IOException 이미지 리사이징 또는 변환 중 발생하는 예외
+     */
+    public ResponseEntity<BaseResponse<Map<String, Object>>> analyzeImage(
+            String originalImageUrl) throws IOException {
 
         // ✅ 1. 원본 이미지 다운로드 후 리사이징
         byte[] resizedImage = openAiImageService.resizeImage(originalImageUrl, 500, 500);
@@ -68,5 +88,4 @@ public class LavaImageService {
             throw new CustomException(HttpStatus.CONFLICT, e.getMessage());
         }
     }
-
 }

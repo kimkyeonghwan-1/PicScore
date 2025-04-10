@@ -82,7 +82,8 @@ public class BadgeServiceImpl implements BadgeService {
      */
     @Override
     @Transactional
-    public String followOne(Long userId) {
+    public String followOne(
+            Long userId) {
 
         // 1. 유저 조회: 주어진 userId에 해당하는 사용자를 찾음
         User user = userRepository.findById(userId)
@@ -121,7 +122,8 @@ public class BadgeServiceImpl implements BadgeService {
      */
     @Override
     @Transactional
-    public String followTwo(Long userId) {
+    public String followTwo(
+            Long userId) {
 
         // 1. 유저 조회: 주어진 userId에 해당하는 사용자를 찾음
         User user = userRepository.findById(userId)
@@ -160,7 +162,8 @@ public class BadgeServiceImpl implements BadgeService {
      */
     @Override
     @Transactional
-    public String postOne(Long userId) {
+    public String postOne(
+            Long userId) {
 
         // 1. 유저 조회: 주어진 userId에 해당하는 사용자를 찾음
         User user = userRepository.findById(userId)
@@ -199,7 +202,8 @@ public class BadgeServiceImpl implements BadgeService {
      */
     @Override
     @Transactional
-    public String postTwo(Long userId) {
+    public String postTwo(
+            Long userId) {
 
         // 1. 유저 조회: 주어진 userId에 해당하는 사용자를 찾음
         User user = userRepository.findById(userId)
@@ -238,7 +242,8 @@ public class BadgeServiceImpl implements BadgeService {
      */
     @Override
     @Transactional
-    public String timeAttackOne(Long userId) {
+    public String timeAttackOne(
+            Long userId) {
 
         // 1. 유저 조회: 주어진 userId에 해당하는 사용자를 찾음
         User user = userRepository.findById(userId)
@@ -277,7 +282,8 @@ public class BadgeServiceImpl implements BadgeService {
      */
     @Override
     @Transactional
-    public String timeAttackRank(Long userId) {
+    public String timeAttackRank(
+            Long userId) {
 
         // 1. 유저 조회: 주어진 userId에 해당하는 사용자를 찾음
         User user = userRepository.findById(userId)
@@ -316,7 +322,8 @@ public class BadgeServiceImpl implements BadgeService {
      */
     @Override
     @Transactional
-    public String timeAttackScore(Long userId) {
+    public String timeAttackScore(
+            Long userId) {
 
         // 1. 유저 조회: 주어진 userId에 해당하는 사용자를 찾음
         User user = userRepository.findById(userId)
@@ -355,7 +362,8 @@ public class BadgeServiceImpl implements BadgeService {
      */
     @Override
     @Transactional
-    public String photoScore(Long userId) {
+    public String photoScore(
+            Long userId) {
 
         // 1. 유저 조회: 주어진 userId에 해당하는 사용자를 찾음
         User user = userRepository.findById(userId)
@@ -394,7 +402,8 @@ public class BadgeServiceImpl implements BadgeService {
      */
     @Override
     @Transactional
-    public String photoLike(Long userId) {
+    public String photoLike(
+            Long userId) {
 
         // 1. 유저 조회: 주어진 userId에 해당하는 사용자를 찾음
         User user = userRepository.findById(userId)
@@ -435,7 +444,8 @@ public class BadgeServiceImpl implements BadgeService {
      */
     @Override
     @Transactional
-    public String obtainAll(Long userId) {
+    public String obtainAll(
+            Long userId) {
 
         // 1. 유저 조회: 주어진 userId에 해당하는 사용자를 찾음
         User user = userRepository.findById(userId)

@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PhotoServiceImpl implements PhotoService {
 
+    private final S3Client s3Client;
 
     private final UserRepository userRepository;
     private final PhotoRepository photoRepository;
@@ -47,8 +48,6 @@ public class PhotoServiceImpl implements PhotoService {
     private final PhotoHashtagRepository photoHashtagRepository;
 
     private final HashtagService hashtagService;
-
-    private final S3Client s3Client;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
@@ -63,7 +62,9 @@ public class PhotoServiceImpl implements PhotoService {
      */
     @Override
     @Transactional
-    public SavePhotoResponse savePhoto(Long userId, UploadPhotoRequest request) {
+    public SavePhotoResponse savePhoto(
+            Long userId, UploadPhotoRequest request) {
+
         String tempFolder = "temp/";
         String permanentFolder = "permanent/";
         String thumbnailFolder = "thumbnail/";
@@ -129,8 +130,6 @@ public class PhotoServiceImpl implements PhotoService {
 
         return response;
     }
-
-
 
 
     /**
@@ -206,7 +205,6 @@ public class PhotoServiceImpl implements PhotoService {
             return getFileUrl(tempFolder, fileName);
         } catch (Exception e) {
             // 업로드 실패 시 에러 로그 출력 및 예외 발생
-            System.out.println("파일 업로드 실패: " + e.getMessage());
             throw new RuntimeException("파일 업로드 실패", e);
         }
     }
@@ -270,6 +268,7 @@ public class PhotoServiceImpl implements PhotoService {
     @Override
     public Map<String, Object> getPaginatedPhotos(
             int pageNum, String sort) {
+
         if (pageNum < 1) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "페이지 번호는 1 이상의 값이어야 합니다.");
         }
@@ -351,7 +350,8 @@ public class PhotoServiceImpl implements PhotoService {
      * @return 사진 상세 정보 응답 DTO
      */
     @Override
-    public GetPhotoDetailResponse getPhotoDetail(Long userId, Long photoId) {
+    public GetPhotoDetailResponse getPhotoDetail(
+            Long userId, Long photoId) {
 
         if (photoId == null || photoId <= 0) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "유효하지 않은 사진 ID입니다.");
@@ -386,7 +386,6 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
 
-
     /**
      * 사진의 공개/비공개 상태를 토글하는 메서드
      *
@@ -394,7 +393,9 @@ public class PhotoServiceImpl implements PhotoService {
      * @param userId 변경 요청을 한 사용자의 ID
      */
     @Override
-    public void togglePublic(Long photoId, Long userId) {
+    public void togglePublic(
+            Long photoId, Long userId) {
+
         // 사진 조회
         Photo photo = photoRepository.findPhotoById(photoId);
 
@@ -419,7 +420,8 @@ public class PhotoServiceImpl implements PhotoService {
      * @return ResponseEntity<BaseResponse<List<GetPhotoTop5Response>>> 상위 5개 사진 목록
      */
     @Override
-    public List<GetPhotoTop5Response> getPhotoTop5() {
+    public List<GetPhotoTop5Response> getPhotoTop5(
+    ) {
 
         PageRequest pageRequest = PageRequest.of(0, 5);
 
@@ -450,7 +452,9 @@ public class PhotoServiceImpl implements PhotoService {
      * @return byte[] 파일의 바이트 배열
      */
     @Override
-    public byte[] downloadFile(String fileName) {
+    public byte[] downloadFile(
+            String fileName) {
+
         String permanentFolder = "permanent/";
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucketName)
@@ -468,7 +472,9 @@ public class PhotoServiceImpl implements PhotoService {
      * @param imageUrl 삭제할 파일의 URL
      */
     @Override
-    public void deleteFile(String imageUrl) {
+    public void deleteFile(
+            String imageUrl) {
+
         // URL에서 파일명을 추출
         String imageName = extractFileName(imageUrl);
         String permanentFolder = "permanent/";
@@ -530,11 +536,12 @@ public class PhotoServiceImpl implements PhotoService {
      * @param imageUrl 삭제할 프로필 이미지의 URL
      */
     @Override
-    public void deleteProfileFile(String imageUrl) {
+    public void deleteProfileFile(
+            String imageUrl) {
+
         // URL에서 프로필 이미지 파일명을 추출
         String imageName = extractProfileFileName(imageUrl);
         if (imageName == null) {
-            System.out.println("유효하지 않은 이미지 URL: " + imageUrl);
             return;
         }
 
@@ -556,7 +563,9 @@ public class PhotoServiceImpl implements PhotoService {
      * @return List<String> 버킷 내 모든 파일 이름 목록
      */
     @Override
-    public List<String> listFiles() {
+    public List<String> listFiles(
+    ) {
+
         ListObjectsV2Request listObjectsRequest = ListObjectsV2Request.builder()
                 .bucket(bucketName)
                 .build();
@@ -578,7 +587,9 @@ public class PhotoServiceImpl implements PhotoService {
      * @return String 추출된 파일명 (없으면 null 반환)
      */
     @Override
-    public String extractFileName(String url) {
+    public String extractFileName(
+            String url) {
+
         String prefix = "permanent/";
         int index = url.indexOf(prefix);
 
@@ -597,7 +608,9 @@ public class PhotoServiceImpl implements PhotoService {
      * @return String 추출된 파일명 (없으면 null 반환)
      */
     @Override
-    public String extractProfileFileName(String url) {
+    public String extractProfileFileName(
+            String url) {
+
         String prefix = "profile/";
         int index = url.indexOf(prefix);
 
@@ -617,13 +630,16 @@ public class PhotoServiceImpl implements PhotoService {
      * @return String 생성된 파일 URL
      */
     @Override
-    public String getFileUrl(String folder, String fileName) {
+    public String getFileUrl(
+            String folder, String fileName) {
+
         return String.format("https://%s.s3.%s.amazonaws.com/%s%s",
                 bucketName,
                 s3Client.serviceClientConfiguration().region(),
                 folder,
                 fileName);
     }
+
 
     /**
      * S3에서 특정 파일이 존재하는지 확인하는 메서드
@@ -632,7 +648,9 @@ public class PhotoServiceImpl implements PhotoService {
      * @return boolean 파일이 존재하면 true, 없으면 false
      */
     @Override
-    public Boolean doesFileExist(String key) {
+    public Boolean doesFileExist(
+            String key) {
+
         try {
             HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
                     .bucket(bucketName)
@@ -656,7 +674,9 @@ public class PhotoServiceImpl implements PhotoService {
      * @param originalFileName 원본 파일명
      * @return String 파일 확장자 (점 포함)
      */
-    private String getFileExtension(String originalFileName) {
+    private String getFileExtension(
+            String originalFileName) {
+
         // 1. null 또는 빈 문자열 체크
         if (originalFileName == null || originalFileName.isEmpty()) {
             return "";

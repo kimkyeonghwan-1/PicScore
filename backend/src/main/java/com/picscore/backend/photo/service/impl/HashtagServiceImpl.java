@@ -12,9 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * 해시태그 관련 비즈니스 로직을 처리하는 서비스 클래스
+ */
 @Service
 @RequiredArgsConstructor
 public class HashtagServiceImpl implements HashtagService {
+
     private final HashtagRepository hashtagRepository;
     private final PhotoHashtagRepository photoHashtagRepository;
 
@@ -29,7 +33,9 @@ public class HashtagServiceImpl implements HashtagService {
     @Transactional
     @Override
     public void saveHashtags(Photo photo, List<String> hashtags) {
+
         if (hashtags != null && !hashtags.isEmpty()) {
+
             for (String tagName : hashtags) {
                 Hashtag hashtag = hashtagRepository.findByName(tagName)
                         .orElseGet(() -> hashtagRepository.save(new Hashtag(tagName)));

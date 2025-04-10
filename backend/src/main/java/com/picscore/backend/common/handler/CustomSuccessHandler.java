@@ -20,9 +20,10 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
+    private final UserRepository userRepository;
+
     private final JWTUtil jwtUtil;
     private final RedisUtil redisUtil;
-    private final UserRepository userRepository;
 
     @Value("${LOGIN_SUCCESS}")
     private String successURL;
@@ -39,6 +40,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     @Value("${JWT_REDIS_EXP}")
     private String jwtRedisExp;
 
+
     /**
      * OAuth2 인증 성공 시 호출됩니다.
      * JWT 토큰을 생성하고 Redis에 Refresh 토큰을 저장한 후, 클라이언트에 쿠키를 설정합니다.
@@ -50,7 +52,10 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
      * @throws ServletException 서블릿 예외 발생 시
      */
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Authentication authentication) throws IOException, ServletException {
         
         // OAuth2User 정보 가져오기
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
@@ -83,6 +88,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         }
     }
 
+
     /**
      * 쿠키를 생성합니다.
      *
@@ -90,7 +96,9 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
      * @param value 쿠키 값
      * @return 생성된 Cookie 객체
      */
-    private Cookie createCookie(String key, String value) {
+    private Cookie createCookie(
+            String key, String value) {
+
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(60 * 60 * 24); // 1일 유지
         cookie.setSecure(true); // HTTPS에서만 전송 (배포 환경에서는 필수)
@@ -100,16 +108,20 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         return cookie;
     }
 
+
     /**
      * User-Agent를 분석하여 기기 유형을 판별합니다.
      *
      * @param userAgent HTTP User-Agent 헤더 값
      * @return "pc" 또는 "mobile"
      */
-    private String getDeviceType(String userAgent) {
+    private String getDeviceType(
+            String userAgent) {
+
         if (userAgent.contains("mobile") || userAgent.contains("android") || userAgent.contains("iphone")) {
             return "mobile";
         }
+
         return "pc";
     }
 }

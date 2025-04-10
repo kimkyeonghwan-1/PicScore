@@ -25,7 +25,8 @@ public class NotificationController {
      * @return SseEmitter SSE 연결 객체
      */
     @GetMapping("/subscribe")
-    public SseEmitter subscribe(HttpServletRequest request) {
+    public SseEmitter subscribe(
+            HttpServletRequest request) {
 
         Long userId = oAuthService.findIdByNickName(request);
 
