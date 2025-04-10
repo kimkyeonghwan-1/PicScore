@@ -19,7 +19,9 @@ public class NotificationService {
      * @param userId 사용자 ID
      * @return SseEmitter 객체
      */
-    public SseEmitter subscribe(Long userId) {
+    public SseEmitter subscribe(
+            Long userId) {
+
         SseEmitter emitter = new SseEmitter(24 * 60 * 60 * 1000L);
         emitters.put(userId, emitter);
 
@@ -38,7 +40,9 @@ public class NotificationService {
      * @param userId  사용자 ID
      * @param message 알림 메시지
      */
-    public void sendNotification(Long userId, String message) {
+    public void sendNotification(
+            Long userId, String message) {
+
         SseEmitter emitter = emitters.get(userId);
         if (emitter != null) {
             try {

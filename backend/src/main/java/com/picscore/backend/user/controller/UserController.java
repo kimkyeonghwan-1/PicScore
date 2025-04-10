@@ -116,7 +116,8 @@ public class UserController {
      * @return ResponseEntity<BaseResponse < GetMyFollowersResponse>> 팔로잉 목록 정보
      */
     @GetMapping("/following/me")
-    public ResponseEntity<BaseResponse<List<GetMyFollowingsResponse>>> getMyFollowings(HttpServletRequest request) {
+    public ResponseEntity<BaseResponse<List<GetMyFollowingsResponse>>> getMyFollowings(
+            HttpServletRequest request) {
 
         Long userId = oAuthService.findIdByNickName(request);
         List<GetMyFollowingsResponse> getMyFollowingsResponseList = followService.getMyFollowings(userId);
@@ -192,8 +193,7 @@ public class UserController {
      */
     @GetMapping("/search/{searchText}")
     public ResponseEntity<BaseResponse<List<SearchUsersResponse>>> searchUser(
-            @PathVariable String searchText
-    ) {
+            @PathVariable String searchText) {
 
         List<SearchUsersResponse> searchUsersResponseList = userService.searchUser(searchText);
 
@@ -209,8 +209,7 @@ public class UserController {
      */
     @GetMapping("/profile/me")
     public ResponseEntity<BaseResponse<GetMyProfileResponse>> getMyProfile(
-            HttpServletRequest request
-    ) {
+            HttpServletRequest request) {
 
         Long userId = oAuthService.findIdByNickName(request);
         GetMyProfileResponse getMyProfileResponse = userService.getMyProfile(userId);
@@ -229,8 +228,7 @@ public class UserController {
     @GetMapping("/profile/{userId}")
     public ResponseEntity<BaseResponse<GetUserProfileResponse>> getUserProfile(
             HttpServletRequest request,
-            @PathVariable Long userId
-    ) {
+            @PathVariable Long userId) {
 
         Long myId = oAuthService.findIdByNickName(request);
         GetUserProfileResponse getUserProfileResponse = userService.getUserProfile(myId, userId);
@@ -251,8 +249,7 @@ public class UserController {
     public ResponseEntity<BaseResponse<Void>> updateMyProfile(
             HttpServletResponse response,
             HttpServletRequest request,
-            @ModelAttribute UpdateMyProfileRequest updateMyProfileRequest
-    ) throws IOException {
+            @ModelAttribute UpdateMyProfileRequest updateMyProfileRequest) throws IOException {
 
         Long userId = oAuthService.findIdByNickName(request);
         userService.updateMyProfile(userId, request, updateMyProfileRequest, response);
@@ -269,8 +266,7 @@ public class UserController {
      */
     @GetMapping("/static/me")
     public ResponseEntity<BaseResponse<GetMyStaticResponse>> getMyStatic(
-            HttpServletRequest request
-    ) {
+            HttpServletRequest request) {
 
         Long userId = oAuthService.findIdByNickName(request);
         GetMyStaticResponse getMyStaticResponse = userService.getMyStatic(userId);
@@ -287,18 +283,26 @@ public class UserController {
      */
     @GetMapping("/static/{userId}")
     public ResponseEntity<BaseResponse<GetUserStaticResponse>> getUserStatic(
-            @PathVariable Long userId
-    ) {
+            @PathVariable Long userId) {
 
         GetUserStaticResponse getUserStaticResponse = userService.getUserStatic(userId);
 
         return ResponseEntity.ok(BaseResponse.success("유저의 통계 조회 성공", getUserStaticResponse));
     }
 
+
+    /**
+     * 치킨 타임 요청 피드백 저장 API
+     * 클라이언트로부터 전달받은 피드백 요청 데이터를 저장합니다.
+     *
+     * @param request SaveFeedbackRequest 객체 (피드백 내용 포함)
+     * @return 저장 완료 메시지를 담은 ResponseEntity
+     */
     @PostMapping("/chicken/request")
     public ResponseEntity<BaseResponse<Void>> saveFeedback(
             @RequestBody SaveFeedbackRequest request) {
 
+        // 피드백 저장 로직 실행
         userService.saveFeedback(request);
 
         return ResponseEntity.ok(BaseResponse.withMessage("피드백 저장 완료"));

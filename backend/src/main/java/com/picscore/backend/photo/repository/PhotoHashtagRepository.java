@@ -9,7 +9,19 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * 사진-해시태그 매핑 관련 DB 작업을 처리하는 Repository
+ */
 @Repository
 public interface PhotoHashtagRepository extends JpaRepository<PhotoHashtag, Long> {
-    List<PhotoHashtag> findByPhotoId(Long photoId); // 특정 사진의 해시태그 목록 조회 메서드
+
+
+    /**
+     * 특정 사진 ID에 해당하는 해시태그 목록을 조회합니다.
+     *
+     * @param photoId 조회할 사진의 ID
+     * @return 해당 사진에 연결된 해시태그 목록
+     */
+    List<PhotoHashtag> findByPhotoId(Long photoId);
 }
+

@@ -14,13 +14,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+/**
+ * 인증 관련 서비스를 제공하는 클래스
+ */
 @Service
 @RequiredArgsConstructor
 public class OAuthServiceImpl implements OAuthService {
 
+    private final UserRepository userRepository;
+
     private final JWTUtil jwtUtil;
     private final RedisUtil redisUtil;
-    private final UserRepository userRepository;
 
     @Value("${JWT_ACCESS_EXP}")
     private String jwtAccessExp;
@@ -40,7 +44,8 @@ public class OAuthServiceImpl implements OAuthService {
      * @return ResponseEntity 객체로 결과 반환
      */
     @Override
-    public String reissue(HttpServletRequest request, HttpServletResponse response) {
+    public String reissue(
+            HttpServletRequest request, HttpServletResponse response) {
 
         // 쿠키에서 리프레시 토큰 추출
         String refresh = null;
@@ -108,7 +113,9 @@ public class OAuthServiceImpl implements OAuthService {
      * @return Long 사용자 ID
      */
     @Override
-    public Long findIdByNickName(HttpServletRequest request) {
+    public Long findIdByNickName(
+            HttpServletRequest request) {
+
         // 쿠키에서 AccessToken 추출
         String access = null;
         Cookie[] cookies = request.getCookies();
@@ -165,7 +172,9 @@ public class OAuthServiceImpl implements OAuthService {
      * @param value 쿠키 값
      * @return 생성된 Cookie 객체
      */
-    private Cookie createCookie(String key, String value) {
+    private Cookie createCookie(
+            String key, String value) {
+
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(60 * 60 * 24); // 1일 유지
         cookie.setSecure(true); // HTTPS에서만 전송 (배포 환경에서는 필수)
@@ -182,7 +191,9 @@ public class OAuthServiceImpl implements OAuthService {
      * @param response HTTP 응답 객체
      * @param cookieName 삭제할 쿠키의 이름
      */
-    private void deleteCookie(HttpServletResponse response, String cookieName) {
+    private void deleteCookie(
+            HttpServletResponse response, String cookieName) {
+
         Cookie cookie = new Cookie(cookieName, null); // 쿠키 값을 null로 설정
         cookie.setMaxAge(0); // 쿠키 만료 시간을 0으로 설정 (즉시 삭제)
         cookie.setPath("/"); // 쿠키 경로를 루트로 설정 (애플리케이션 전체에 적용)
@@ -196,10 +207,13 @@ public class OAuthServiceImpl implements OAuthService {
      * @param userAgent HTTP User-Agent 헤더 값
      * @return "pc" 또는 "mobile"
      */
-    private String getDeviceType(String userAgent) {
+    private String getDeviceType(
+            String userAgent) {
+
         if (userAgent.contains("mobile") || userAgent.contains("android") || userAgent.contains("iphone")) {
             return "mobile";
         }
+
         return "pc";
     }
 }

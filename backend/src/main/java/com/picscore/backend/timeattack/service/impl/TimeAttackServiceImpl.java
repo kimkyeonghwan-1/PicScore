@@ -53,16 +53,12 @@ public class TimeAttackServiceImpl implements TimeAttackService {
     private final RestTemplate restTemplate;
     private final S3Client s3Client;
 
-    private final RedisTemplate<String, Object> redisTemplate;
-
     private final SecureRandom secureRandom = new SecureRandom();
 
-
-
-    @Value("${AZURE_ENDPOINT}")  // 환경 변수에서 API URL 가져오기
+    @Value("${AZURE_ENDPOINT}")
     private String visionApiUrl;
 
-    @Value("${AZURE_COMPUTER_VISION_KEY}")  // 환경 변수에서 API Key 가져오기
+    @Value("${AZURE_COMPUTER_VISION_KEY}")
     private String visionApiKey;
 
     @Value("${cloud.aws.s3.bucket}")
@@ -77,7 +73,9 @@ public class TimeAttackServiceImpl implements TimeAttackService {
      */
     @Override
     @Transactional
-    public Map<String, Object> getRanking(int pageNum) {
+    public Map<String, Object> getRanking(
+            int pageNum) {
+
         if (pageNum < 1) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "페이지 번호는 1 이상의 값이어야 합니다.");
         }
@@ -137,7 +135,6 @@ public class TimeAttackServiceImpl implements TimeAttackService {
 
         return responseData;
     }
-
 
 
     /**
