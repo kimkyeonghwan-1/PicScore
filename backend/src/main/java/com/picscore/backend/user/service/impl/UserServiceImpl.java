@@ -357,14 +357,10 @@ public class UserServiceImpl implements UserService {
         Map<String, Object> stats = photoRepository.calculateStats(userId);
         float avgScore = stats.get("avgScore") != null ? ((Double) stats.get("avgScore")).floatValue() : 0f;
 
-        List<TimeAttack> timeAttackList = timeAttackRepository.findHighestScoresAllUser(activityWeek);
-        int rank = 0;
-        for (int i = 0; i < timeAttackList.size(); i++) {
-            if (timeAttackList.get(i).getUser().getId().equals(userId)) {
-                rank = i + 1; // 등수는 1부터 시작
-                break;
-            }
-        }
+        String weekKey = "time-attack:" + activityWeek + ":score";
+        String userKey = "user:" + userId;
+        Long rank = redisUtil.getUserRank(weekKey, userKey);
+        int timeAttackRank = (rank != null) ? rank.intValue() + 1 : 0;
 
         // 아레나 랭크
         List<Arena> arenaList = arenaRepository.getRankAllUser(activityWeek);
@@ -377,7 +373,7 @@ public class UserServiceImpl implements UserService {
         }
 
         GetUserStaticResponse response = new GetUserStaticResponse(
-                avgScore, rank, arenaRank
+                avgScore, timeAttackRank, arenaRank
         );
 
         return response;
