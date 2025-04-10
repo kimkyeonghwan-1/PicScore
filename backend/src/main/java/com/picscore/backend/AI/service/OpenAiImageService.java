@@ -258,7 +258,7 @@ public class OpenAiImageService {
             Map<String, String> analysisText = new HashMap<>();
 
             // 1️⃣ 정규식을 사용해 점수 및 피드백 추출
-            Pattern scorePattern = Pattern.compile("(구도|선명도|주제|노출|색감|미학적평가):\\s*(\\d+)점:\\s*(.+)");
+            Pattern scorePattern = Pattern.compile("(구도|선명도|주제|노출|색감|미적감각):\\s*(\\d+)점:\\s*(.+)");
             Matcher scoreMatcher = scorePattern.matcher(content);
             int totalScore = 0;
             int avgScore = 0;
