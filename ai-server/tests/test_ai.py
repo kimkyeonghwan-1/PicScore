@@ -1,6 +1,3 @@
-"""
-AI Server 테스트 요청
-"""
 import requests
 import json
 

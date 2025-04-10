@@ -5,11 +5,14 @@ import json
 import torch
 import logging
 import numpy as np
+import base64
+import re  # 정규표현식 처리를 위해 추가
+from io import BytesIO
 from pathlib import Path
 from typing import Dict, Any, Union, Optional
 from PIL import Image
 
-from transformers import LlavaNextVideoProcessor, LlavaNextVideoForConditionalGeneration
+from transformers import AutoProcessor, LlavaForConditionalGeneration, BitsAndBytesConfig
 
 from app.core.config import settings
 
@@ -46,31 +49,43 @@ class ImageAnalysisModel:
         return torch.cuda.is_available()
     
     def load_model(self):
-        """모델 로드 함수"""
+        """모델 로드 함수 (4비트 양자화 적용)"""
         try:
-            logger.info(f"Loading model {settings.MODEL_NAME} on {self.device}")
+            logger.info(f"Loading model {settings.MODEL_NAME} with 4-bit quantization on {self.device}")
             
             # 모델 캐시 디렉토리 생성
             Path(settings.MODEL_CACHE_DIR).mkdir(parents=True, exist_ok=True)
             
-            # 모델 로드 (예제 코드 기반)
-            self.model = LlavaNextVideoForConditionalGeneration.from_pretrained(
-                settings.MODEL_NAME,
-                torch_dtype=torch.float16 if self.device.type == "cuda" else torch.float32,
-                low_cpu_mem_usage=True,
-            ).to(self.device)
+            # 4비트 양자화 설정
+            quantization_config = BitsAndBytesConfig(
+                load_in_4bit=True,           # 4비트 양자화 적용
+                bnb_4bit_compute_dtype=torch.float16,  # 계산 시 float16 사용
+                bnb_4bit_use_double_quant=True,  # 더블 양자화 적용 (메모리 사용량 절약)
+                bnb_4bit_quant_type="nf4",  # NF4 양자화 타입 사용
+            )
             
-            logger.info("Model loaded using LlavaNextVideoForConditionalGeneration")
+            # 모델 로드 (4비트 양자화 적용)
+            self.model = LlavaForConditionalGeneration.from_pretrained(
+                settings.MODEL_NAME,
+                quantization_config=quantization_config,  # 양자화 설정 적용
+                device_map="auto",                      # 자동 장치 매핑
+                low_cpu_mem_usage=True,
+                cache_dir=settings.MODEL_CACHE_DIR,      # 캐시 디렉토리 지정
+                trust_remote_code=True                  # 원격 코드 허용
+            )
+            
+            logger.info("Model loaded using LlavaForConditionalGeneration with 4-bit quantization")
             
             # 프로세서 로드
-            self.processor = LlavaNextVideoProcessor.from_pretrained(
+            self.processor = AutoProcessor.from_pretrained(
                 settings.MODEL_NAME,
-                cache_dir=settings.MODEL_CACHE_DIR
+                cache_dir=settings.MODEL_CACHE_DIR,
+                trust_remote_code=True                  # 원격 코드 허용
             )
-            logger.info("Processor loaded using LlavaNextVideoProcessor")
+            logger.info("Processor loaded using AutoProcessor")
             
             self.model_loaded = True
-            logger.info(f"Model loaded successfully on {self.device}")
+            logger.info(f"Model loaded successfully on {self.device} with 4-bit quantization")
             
             return True
         
@@ -93,6 +108,54 @@ class ImageAnalysisModel:
             self.model_loaded = False
             
             logger.info("Model unloaded from memory")
+    
+    def _fix_json_hashtags(self, json_str: str) -> str:
+        """
+        JSON 문자열에서 해시태그 형식 문제 수정
+        
+        Args:
+            json_str (str): 원본 JSON 문자열
+            
+        Returns:
+            str: 수정된 JSON 문자열
+        """
+        # [#tag1 #tag2 #tag3] 형태를 ["tag1", "tag2", "tag3"] 형태로 변환
+        hashtag_pattern = r'\[\s*#([^\[\]]+)\s*\]'
+        
+        def replace_hashtags(match):
+            # 해시태그를 추출하여 적절한 형태로 변환
+            hashtags = match.group(1).strip()
+            tags = re.findall(r'#(\w+)', hashtags)
+            
+            # 정확한 JSON 형식의 배열로 변환
+            json_array = '["' + '", "'.join(tags) + '"]'
+            return json_array
+        
+        # 정규표현식 적용
+        result = re.sub(hashtag_pattern, replace_hashtags, json_str)
+        
+        # 이중 따옴표 수정
+        result = result.replace('\"', '"')
+        
+        # 엔티티 및 에스케이프 문자 처리
+        result = result.replace('\\"', '"').replace('&quot;', '"')
+        
+        # color_harmony -> color_harmony 등의 키 이름 처리
+        result = result.replace('color\\_harmony', 'color_harmony')
+        result = result.replace('aesthetic\\_quality', 'aesthetic_quality')
+        
+        # “["#tag1", "#tag2"]” 형태의 해시태그에서 # 제거
+        hashtags_with_hash_pattern = r'\[\s*"#([^"]+)"\s*(?:,\s*"#([^"]+)"\s*)*\]'
+        
+        def remove_hash_from_tags(match):
+            full_match = match.group(0)
+            # # 분자 제거
+            return full_match.replace('"#', '"')
+        
+        # 정규표현식 적용
+        result = re.sub(hashtags_with_hash_pattern, remove_hash_from_tags, result)
+        
+        return result
     
     async def analyze_image(self, image_path: Union[str, Path]) -> Dict[str, Any]:
         """
@@ -120,57 +183,67 @@ class ImageAnalysisModel:
             image = Image.open(image_path).convert("RGB")
             
             try:
-                # 예제 코드에 따라 chat template을 사용하여 프롬프트 생성
+                # LLaVA 공식 예제 방식에 따른 처리
+                # 대화 형식의 입력 구조
                 conversation = [
                     {
                         "role": "user",
                         "content": [
                             {"type": "text", "text": settings.PROMPT_TEMPLATE},
-                            {"type": "image"},  # 이미지를 여기에 넣을 것임
+                            {"type": "image"}  # 이미지가 여기에 삽입됨
                         ],
                     },
                 ]
                 
+                # 대화 템플릿 적용
                 prompt = self.processor.apply_chat_template(
                     conversation, 
                     add_generation_prompt=True
                 )
                 
-                # 이미지를 numpy 배열로 변환 (processor가 필요로 함)
-                image_np = np.array(image)
-                
-                # 입력 준비
+                # 이미지와 프롬프트로 입력 생성
                 inputs = self.processor(
+                    images=image, 
                     text=prompt, 
-                    images=image_np, 
-                    padding=True, 
                     return_tensors="pt"
-                ).to(self.device)
+                )
                 
-                # 생성
+                # 장치로 이동
+                for k, v in inputs.items():
+                    if isinstance(v, torch.Tensor):
+                        inputs[k] = v.to(self.device)
+                
+                # 생성 실행
                 with torch.no_grad():
                     output = self.model.generate(
                         **inputs,
-                        max_new_tokens=512, 
+                        max_new_tokens=512,
                         do_sample=True,
-                        temperature=0.1
+                        temperature=0.2,
+                        top_p=0.95,
+                        repetition_penalty=1.2
                     )
                 
-                # 응답 디코딩 (예제 코드와 같이 output[0][2:]를 사용)
-                generated_text = self.processor.decode(
-                    output[0][2:], 
-                    skip_special_tokens=True
-                )
+                # 특수 토큰 제외하고 응답만 추출 (토큰 인덱스 2 이후)
+                generated_text = self.processor.decode(output[0][2:], skip_special_tokens=True)
                 
                 # 로그에 생성된 텍스트 기록
                 logger.info(f"Generated text: {generated_text}")
                 
                 # JSON 부분 추출
                 try:
+                    # 해시태그 형식 문제 해결
+                    # ASSISTANT 부분 제거
+                    if "ASSISTANT:" in generated_text:
+                        generated_text = generated_text.split("ASSISTANT:", 1)[1].strip()
+                    
                     # 마크다운 코드 블록에서 JSON 추출
                     if "```json" in generated_text and "```" in generated_text.split("```json", 1)[1]:
                         # 마크다운 JSON 코드 블록 파싱
                         json_content = generated_text.split("```json", 1)[1].split("```", 1)[0].strip()
+                        
+                        # 해시태그 형식 수정
+                        json_content = self._fix_json_hashtags(json_content)
                         analysis_result = json.loads(json_content)
                     else:
                         # 일반적인 JSON 추출 시도
@@ -179,6 +252,9 @@ class ImageAnalysisModel:
                         
                         if json_start >= 0 and json_end > json_start:
                             json_str = generated_text[json_start:json_end]
+                            
+                            # 해시태그 형식 수정
+                            json_str = self._fix_json_hashtags(json_str)
                             analysis_result = json.loads(json_str)
                         else:
                             # JSON을 찾을 수 없는 경우 기본 응답 생성
@@ -186,6 +262,7 @@ class ImageAnalysisModel:
                             analysis_result = self._create_default_response()
                 except json.JSONDecodeError as e:
                     logger.error(f"Failed to parse JSON from model response: {e}")
+                    logger.error(f"Raw JSON content: {generated_text}")
                     analysis_result = self._create_default_response()
                 
                 # 결과 유효성 검사 및 포맷 맞추기
@@ -203,33 +280,36 @@ class ImageAnalysisModel:
         """기본 응답 생성"""
         import random
         
-        # 카테고리 매핑
-        category_mapping = {
-            "composition": "구도",
-            "sharpness": "선명도",
-            "noise_free": "노이즈",
-            "exposure": "노출",
-            "color_harmony": "색감", 
-            "aesthetics": "심미성"
-        }
+        # 카테고리 매핑 - settings에서 가져오기
+        category_mapping = settings.CATEGORY_KOREAN_NAMES
         
         # 분석 텍스트와 차트 데이터 준비
         analysis_text = {}
         analysis_chart = {}
         
+        # 기본 분석 메시지
+        default_messages = {
+            "구도": "Could not analyze the composition.",
+            "선명도": "Could not evaluate the sharpness.",
+            "주제": "Could not evaluate the subject.",
+            "노출": "Could not evaluate the exposure.",
+            "색감": "Could not evaluate the color harmony.",
+            "미적감각": "Could not evaluate the aesthetic quality."
+        }
+        
         # 랜덤 점수로 각 카테고리 채우기
         for category in settings.EVALUATION_CATEGORIES:
             kor_category = category_mapping.get(category, category)
             score = random.randint(30, 70)
-            analysis_text[kor_category] = "평가 실패"
+            analysis_text[kor_category] = default_messages.get(kor_category, "평가 실패")
             analysis_chart[kor_category] = score
         
         # 종합 점수와 코멘트
         overall_score = random.randint(30, 70)
-        overall_comment = "이미지를 분석하는 동안 오류가 발생했습니다."
+        overall_comment = "An error occurred while analyzing the image."
         
         # 기본 해시태그
-        hashtags = ["사진", "이미지", "분석"]
+        hashtags = ["photo", "image", "analysis", "art"]
         
         # 최종 결과 조합
         return {
@@ -237,7 +317,8 @@ class ImageAnalysisModel:
             "comment": overall_comment,
             "analysisText": analysis_text,
             "analysisChart": analysis_chart,
-            "hashTag": hashtags
+            "hashTag": hashtags,
+            "version": 2
         }
     
     def _validate_and_format_result(self, result: Dict[str, Any]) -> Dict[str, Any]:
@@ -254,62 +335,32 @@ class ImageAnalysisModel:
         analysis_text = {}
         analysis_chart = {}
         
-        # 한글 카테고리 매핑
-        category_mapping = {
-            "composition": "구도",
-            "sharpness": "선명도",
-            "noise_free": "노이즈",
-            "exposure": "노출",
-            "color_harmony": "색감", 
-            "aesthetics": "심미성"
-        }
-        
-        # 로그 추가
-        import random
+        # 한글 카테고리 매핑 - settings에서 가져오기
+        category_mapping = settings.CATEGORY_KOREAN_NAMES
         
         # 각 평가 카테고리 처리
         for category in settings.EVALUATION_CATEGORIES:
             if category in result and isinstance(result[category], dict):
                 cat_result = result[category]
                 
-                # 점수 확인 및 조정
+                # 점수 확인 - 모델이 정확한 점수를 사용하므로 scale_score 사용 안함
                 score = cat_result.get("score", 50)
+                
+                # 점수가 1~100 범위에 있는지 확인
                 if not isinstance(score, (int, float)):
-                    score = 50
-                
-                # 1-10 점수를 1-100 점수로 변환
-                if 1 <= score <= 10:
-                    # 단순히 10을 곱하는 것이 아니라 분포를 가진 점수로 변환
-                    base_score = int(score * 10)  # 기본 점수 (10점은 100점)
-                    
-                    # 1-7점의 경우: 분포를 가진 랜덤 점수 생성
-                    if score < 8:
-                        variation = random.randint(-5, 5)  # -5 ~ +5 사이의 변동
-                        final_score = max(1, min(100, base_score + variation))
-                    # 8-10점의 경우: 더 작은 범위의 변동 적용 (높은 점수 유지)
-                    else:
-                        variation = random.randint(-3, 3)  # -3 ~ +3 사이의 작은 변동
-                        final_score = max(70, min(100, base_score + variation))
-                    
-                    score = final_score
-                
-                # 최종 점수 범위 확인
-                score = max(1, min(100, int(score)))
+                    score = 50  # 기본값
+                score = max(1, min(100, score))  # 1~100 범위로 제한
                 
                 # 코멘트 확인
                 comment = cat_result.get("comment", "")
                 if not isinstance(comment, str):
                     comment = str(comment)
                 
-                # 번역 적용
-                from app.utils.translator import translate_text
-                translated_comment = translate_text(comment, source_lang="en", target_lang="ko")
-                
                 # 한글 카테고리로 변환
                 kor_category = category_mapping.get(category, category)
                 
                 # 분석 텍스트와 차트에 저장
-                analysis_text[kor_category] = translated_comment
+                analysis_text[kor_category] = comment
                 analysis_chart[kor_category] = score
             else:
                 # 카테고리가 없으면 기본값 설정
@@ -323,35 +374,16 @@ class ImageAnalysisModel:
             overall_score = 50
             overall_comment = "이미지에 대한 전체적인 평가 정보를 제공하지 못했습니다."
         else:
-            # 전체 점수 확인 및 조정
+            # 전체 점수 확인 및 제한
             overall_score = overall.get("score", 50)
             if not isinstance(overall_score, (int, float)):
                 overall_score = 50
+            overall_score = max(1, min(100, overall_score))  # 1~100 범위로 제한
             
-            # 1-10 점수를 1-100 점수로 변환
-            if 1 <= overall_score <= 10:
-                # 단순히 10을 곱하는 것이 아니라 분포를 가진 점수로 변환
-                base_score = int(overall_score * 10)  # 기본 점수 (10점은 100점)
-                
-                # 점수에 따라 다른 변동 적용
-                if overall_score < 8:
-                    variation = random.randint(-5, 5)  # -5 ~ +5 사이의 변동
-                    final_score = max(1, min(100, base_score + variation))
-                else:
-                    variation = random.randint(-3, 3)  # -3 ~ +3 사이의 작은 변동
-                    final_score = max(70, min(100, base_score + variation))
-                
-                overall_score = final_score
-            
-            # 최종 점수 범위 확인
-            overall_score = max(1, min(100, int(overall_score)))
-            
-            # 전체 코멘트 번역
-            from app.utils.translator import translate_text
+            # 전체 코멘트 가져오기
             overall_comment = overall.get("comment", "")
             if not isinstance(overall_comment, str):
                 overall_comment = str(overall_comment)
-            overall_comment = translate_text(overall_comment, source_lang="en", target_lang="ko")
         
         # 해시태그 처리
         hashtags = result.get("hashtags", [])
@@ -359,24 +391,27 @@ class ImageAnalysisModel:
             # 모델이 해시태그를 제공하지 않은 경우, 기본 해시태그 생성
             hashtags = ["사진", "포토", "이미지"]
         
-        # 해시태그 번역
-        translated_hashtags = []
-        for tag in hashtags[:4]:  # 최대 4개로 제한
-            if tag and isinstance(tag, str):
-                # 영어 태그를 한글로 번역
-                translated_tag = translate_text(tag, source_lang="en", target_lang="ko")
-                translated_hashtags.append(translated_tag)
+        # 해시태그는 최대 4개로 제한
+        hashtags = hashtags[:4]
         
         # 해시태그 수가 부족하면 기본 태그 추가
-        while len(translated_hashtags) < 3:
-            if "사진" not in translated_hashtags:
-                translated_hashtags.append("사진")
-            elif "포토" not in translated_hashtags:
-                translated_hashtags.append("포토")
-            elif "이미지" not in translated_hashtags:
-                translated_hashtags.append("이미지")
+        while len(hashtags) < 3:
+            if "사진" not in hashtags:
+                hashtags.append("사진")
+            elif "포토" not in hashtags:
+                hashtags.append("포토")
+            elif "이미지" not in hashtags:
+                hashtags.append("이미지")
             else:
                 break
+        
+        # 일괄 번역 처리
+        from app.utils.translator import translate_dict_values, translate_batch
+        
+        # 코멘트와 해시태그 번역
+        analysis_text = translate_dict_values(analysis_text)
+        overall_comment = translate_dict_values({"comment": overall_comment})["comment"]
+        translated_hashtags = translate_batch(hashtags)
         
         # 결과 형식화
         formatted_result = {
@@ -384,7 +419,8 @@ class ImageAnalysisModel:
             "comment": overall_comment,
             "analysisText": analysis_text,
             "analysisChart": analysis_chart,
-            "hashTag": translated_hashtags[:4]  # 최대 4개로 제한
+            "hashTag": translated_hashtags,
+            "version": 2
         }
         
         return formatted_result
