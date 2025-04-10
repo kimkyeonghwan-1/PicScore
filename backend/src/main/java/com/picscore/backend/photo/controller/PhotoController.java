@@ -58,7 +58,8 @@ public class PhotoController {
             HttpServletRequest request, @RequestBody UploadPhotoRequest payload) {
 
         // 토큰에서 사용자 정보 추출
-        Long userId = oAuthService.findIdByNickName(request);
+//        Long userId = oAuthService.findIdByNickName(request);
+        Long userId = Long.valueOf(1);
         SavePhotoResponse savePhotoResponse = photoService.savePhoto(userId, payload);
 
         return ResponseEntity.ok(BaseResponse.success("사진 업로드 완료", savePhotoResponse));
