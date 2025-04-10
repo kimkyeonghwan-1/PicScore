@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { VitePWA } from "vite-plugin-pwa";
+import removeConsole from "vite-plugin-remove-console";
 // https://vite.dev/config/
 export default defineConfig({
   build: {
@@ -11,6 +12,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    removeConsole(),
     // Sentry 플러그인은 다른 모든 플러그인 뒤에 위치
     sentryVitePlugin({
       authToken: process.env.SENTRY_AUTH_TOKEN,
