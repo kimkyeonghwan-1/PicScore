@@ -36,7 +36,7 @@ public class ImageAnalysisController {
             @RequestParam String imageUrl) throws IOException {
 
         // GPT API 호출 (비활성화됨)
-        // return openAiImageService.analyzeImage(imageUrl, 0);
+//         return openAiImageService.analyzeImage(imageUrl, 0);
 
         // Lava API 분석 결과 반환
         return lavaImageService.analyzeImage(imageUrl);

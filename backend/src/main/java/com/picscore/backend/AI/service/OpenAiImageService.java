@@ -305,6 +305,7 @@ public class OpenAiImageService {
             response.put("analysisChart", scores);
             response.put("analysisText", analysisText);
             response.put("score", avgScore);
+            response.put("version", 2);
 
             return ResponseEntity.ok(BaseResponse.success("분석 완료", response));
         } catch (Exception e) {
