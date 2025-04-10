@@ -1,6 +1,7 @@
-package com.picscore.backend.GPT.controller;
+package com.picscore.backend.AI.controller;
 
-import com.picscore.backend.GPT.service.OpenAiImageService;
+import com.picscore.backend.AI.service.LavaImageService;
+import com.picscore.backend.AI.service.OpenAiImageService;
 import com.picscore.backend.common.model.response.BaseResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,11 +16,13 @@ import java.util.Map;
 public class ImageAnalysisController {
 
     private final OpenAiImageService openAiImageService;
+    private final LavaImageService lavaImageService;
 
     @GetMapping("/analyze")
-    public ResponseEntity<BaseResponse<Map<String, Object>>> analyze(
+    public ResponseEntity<BaseResponse<Map<String, Object>>> analyze(    // GPT: Map<String, Object>, LAVA: <String>
             @RequestParam String imageUrl) throws IOException {
-        return openAiImageService.analyzeImage(imageUrl, 0);
+//        return openAiImageService.analyzeImage(imageUrl, 0);    // GPT API
+        return lavaImageService.analyzeImage(imageUrl);    // Lava API
     }
 }
 
