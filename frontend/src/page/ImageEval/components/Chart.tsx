@@ -201,7 +201,7 @@ function Chart({ analysisScore }: { analysisScore: AnalysisScoreType }) {
           } else if (i === 5) {
             // 색감 또는 화이트밸런스 (좌상단)
             titleAnchor = "end";
-            titleDx = 16;
+            titleDx = 0;
             titleDy = 0;
             scoreAnchor = "end";
             scoreDx = -2;
