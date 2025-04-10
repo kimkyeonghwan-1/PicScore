@@ -188,8 +188,8 @@ const ChangeInfoPage: React.FC = () => {
     }
 
     // 상태 메시지 길이는 서버에서 "-" 로 처리하므로 클라이언트에서는 100자 제한만 검사
-    if (profile.bio.length > 100) {
-      newErrors.bio = "상태 메시지는 100자 이하로 입력해주세요";
+    if (profile.bio.length > 30) {
+      newErrors.bio = "상태 메시지는 30자 이하로 입력해주세요";
       isValid = false;
     }
 
