@@ -49,4 +49,10 @@ public class TimeAttack extends BaseEntity {
         this.activityWeek = activityWeek;
         this.score = score;
     }
+
+    public void updateRank(
+            int ranking) {
+
+        this.ranking = ranking;
+    }
 }

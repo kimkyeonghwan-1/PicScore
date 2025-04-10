@@ -15,12 +15,8 @@ import com.picscore.backend.timeattack.service.TimeAttackService;
 import com.picscore.backend.user.model.entity.User;
 import com.picscore.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -287,6 +283,13 @@ public class TimeAttackServiceImpl implements TimeAttackService {
         String userKey = "user:" + userId;
 
         redisUtil.addScoreToZSetWithTTL(weekKey, userKey, request.getScore(), 7);
+
+        Long rank = redisUtil.getUserRank(weekKey, userKey);
+        int timeAttackRank = (rank != null) ? rank.intValue() + 1 : 0;
+
+        if (timeAttackRank == 1) {
+            timeAttack.updateRank(1);
+        }
 
         int experience = userRepository.findExperienceByUserId(userId);
         int plusExperience = experience + (int) (request.getScore() * 10);
