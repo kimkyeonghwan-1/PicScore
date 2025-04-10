@@ -22,6 +22,7 @@ interface PhotoResponse {
   profileImage: string;
   score: number;
   userId: number;
+  version: number;
 }
 
 interface SearchPhotoResponse {

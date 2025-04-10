@@ -112,6 +112,7 @@ function PhotoPost() {
     profileImage,
     score,
     userId,
+    version,
   } = data;
   const nowPhotoLocation = window.location.href;
   const isMyPhoto = userId === myId;
@@ -152,6 +153,7 @@ function PhotoPost() {
           isModalOpen={showPhotoEvalModal}
           closeDetail={closePhotoEval}
           score={score}
+          version={version}
           analysisScore={analysisChart}
           analysisFeedback={analysisText}
         />
