@@ -58,11 +58,11 @@ function Home() {
       setShowChickenModal(false);
       setPhoneNumber("");
       setMessage("");
-      alert("치킨받기 신청이 완료되었습니다!");
+      alert("PICSCORE의 성장에 도움을 주셔서 감사합니다!");
     },
     onError: (error) => {
       // 에러 처리
-      console.error("치킨받기 요청 에러:", error);
+      console.error("전송 요청 에러:", error);
       alert("요청 처리에 실패했습니다. 다시 시도해주세요.");
     },
   });
