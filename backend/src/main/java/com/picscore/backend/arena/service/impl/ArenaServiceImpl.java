@@ -20,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * 아레나 관련 비즈니스 로직을 처리하는 서비스 클래스
+ */
 @Service
 @RequiredArgsConstructor
 public class ArenaServiceImpl implements ArenaService {
@@ -38,7 +41,9 @@ public class ArenaServiceImpl implements ArenaService {
      */
     @Override
     @Transactional
-    public Map<String, Object> randomPhotos () {
+    public Map<String, Object> randomPhotos (
+    ) {
+
         Map<String, Object> response = new HashMap<>();
         // 랜덤이미지 4장
         // is_public=true, score 일치X
@@ -72,13 +77,18 @@ public class ArenaServiceImpl implements ArenaService {
      * @return 계산된 경험치
      */
     @Override
-    public Integer calculateArena(Long userId, int correct, String time) {
+    public Integer calculateArena(
+            Long userId, int correct, String time) {
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("유저를 찾을 수 없습니다. ID: " + userId));
+
         String activityWeek = gameWeekUtil.getCurrentGameWeek();
+
         float Ftime = 20f;
         Ftime = Float.parseFloat(time);
         final float adjustedTime = Ftime / 18f;
+
         Arena arena = arenaRepository.findByUserId(userId)
                 .map(existingArena -> {
                     // 📅 주차(activityWeek)가 다르면 초기화
@@ -92,6 +102,7 @@ public class ArenaServiceImpl implements ArenaService {
                     Arena newArena = new Arena(user, 0, activityWeek);
                     return arenaRepository.save(newArena);
                 });
+
         // 📊 경험치 계산
         int exp = correct * 100;
 
@@ -122,7 +133,9 @@ public class ArenaServiceImpl implements ArenaService {
     @Transactional
     public Map<String, Object> getArenaRanking(
             int pageNum) {
+
         String activityWeek = gameWeekUtil.getCurrentGameWeek();
+
         // pageNum이 1보다 작은 경우 예외 처리
         if (pageNum < 1) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "페이지 번호는 1 이상의 값이어야 합니다.");

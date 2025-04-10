@@ -20,6 +20,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * 팔로우 관련 서비스를 제공하는 클래스
+ */
 @Service
 @RequiredArgsConstructor
 public class FollowServiceImpl implements FollowService {
@@ -266,6 +269,5 @@ public class FollowServiceImpl implements FollowService {
         // 팔로워 관계가 존재하면 삭제
         followRepository.delete(follow.get());
     }
-
 }
 

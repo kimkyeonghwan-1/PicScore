@@ -2,6 +2,7 @@ package com.picscore.backend.timeattack.service.impl;
 
 import com.picscore.backend.common.exception.CustomException;
 import com.picscore.backend.common.utill.GameWeekUtil;
+import com.picscore.backend.common.utill.RedisUtil;
 import com.picscore.backend.photo.service.PhotoService;
 import com.picscore.backend.timeattack.model.entity.TimeAttack;
 import com.picscore.backend.timeattack.model.request.AnalysisPhotoRequest;
@@ -16,8 +17,6 @@ import com.picscore.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,18 +44,17 @@ public class TimeAttackServiceImpl implements TimeAttackService {
     private final PhotoService photoService;
 
     private final GameWeekUtil gameWeekUtil;
+    private final RedisUtil redisUtil;
 
     private final RestTemplate restTemplate;
     private final S3Client s3Client;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
-
-
-    @Value("${AZURE_ENDPOINT}")  // 환경 변수에서 API URL 가져오기
+    @Value("${AZURE_ENDPOINT}")
     private String visionApiUrl;
 
-    @Value("${AZURE_COMPUTER_VISION_KEY}")  // 환경 변수에서 API Key 가져오기
+    @Value("${AZURE_COMPUTER_VISION_KEY}")
     private String visionApiKey;
 
     @Value("${cloud.aws.s3.bucket}")
@@ -74,54 +72,63 @@ public class TimeAttackServiceImpl implements TimeAttackService {
     public Map<String, Object> getRanking(
             int pageNum) {
 
-        // pageNum이 1보다 작은 경우 예외 처리
         if (pageNum < 1) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "페이지 번호는 1 이상의 값이어야 합니다.");
         }
 
-        // 페이지 요청 객체 생성 (페이지당 5개 항목)
-        PageRequest pageRequest = PageRequest.of(pageNum-1, 5);
-
         String activityWeek = gameWeekUtil.getCurrentGameWeek();
+        String weekKey = "time-attack:" + activityWeek + ":score";
 
-        // 레포지토리에서 사용자별 최고 점수 조회
-        Page<TimeAttack> timeAttackPage = timeAttackRepository.findHighestScoresPerUser(activityWeek, pageRequest);
+        int pageSize = 5;
+        int start = (pageNum - 1) * pageSize;
+        int end = start + pageSize - 1;
 
-        // 페이지 데이터 존재 여부 확인
-        if (timeAttackPage == null || pageNum > timeAttackPage.getTotalPages() || timeAttackPage.getContent().isEmpty()) {
+        // 1. Redis에서 랭킹 상위 유저 아이디 추출
+        List<String> userKeys = redisUtil.getTopRankersInOrder(weekKey, start, end);
+        if (userKeys == null || userKeys.isEmpty()) {
             throw new CustomException(HttpStatus.NOT_FOUND, "해당 페이지에 랭킹 정보가 없습니다");
         }
 
+        // 2. userId(Long) 리스트로 변환
+        List<Long> userIds = userKeys.stream()
+                .map(key -> Long.parseLong(key.replace("user:", "")))
+                .toList();
+
+        // 3. 유저들의 최고 기록 DB에서 조회
+        List<TimeAttack> timeAttacks = timeAttackRepository.findBestRecordByUsers(userIds, activityWeek);
+
+        // 4. userIds 순서에 따라 정렬
+        Map<Long, TimeAttack> timeAttackMap = timeAttacks.stream()
+                .collect(Collectors.toMap(t -> t.getUser().getId(), t -> t));
+
         List<GetRankingResponse> rankingResponses = new ArrayList<>();
-        int baseRank = (pageNum - 1) * 5; // 현재 페이지의 기본 순위 계산
+        for (int i = 0; i < userIds.size(); i++) {
+            Long userId = userIds.get(i);
+            TimeAttack ta = timeAttackMap.get(userId);
+            if (ta != null) {
+                int rank = start + i + 1;
 
-        // 조회된 TimeAttack 데이터를 GetRankingResponse 객체로 변환
-        for (int i = 0; i < timeAttackPage.getContent().size(); i++) {
-            TimeAttack timeAttack = timeAttackPage.getContent().get(i);
-
-            int newRank = baseRank + i + 1;
-            // 랭킹 업데이트
-            timeAttack.updateRanking(newRank);
-            // 변경 사항 저장
-            timeAttackRepository.save(timeAttack);
-
-            rankingResponses.add(new GetRankingResponse(
-                    timeAttack.getUser().getId(),
-                    timeAttack.getUser().getNickName(),
-                    timeAttack.getUser().getProfileImage(),
-                    timeAttack.getPhotoImage(),
-                    timeAttack.getTopic(),
-                    timeAttack.getScore(),
-                    newRank
-            ));
+                rankingResponses.add(new GetRankingResponse(
+                        ta.getUser().getId(),
+                        ta.getUser().getNickName(),
+                        ta.getUser().getProfileImage(),
+                        ta.getPhotoImage(),
+                        ta.getTopic(),
+                        ta.getScore(),
+                        rank
+                ));
+            }
         }
 
-        // 응답 데이터 구성
+        // 5. 전체 랭킹 수 계산
+        Long totalSize = redisUtil.getZSetSize(weekKey);
+        int totalPage = (int) Math.ceil((double) totalSize / pageSize);
+
+        // 응답 구성
         Map<String, Object> responseData = new HashMap<>();
-        responseData.put("totalPage", timeAttackPage.getTotalPages());
+        responseData.put("totalPage", totalPage);
         responseData.put("ranking", rankingResponses);
 
-        // 성공 응답 반환
         return responseData;
     }
 
@@ -271,6 +278,18 @@ public class TimeAttackServiceImpl implements TimeAttackService {
                 user, activityImageUrl, request.getTopic(), activityWeek, request.getScore()
         );
         timeAttackRepository.save(timeAttack);
+
+        String weekKey = "time-attack:" + activityWeek + ":score";
+        String userKey = "user:" + userId;
+
+        redisUtil.addScoreToZSetWithTTL(weekKey, userKey, request.getScore(), 7);
+
+        Long rank = redisUtil.getUserRank(weekKey, userKey);
+        int timeAttackRank = (rank != null) ? rank.intValue() + 1 : 0;
+
+        if (timeAttackRank == 1) {
+            timeAttack.updateRank(1);
+        }
 
         int experience = userRepository.findExperienceByUserId(userId);
         int plusExperience = experience + (int) (request.getScore() * 10);

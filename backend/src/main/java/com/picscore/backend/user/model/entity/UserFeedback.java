@@ -28,5 +28,4 @@ public class UserFeedback extends BaseEntity {
         this.phoneNumber = phoneNumber;
         this.message = message;
     }
-
 }

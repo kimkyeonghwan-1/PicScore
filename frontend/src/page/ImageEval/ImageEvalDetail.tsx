@@ -7,53 +7,96 @@ import {
   SunIcon,
 } from "@heroicons/react/24/outline";
 import Chart from "./components/Chart";
-import { ImageEvalDetailProps } from "../../types/evalTypes";
+import { ImageEvalDetailProps, scoreDetailItem } from "../../types/evalTypes";
 
 function ImageEvalDetail({
   isModalOpen,
   closeDetail,
   score,
+  version,
   analysisScore,
   analysisFeedback,
 }: ImageEvalDetailProps) {
-  const scoreDetails = [
-    {
-      icon: <ChatBubbleBottomCenterIcon className="text-pic-primary w-7" />,
-      name: "구도",
-      feedback: analysisFeedback.구도,
-      score: analysisScore.구도,
-    },
-    {
-      icon: <ChatBubbleLeftRightIcon className="text-pic-primary w-7" />,
-      name: "노이즈",
-      feedback: analysisFeedback.노이즈,
-      score: analysisScore.노이즈,
-    },
-    {
-      icon: <SunIcon className="text-pic-primary w-7" />,
-      name: "노출",
-      feedback: analysisFeedback.노출,
-      score: analysisScore.노출,
-    },
-    {
-      icon: <ClockIcon className="text-pic-primary w-7" />,
-      name: "다이나믹 레인지",
-      feedback: analysisFeedback["다이나믹 레인지"],
-      score: analysisScore["다이나믹 레인지"],
-    },
-    {
-      icon: <PhotoIcon className="text-pic-primary w-7" />,
-      name: "선명도",
-      feedback: analysisFeedback.선명도,
-      score: analysisScore.선명도,
-    },
-    {
-      icon: <PhotoIcon className="text-pic-primary w-7" />,
-      name: "화이트밸런스",
-      feedback: analysisFeedback.화이트밸런스,
-      score: analysisScore.화이트밸런스,
-    },
-  ];
+  let scoreDetails: scoreDetailItem[] = [];
+  if (version === 1) {
+    scoreDetails = [
+      {
+        icon: <ChatBubbleBottomCenterIcon className="text-pic-primary w-7" />,
+        name: "구도",
+        feedback: analysisFeedback.구도,
+        score: analysisScore.구도,
+      },
+      {
+        icon: <ChatBubbleLeftRightIcon className="text-pic-primary w-7" />,
+        name: "노이즈",
+        feedback: analysisFeedback.노이즈,
+        score: analysisScore.노이즈,
+      },
+      {
+        icon: <SunIcon className="text-pic-primary w-7" />,
+        name: "노출",
+        feedback: analysisFeedback.노출,
+        score: analysisScore.노출,
+      },
+      {
+        icon: <ClockIcon className="text-pic-primary w-7" />,
+        name: "다이나믹 레인지",
+        feedback: analysisFeedback["다이나믹 레인지"],
+        score: analysisScore["다이나믹 레인지"],
+      },
+      {
+        icon: <PhotoIcon className="text-pic-primary w-7" />,
+        name: "선명도",
+        feedback: analysisFeedback.선명도,
+        score: analysisScore.선명도,
+      },
+      {
+        icon: <PhotoIcon className="text-pic-primary w-7" />,
+        name: "화이트밸런스",
+        feedback: analysisFeedback.화이트밸런스,
+        score: analysisScore.화이트밸런스,
+      },
+    ];
+  } else if (version === 2) {
+    scoreDetails = [
+      {
+        icon: <ChatBubbleBottomCenterIcon className="text-pic-primary w-7" />,
+        name: "구도",
+        feedback: analysisFeedback.구도,
+        score: analysisScore.구도,
+      },
+      {
+        icon: <ChatBubbleLeftRightIcon className="text-pic-primary w-7" />,
+        name: "주제",
+        feedback: analysisFeedback.주제,
+        score: analysisScore.주제,
+      },
+      {
+        icon: <SunIcon className="text-pic-primary w-7" />,
+        name: "노출",
+        feedback: analysisFeedback.노출,
+        score: analysisScore.노출,
+      },
+      {
+        icon: <ClockIcon className="text-pic-primary w-7" />,
+        name: "미적감각",
+        feedback: analysisFeedback["미적감각"],
+        score: analysisScore["미적감각"],
+      },
+      {
+        icon: <PhotoIcon className="text-pic-primary w-7" />,
+        name: "선명도",
+        feedback: analysisFeedback.선명도,
+        score: analysisScore.선명도,
+      },
+      {
+        icon: <PhotoIcon className="text-pic-primary w-7" />,
+        name: "색감",
+        feedback: analysisFeedback.색감,
+        score: analysisScore.색감,
+      },
+    ];
+  }
 
   return (
     <>

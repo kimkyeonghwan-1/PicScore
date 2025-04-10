@@ -22,6 +22,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
 
+
     /**
      * OAuth2 인증 후 사용자 정보를 로드합니다.
      *
@@ -30,11 +31,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
      * @throws OAuth2AuthenticationException 인증 실패 시 발생하는 예외
      */
     @Override
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+    public OAuth2User loadUser(
+            OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 
         // 부모 클래스의 loadUser 메서드를 호출하여 기본 사용자 정보를 가져옵니다.
         OAuth2User oAuth2User = super.loadUser(userRequest);
-        System.out.println("oAuth2User = " + oAuth2User);
 
         // 클라이언트 등록 ID 확인 (예: google, naver 등)
         String registrationId = userRequest.getClientRegistration().getRegistrationId();

@@ -179,9 +179,11 @@ function ImageUpload() {
         hashTag: imageEval.data.hashTag, // hashtag에서 hashTags로 키 이름 변경
       };
 
-      console.log("이미지 분석 완료:", updatedEvalData);
       navigate("/image-result", {
-        state: { evalData: updatedEvalData, imageUrl: tempImage },
+        state: {
+          evalData: updatedEvalData,
+          imageUrl: tempImage,
+        },
       });
     }
   }, [imageEval.data]);

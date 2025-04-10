@@ -156,8 +156,18 @@ const Arena: React.FC = () => {
   };
 
   const handlePhotoSelect = (photoId: number): void => {
-    // 이미 선택된 사진이면 추가하지 않음
+    // 이미 선택된 사진이면 선택 취소
     if (gameState.userOrder.includes(photoId)) {
+      // 선택 취소: 해당 photoId의 인덱스를 찾아서 제거
+      const index = gameState.userOrder.indexOf(photoId);
+      const newUserOrder = [...gameState.userOrder];
+      newUserOrder.splice(index, 1);
+      
+      setGameState({
+        ...gameState,
+        userOrder: newUserOrder,
+        completed: false, // 사진을 제거했으므로 완료 상태 해제
+      });
       return;
     }
 

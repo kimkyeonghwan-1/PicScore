@@ -20,7 +20,10 @@ public class GetPhotoDetailResponse {
     public String imageUrl;
     public Float score;
     public Map<String, Integer> analysisChart; // JSON 형태로 저장된 데이터
+
+    public Integer version;
     public Map<String, String> analysisText;  // JSON 형태로 저장된 데이터
+
     public LocalDateTime createdAt;
 
     // 기타 정보
@@ -43,6 +46,9 @@ public class GetPhotoDetailResponse {
         this.analysisChart = photo.getAnalysisChart();
         this.analysisText = photo.getAnalysisText();
         this.createdAt = photo.getCreatedAt();
+
+        // version
+        this.version = (analysisChart != null && analysisChart.containsKey("노이즈")) ? 1 : 2;
 
         // 기타 정보 설정
         this.likeCnt = likeCnt;

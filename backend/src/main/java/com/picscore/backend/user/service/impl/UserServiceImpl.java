@@ -60,11 +60,12 @@ public class UserServiceImpl implements UserService {
     private final UserFeedbackRepository userFeedbackRepository;
     private final PhotoRepository photoRepository;
 
+    private final PhotoService photoService;
+
     private final JWTUtil jwtUtil;
     private final RedisUtil redisUtil;
     private final GameWeekUtil gameWeekUtil;
 
-    private final PhotoService photoService;
 
     @Value("${JWT_ACCESS_EXP}")
     private String jwtAccessExp;
@@ -202,8 +203,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public GetUserProfileResponse getUserProfile(
-            Long myId, Long userId
-    ) {
+            Long myId, Long userId) {
 
         if (userId == null || userId <= 0) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "유효하지 않은 사용자 ID입니다.");
@@ -252,8 +252,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void updateMyProfile(
-            Long userId, HttpServletRequest httpRequest, UpdateMyProfileRequest request, HttpServletResponse response
-    ) throws IOException {
+            Long userId, HttpServletRequest httpRequest,
+            UpdateMyProfileRequest request, HttpServletResponse response) throws IOException {
 
         if (request.getNickName() == null || request.getNickName().trim().isEmpty()) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "닉네임은 필수 입력값입니다.");
@@ -311,20 +311,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public GetMyStaticResponse getMyStatic(
             Long userId) {
+
         String activityWeek = gameWeekUtil.getCurrentGameWeek();
         // 평균 점수
         Map<String, Object> stats = photoRepository.calculateStats(userId);
         float avgScore = stats.get("avgScore") != null ? ((Double) stats.get("avgScore")).floatValue() : 0f;
 
-        // 타임어택 랭크
-        List<TimeAttack> timeAttackList = timeAttackRepository.findHighestScoresAllUser(activityWeek);
-        int timeAttackRank = 0;
-        for (int i = 0; i < timeAttackList.size(); i++) {
-            if (timeAttackList.get(i).getUser().getId().equals(userId)) {
-                timeAttackRank = i + 1; // 등수는 1부터 시작
-                break;
-            }
-        }
+        String weekKey = "time-attack:" + activityWeek + ":score";
+        String userKey = "user:" + userId;
+        Long rank = redisUtil.getUserRank(weekKey, userKey);
+        int timeAttackRank = (rank != null) ? rank.intValue() + 1 : 0;
 
         // 아레나 랭크
         List<Arena> arenaList = arenaRepository.getRankAllUser(activityWeek);
@@ -361,14 +357,10 @@ public class UserServiceImpl implements UserService {
         Map<String, Object> stats = photoRepository.calculateStats(userId);
         float avgScore = stats.get("avgScore") != null ? ((Double) stats.get("avgScore")).floatValue() : 0f;
 
-        List<TimeAttack> timeAttackList = timeAttackRepository.findHighestScoresAllUser(activityWeek);
-        int rank = 0;
-        for (int i = 0; i < timeAttackList.size(); i++) {
-            if (timeAttackList.get(i).getUser().getId().equals(userId)) {
-                rank = i + 1; // 등수는 1부터 시작
-                break;
-            }
-        }
+        String weekKey = "time-attack:" + activityWeek + ":score";
+        String userKey = "user:" + userId;
+        Long rank = redisUtil.getUserRank(weekKey, userKey);
+        int timeAttackRank = (rank != null) ? rank.intValue() + 1 : 0;
 
         // 아레나 랭크
         List<Arena> arenaList = arenaRepository.getRankAllUser(activityWeek);
@@ -381,7 +373,7 @@ public class UserServiceImpl implements UserService {
         }
 
         GetUserStaticResponse response = new GetUserStaticResponse(
-                avgScore, rank, arenaRank
+                avgScore, timeAttackRank, arenaRank
         );
 
         return response;
@@ -424,7 +416,9 @@ public class UserServiceImpl implements UserService {
      * @param value 쿠키 값
      * @return 생성된 Cookie 객체
      */
-    private Cookie createCookie(String key, String value) {
+    private Cookie createCookie(
+            String key, String value) {
+
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(60 * 60 * 24); // 1일 유지
         cookie.setSecure(true); // HTTPS에서만 전송 (배포 환경에서는 필수)
@@ -441,10 +435,13 @@ public class UserServiceImpl implements UserService {
      * @param userAgent HTTP User-Agent 헤더 값
      * @return "pc" 또는 "mobile"
      */
-    private String getDeviceType(String userAgent) {
+    private String getDeviceType(
+            String userAgent) {
+
         if (userAgent.contains("mobile") || userAgent.contains("android") || userAgent.contains("iphone")) {
             return "mobile";
         }
+
         return "pc";
     }
 }

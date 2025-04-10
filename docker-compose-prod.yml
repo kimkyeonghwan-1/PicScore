@@ -66,14 +66,14 @@ services:
     container_name: redis
     image: redis:7.4-alpine
     restart: always
-    ports:
-      - "6379:6379"
+    command: redis-server /usr/local/etc/redis/redis.conf
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "sh", "-c", "redis-cli -a $REDIS_PASSWORD ping"]
       interval: 10s
       timeout: 5s
       retries: 5
     volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
       - redis-data:/data 
     networks:
       - picscore-network

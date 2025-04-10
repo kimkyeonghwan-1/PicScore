@@ -7,6 +7,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsMvcConfig implements WebMvcConfigurer {
 
+
     /**
      * CORS 설정을 추가합니다.
      *

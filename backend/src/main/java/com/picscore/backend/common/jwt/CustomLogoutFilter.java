@@ -24,28 +24,42 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class CustomLogoutFilter extends GenericFilterBean {
 
-    private final JWTUtil jwtUtil; // JWT 관련 유틸리티 클래스
-    private final RedisUtil redisUtil; // Redis 관련 유틸리티 클래스
-    private final UserRepository userRepository; // 사용자 데이터베이스 접근 클래스
+    private final JWTUtil jwtUtil;
+    private final RedisUtil redisUtil;
+    private final UserRepository userRepository;
 
+
+    /**
+     * ServletRequest와 ServletResponse를 HttpServletRequest, HttpServletResponse로 변환하여 실제 doFilter 실행
+     */
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        // HttpServletRequest와 HttpServletResponse로 캐스팅 후 필터 실행
+    public void doFilter(
+            ServletRequest request,
+            ServletResponse response,
+            FilterChain chain) throws IOException, ServletException {
+
         doFilter((HttpServletRequest) request, (HttpServletResponse) response, chain);
     }
 
-    private void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
 
-        // 1. 로그아웃 요청 경로 및 HTTP 메서드 확인
+    /**
+     * 로그아웃 요청 처리 로직
+     */
+    private void doFilter(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain) throws IOException, ServletException {
+
+        // 1. 로그아웃 경로 및 POST 요청인지 확인
         String requestUri = request.getRequestURI();
-        if (!requestUri.matches("^\\/logout$")) { // 경로가 "/logout"이 아닌 경우 다음 필터로 전달
-            filterChain.doFilter(request, response);
+        if (!requestUri.matches("^\\/logout$")) {
+            filterChain.doFilter(request, response); // 로그아웃 요청이 아니면 필터 체인 계속 진행
             return;
         }
 
         String requestMethod = request.getMethod();
-        if (!requestMethod.equals("POST")) { // HTTP 메서드가 POST가 아닌 경우 다음 필터로 전달
-            filterChain.doFilter(request, response);
+        if (!requestMethod.equals("POST")) {
+            filterChain.doFilter(request, response); // POST 요청이 아니면 필터 체인 계속 진행
             return;
         }
 
@@ -54,72 +68,88 @@ public class CustomLogoutFilter extends GenericFilterBean {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if (cookie.getName().equals("refresh")) { // 쿠키 이름이 "refresh"인 경우 값 추출
-                    refresh = cookie.getValue();
+                if (cookie.getName().equals("refresh")) {
+                    refresh = cookie.getValue(); // refresh 쿠키 값 추출
                 }
             }
         }
 
-        // Refresh 토큰이 없는 경우 400 Bad Request 반환
+        // Refresh 토큰이 없으면 Bad Request 응답
         if (refresh == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
-        // 3. Refresh 토큰 만료 여부 확인
+        // 3. 토큰 만료 여부 확인
         try {
-            jwtUtil.isExpired(refresh); // 만료된 경우 예외 발생
+            jwtUtil.isExpired(refresh); // 만료되면 예외 발생
         } catch (ExpiredJwtException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 만료된 토큰에 대해 400 Bad Request 반환
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
-        // 4. Refresh 토큰 유형 확인 (JWT 페이로드에서 "category" 값 확인)
+        // 4. 토큰의 카테고리 확인 ("refresh"가 아니면 잘못된 요청)
         String category = jwtUtil.getCategory(refresh);
-        if (!category.equals("refresh")) { // "refresh" 유형이 아닌 경우 400 Bad Request 반환
+        if (!category.equals("refresh")) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
-        // 5. Redis에서 해당 사용자 키 조회 및 존재 여부 확인
-        String nickName = jwtUtil.getNickName(refresh); // JWT 페이로드에서 닉네임 추출
-        String userAgent = request.getHeader("User-Agent").toLowerCase();
-        String deviceType = getDeviceType(userAgent); // 기기 유형 판별
-        String userKey = "refresh:" + userRepository.findIdByNickName(nickName) + ":" + deviceType; // Redis 키 생성
+        // 5. Redis에서 토큰 존재 여부 확인
+        String nickName = jwtUtil.getNickName(refresh); // 토큰에서 닉네임 추출
+        String userAgent = request.getHeader("User-Agent").toLowerCase(); // 기기 정보 추출
+        String deviceType = getDeviceType(userAgent); // PC 또는 모바일 여부 판별
+        String userKey = "refresh:" + userRepository.findIdByNickName(nickName) + ":" + deviceType; // Redis 키 조합
 
-        Boolean isExist = redisUtil.exists(userKey);
-        if (!isExist) { // Redis에 해당 키가 없으면 400 Bad Request 반환
+        Boolean isExist = redisUtil.exists(userKey); // Redis에 존재하는지 확인
+        if (!isExist) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
-        // 6. 로그아웃 처리: Redis에서 Refresh 토큰 삭제 및 쿠키 제거
-        redisUtil.delete(userKey); // Redis에서 Refresh 토큰 삭제
+        // 6. Redis에서 해당 키 삭제 (토큰 무효화)
+        redisUtil.delete(userKey);
 
-        // 7. 쿠키 삭제
+        // 7. access 및 refresh 쿠키 삭제
         deleteCookie(response, "access");
         deleteCookie(response, "refresh");
 
-        response.setStatus(HttpServletResponse.SC_OK); // 로그아웃 성공 상태 코드 설정
+        // 8. 로그아웃 성공 상태 코드 전송
+        response.setStatus(HttpServletResponse.SC_OK);
     }
 
-    private void deleteCookie(HttpServletResponse response, String cookieName) {
-        Cookie cookie = new Cookie(cookieName, null); // 값은 null로 설정
-        cookie.setMaxAge(0); // 만료 시간 0으로 설정 (즉시 삭제)
-        cookie.setPath("/"); // 쿠키의 경로 설정 (어플리케이션 전체에 적용)
-        response.addCookie(cookie); // 응답에 쿠키 추가
-    }
 
     /**
-     * User-Agent를 분석하여 기기 유형을 판별합니다.
+     * 주어진 이름의 쿠키를 삭제하는 메서드
      *
-     * @param userAgent HTTP User-Agent 헤더 값
+     * @param response HttpServletResponse 객체
+     * @param cookieName 삭제할 쿠키 이름
+     */
+    private void deleteCookie(
+            HttpServletResponse response,
+            String cookieName) {
+
+        Cookie cookie = new Cookie(cookieName, null); // 쿠키 값 null로 설정
+        cookie.setMaxAge(0); // 쿠키 즉시 만료
+        cookie.setPath("/"); // 전체 경로에 적용
+        response.addCookie(cookie); // 응답에 쿠키 추가 (삭제)
+    }
+
+
+    /**
+     * User-Agent를 분석하여 기기 유형을 판별
+     *
+     * @param userAgent 사용자 User-Agent 문자열
      * @return "pc" 또는 "mobile"
      */
-    private String getDeviceType(String userAgent) {
+    private String getDeviceType(
+            String userAgent) {
+
         if (userAgent.contains("mobile") || userAgent.contains("android") || userAgent.contains("iphone")) {
             return "mobile";
         }
+
         return "pc";
     }
 }
+

@@ -51,14 +51,12 @@ const GameStep: React.FC<GameStepProps> = ({
             {photos.map((photo) => (
               <div
                 key={photo.id}
-                className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-all ${
+                className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-all cursor-pointer ${
                   userOrder.includes(photo.id)
-                    ? "opacity-40 border-gray-300"
-                    : "border-transparent hover:border-pic-primary cursor-pointer"
+                    ? "opacity-40 border-gray-300 hover:border-red-500"
+                    : "border-transparent hover:border-pic-primary"
                 }`}
-                onClick={() =>
-                  !userOrder.includes(photo.id) && onPhotoSelect(photo.id)
-                }
+                onClick={() => onPhotoSelect(photo.id)}
               >
                 <img
                   src={photo.imageUrl}

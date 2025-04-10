@@ -50,7 +50,9 @@ public class TimeAttack extends BaseEntity {
         this.score = score;
     }
 
-    public void updateRanking(int ranking) {
+    public void updateRank(
+            int ranking) {
+
         this.ranking = ranking;
     }
 }

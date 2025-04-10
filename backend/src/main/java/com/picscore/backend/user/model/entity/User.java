@@ -51,16 +51,42 @@ public class User extends BaseEntity {
         this.experience = experience;
     }
 
+
+    /**
+     * 사용자 프로필 정보를 업데이트합니다.
+     *
+     * @param nickName      새로운 닉네임
+     * @param profileImage  새로운 프로필 이미지 URL
+     * @param message       새로운 상태 메시지
+     */
     public void updateProfile(String nickName, String profileImage, String message) {
         this.nickName = nickName;
         this.profileImage = profileImage;
         this.message = message;
     }
 
+
+    /**
+     * 사용자 경험치를 설정합니다.
+     *
+     * @param experience 경험치 값
+     */
     public void updateExperience(int experience) {
         this.experience = experience;
     }
 
+
+    /**
+     * 현재 경험치를 기반으로 사용자의 레벨을 계산하고 업데이트합니다.
+     *
+     * 레벨 계산 방식:
+     * - 초기 레벨: 0
+     * - 0 → 1 레벨업 기준: 1000 경험치
+     * - 이후 레벨업마다 필요 경험치 500씩 증가
+     *   예: 0→1: 1000, 1→2: 1500, 2→3: 2000, ...
+     *
+     * @param experience 현재 누적된 경험치
+     */
     public void updateLevel(int experience) {
         int level = 0;  // 기본 레벨
         int threshold = 1000;  // 0 -> 1 레벨업에 필요한 경험치
@@ -74,5 +100,4 @@ public class User extends BaseEntity {
 
         this.level = level;
     }
-
 }

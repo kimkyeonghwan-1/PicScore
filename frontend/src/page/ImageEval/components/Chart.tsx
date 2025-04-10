@@ -44,24 +44,35 @@ function Chart({ analysisScore }: { analysisScore: AnalysisScoreType }) {
     };
   };
 
-  // 데이터 포인트 및 레이블 계산
+  // 데이터에서 사용 가능한 키 확인 (각 대체 카테고리 중 어느 것이 있는지 확인)
+  const getCategory = (options: string[]): string => {
+    for (const option of options) {
+      if (option in data) {
+        return option;
+      }
+    }
+    return options[0]; // 기본값 반환
+  };
+
+  // 카테고리 결정 (데이터에 있는 키를 기준으로)
   const categories: string[] = [
-    "구도",
-    "노이즈",
-    "노출",
-    "다이나믹 레인지",
-    "선명도",
-    "화이트밸런스",
+    "구도", // 항상 동일
+    getCategory(["주제", "노이즈"]), // 주제 또는 노이즈
+    "노출", // 항상 동일
+    getCategory(["미적감각", "다이나믹 레인지"]), // 미적감각 또는 다이나믹 레인지
+    "선명도", // 항상 동일
+    getCategory(["색감", "화이트밸런스"]), // 색감 또는 화이트밸런스
   ];
+
   const total: number = categories.length;
+
+  // 데이터 포인트 계산
   const points: Point[] = categories.map((category, i) => {
-    // "다이나믹 레인지"와 같은 특수 키 처리
-    const value =
-      category === "다이나믹 레인지"
-        ? data["다이나믹 레인지"]
-        : data[category as keyof AnalysisScoreType];
+    const value = data[category as keyof AnalysisScoreType] ?? 0; // undefined인 경우 0으로 대체
     return calculatePoint(value, i, total);
   });
+
+  // 레이블 포인트 계산
   const labelPoints: LabelPoint[] = categories.map((_, i) =>
     calculateLabelPoint(i, total)
   );
@@ -156,7 +167,7 @@ function Chart({ analysisScore }: { analysisScore: AnalysisScoreType }) {
             scoreDx = 0;
             scoreDy = 12;
           } else if (i === 1) {
-            // 노이즈 (우상단)
+            // 주제 또는 노이즈 (우상단)
             titleAnchor = "start";
             titleDx = 5;
             titleDy = 0;
@@ -172,7 +183,7 @@ function Chart({ analysisScore }: { analysisScore: AnalysisScoreType }) {
             scoreDx = 5;
             scoreDy = 15;
           } else if (i === 3) {
-            // 다이나믹 레인지 (하단)
+            // 미적감각 또는 다이나믹 레인지 (하단)
             titleAnchor = "middle";
             titleDx = 0;
             titleDy = -3;
@@ -188,29 +199,29 @@ function Chart({ analysisScore }: { analysisScore: AnalysisScoreType }) {
             scoreDx = -5;
             scoreDy = 15;
           } else if (i === 5) {
-            // 화이트밸런스 (좌상단)
+            // 색감 또는 화이트밸런스 (좌상단)
             titleAnchor = "end";
-            titleDx = 16;
+            titleDx = 0;
             titleDy = 0;
             scoreAnchor = "end";
             scoreDx = -2;
             scoreDy = 15;
           }
 
-          // 다이나믹 레인지는 길이가 길어서 특수 처리
-          const displayCategory =
-            category === "다이나믹 레인지" ? "다이나믹\n레인지" : category;
-          const categoryLines = displayCategory.split("\n");
+          // 긴 텍스트의 경우 줄바꿈 처리
+          let displayText = category;
+          if (category === "다이나믹 레인지") {
+            displayText = "다이나믹\n레인지";
+          }
 
-          // 점수 값 가져오기 (다이나믹 레인지 특수 처리)
-          const scoreValue =
-            category === "다이나믹 레인지"
-              ? data["다이나믹 레인지"]
-              : data[category as keyof AnalysisScoreType];
+          const lines = displayText.split("\n");
+
+          // 점수 값 가져오기
+          const scoreValue = data[category as keyof AnalysisScoreType] ?? 0; // undefined인 경우 0으로 대체
 
           return (
             <g key={`label-${i}`}>
-              {categoryLines.map((line, lineIndex) => (
+              {lines.map((line, lineIndex) => (
                 <text
                   key={`title-${i}-${lineIndex}`}
                   x={labelPoint.x}
@@ -229,7 +240,7 @@ function Chart({ analysisScore }: { analysisScore: AnalysisScoreType }) {
                 x={labelPoint.x}
                 y={labelPoint.y}
                 dx={scoreDx}
-                dy={scoreDy + (categoryLines.length > 1 ? 12 : 0)}
+                dy={scoreDy + (lines.length > 1 ? lines.length * 10 : 0)}
                 textAnchor={scoreAnchor}
                 fontSize="12"
                 fontWeight="bold"

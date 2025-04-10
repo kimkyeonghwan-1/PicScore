@@ -29,12 +29,19 @@ public class PhotoController {
     private final OAuthService oAuthService;
 
 
-    // 임시저장
+    /**
+     * 사용자가 업로드한 사진 파일을 임시로 저장합니다.
+     *
+     * @param file 업로드할 사진 파일
+     * @return 업로드된 사진에 대한 응답 정보 (성공 메시지와 함께)
+     * @throws IOException 파일 처리 중 입출력 오류 발생 가능
+     */
     @PostMapping("/photo")
     public ResponseEntity<BaseResponse<UploadPhotoResponse>> uploadFile(
             @RequestParam("file") MultipartFile file) throws IOException {
 
         UploadPhotoResponse uploadPhotoResponse = photoService.uploadFile(file);
+
         return ResponseEntity.ok(BaseResponse.success("임시 파일 저장 완료", uploadPhotoResponse));
     }
 
@@ -160,7 +167,6 @@ public class PhotoController {
         try {
             userId = oAuthService.findIdByNickName(request);
         } catch (Exception e) {
-            System.out.printf("쿠키에서 userId 추출 실패: {}", e.getMessage()); // 예외 로깅
         }
 
         GetPhotoDetailResponse getPhotoDetailResponse = photoService.getPhotoDetail(userId, photoId);
@@ -203,10 +209,13 @@ public class PhotoController {
      * S3 관련 미완성 API
      */
     @GetMapping("/download/{fileName}")
-    public ResponseEntity<ByteArrayResource> downloadFile(@PathVariable String fileName) {
+    public ResponseEntity<ByteArrayResource> downloadFile(
+            @PathVariable String fileName) {
+
         byte[] data = photoService.downloadFile(fileName);
         ByteArrayResource resource = new ByteArrayResource(data);
         String permanentFolder = "permanent/";
+
         return ResponseEntity
                 .ok()
                 .contentLength(data.length)
@@ -239,8 +248,16 @@ public class PhotoController {
     }
 
 
+    /**
+     * 업로드된 사진 파일들의 목록을 조회합니다.
+     *
+     * @return 파일 이름 목록 리스트
+     */
     @GetMapping("/list")
-    public ResponseEntity<List<String>> listFiles() {
+    public ResponseEntity<List<String>> listFiles(
+
+    ) {
+
         return ResponseEntity.ok(photoService.listFiles());
     }
 }

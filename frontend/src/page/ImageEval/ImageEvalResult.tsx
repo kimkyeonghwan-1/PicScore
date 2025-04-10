@@ -23,18 +23,12 @@ function ImageEvalResult() {
 
   const evalData = location.state?.evalData;
   const imageUrl = location.state?.imageUrl;
-  const { analysisChart, analysisText, score } = evalData;
+  const { analysisChart, analysisText, score, version } = evalData;
 
   const openModal = () => {
     if (isLoggedIn) {
       setIsDetailOpen(true);
     } else {
-      setIsModalOpen(true);
-    }
-  };
-
-  const uploadOpenModal = () => {
-    if (isLoggedIn) {
       setIsModalOpen(true);
     }
   };
@@ -108,6 +102,7 @@ function ImageEvalResult() {
         isModalOpen={isDetailOpen}
         closeDetail={closeDetail}
         score={score}
+        version={version}
         analysisScore={analysisChart}
         analysisFeedback={analysisText}
       />
@@ -126,14 +121,9 @@ function ImageEvalResult() {
         <div className="font-logo text-pic-primary text-5xl mb-2">
           {score}점
         </div>
-
-        {score < 30 ? (
-          <div>PICSCORE가 필요해 보이네요...</div>
-        ) : score >= 30 && score <= 70 ? (
-          <div>잠재력이 보이는 사진이네요!</div>
-        ) : (
-          <div className="mb-1">저희팀에 영입 해도 될까요..?</div>
-        )}
+        <div className="border border-gray-300 rounded bg-gray-100 px-4 py-3 mt-2">
+          {evalData.comment}
+        </div>
       </div>
 
       <div className="flex gap-10 mt-8 mb-5">

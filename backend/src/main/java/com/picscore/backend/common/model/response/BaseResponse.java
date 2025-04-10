@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class BaseResponse<T> {
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSS")
     private LocalDateTime timeStamp;
     private String message;

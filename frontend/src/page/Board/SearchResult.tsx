@@ -70,6 +70,7 @@ function SearchResult() {
           </div>
         )}
       </div>
+      <BottomBar />
     </div>
   );
 }

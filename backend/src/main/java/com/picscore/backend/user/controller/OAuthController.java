@@ -30,6 +30,7 @@ public class OAuthController {
     @GetMapping("/user/{type}")
     public void redirectToGoogleLogin(
             @PathVariable String type, HttpServletResponse response) throws IOException {
+
         if (type.equals("google")) {
             response.sendRedirect("/oauth2/authorization/google");
         } else if (type.equals("kakao")) {

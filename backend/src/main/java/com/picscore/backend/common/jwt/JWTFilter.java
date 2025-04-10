@@ -23,6 +23,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * JWT 인증 필터
+ * - OncePerRequestFilter를 상속하여 요청마다 한 번만 필터 실행
+ * - 특정 URL 및 메서드에 대해선 필터 제외 처리
+ */
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
 
@@ -30,8 +35,17 @@ public class JWTFilter extends OncePerRequestFilter {
     private final OAuthService oAuthService;
     private final ObjectMapper objectMapper;
 
+
+    /**
+     * 필터를 적용하지 않을 요청을 정의하는 메서드
+     *
+     * @param request HttpServletRequest
+     * @return true이면 필터를 건너뜀, false이면 필터 적용
+     */
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    protected boolean shouldNotFilter(
+            HttpServletRequest request) throws ServletException {
+
         String path = request.getRequestURI();
         String method = request.getMethod();
 
