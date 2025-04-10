@@ -121,7 +121,9 @@ function ImageEvalResult() {
         <div className="font-logo text-pic-primary text-5xl mb-2">
           {score}점
         </div>
-        <div>{evalData.comment}</div>
+        <div className="border border-gray-300 rounded bg-gray-100 px-4 py-3 mt-2">
+          {evalData.comment}
+        </div>
       </div>
 
       <div className="flex gap-10 mt-8 mb-5">
