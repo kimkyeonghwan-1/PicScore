@@ -1,0 +1,99 @@
+spring:
+
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+      dialect: org.hibernate.dialect.MySQLDialect
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-name: google
+            client-id: ${GOOGLE_APP_ID}
+            client-secret: ${GOOGLE_SECRET}
+            redirect-uri: ${GOOGLE_REDIRECT_URL}
+            authorization-grant-type: authorization_code
+            scope:
+              - profile
+              - email
+          kakao:
+            client-name: kakao
+            client-id: ${KAKAO_APP_ID}
+            client-secret:
+            redirect-uri: ${KAKAO_REDIRECT_URL}
+            authorization-grant-type: authorization_code
+            scope: profile_nickname, profile_image
+            client-authentication-method: client_secret_post
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  access-token:
+    expiration: ${JWT_ACCESS_EXP}
+  refresh-token:
+    expiration: ${JWT_REFRESH_EXP}
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket: ${AWS_S3_BUCKET}
+api:
+  google:
+    api-key: ${GOOGLE_CLOUD_VISION_API_KEY}
+  azure:
+    api-key: ${AZURE_COMPUTER_VISION_KEY}
+    end-point: ${AZURE_ENDPOINT}
+  openai:
+    api-key: ${OPENAI_API_KEY}
+    url: ${OPENAI_API_URL}
+server:
+  port: 8080
+
+# Health, Prometheus
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus"
+
+logging:
+  level:
+    com.picscore: DEBUG
+
+sentry:
+  dsn: ${SENTRY_DSN_KEY}
+  send-default-pii: true  # 사용자 IP 및 기본 요청 데이터 수집
+  traces-sample-rate: 1.0  # 100% 트랜잭션 수집 (운영환경에서는 조정 필요)
+  exception-resolver-order: -2147483647  # ExceptionResolver 우선순위 설정
+  environment: ${SENTRY_ENV} # 개발환경과 운영환경 구분 가능
+  server-name: ${SENTRY_NAME} # 운영환경 구분
+  release: my-backend@1.0.0  # 배포 버전 정보 설정
