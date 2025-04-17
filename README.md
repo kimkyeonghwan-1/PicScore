@@ -1,15 +1,15 @@
 # <span style="color: #123456;">PIC</span>SCORE
 
-![Image](https://github.com/user-attachments/assets/eaf6fe0d-eacf-41c5-ac3b-b612e5065615)
+![Image](https://velog.velcdn.com/images/kub938/post/2df6ffab-b5fd-46c0-b5fe-4be302967022/image.jpg)
 
 # 목차
 
-[서비스](#-서비스) <br>
+[서비스](#서비스) <br>
 [팀원](#-팀원) <br>
 [기술](#-기술) <br>
 [화면](#-화면) <br>
 [기술적 특징](#-기술적-특징) <br>
-[문서](#-문서) <br>
+[깃 컨벤션](#-깃-컨벤션) <br>
 
 # 서비스
 
@@ -22,7 +22,6 @@
 4. 레벨링 시스템<br>
 5. 업적 시스템<br>
 6. SNS 사진 공유 서비스 및 팔로우/팔로워 기능 제공 <br>
-
 </aside>
 
 # 👨‍👩‍👦‍👦 팀원
@@ -61,12 +60,12 @@
  <th>Backend</th>
  <tr>
     <td align="center"><a href="https://github.com/kimkyeonghwan-1"><img src="https://avatars.githubusercontent.com/u/175172659?v=4" width="130px;" alt=""></a></td>
-    <td align="center"><a href="https://github.com/ynco32"><img src="" width="130px;" alt=""></a></td>
+    <td align="center"><a href="https://github.com/TAEHONG96"><img src="https://avatars.githubusercontent.com/u/175571625?v=4" width="130px;" alt=""></a></td>
   
   </tr>
   <tr>
     <td align="center"><b>kimkyeonghwan-1</b></td>
-    <td align="center"><b></b></td>
+    <td align="center"><b>TAEHONG96</b></td>
   </tr>
   <tr> 
     <td align="center">김경환[BE리더]</td>
@@ -147,11 +146,12 @@
 <p align="left">
   <img src="https://img.shields.io/badge/notion-%23181717.svg?style=for-the-badge&logo=notion&logoColor=white">
   <img src="https://img.shields.io/badge/mattermost-0058CC.svg?style=for-the-badge&logo=mattermost&logoColor=white">
-  <img src="https://img.shields.io/badge/postman-FF6C37.svg?style=for-the-badge&logo=postman&logoColor=white"><br>
+  <img src="https://img.shields.io/badge/postman-FF6C37.svg?style=for-the-badge&logo=postman&logoColor=white">
+  <img src="https://img.shields.io/badge/jira-0052CC.svg?style=for-the-badge&logo=jira&logoColor=white"><br>
   <img src="https://img.shields.io/badge/Intellij%20idea-000000.svg?style=for-the-badge&logo=Intellij%20idea&logoColor=white">
   <img src="https://img.shields.io/badge/Visual%20Studio%20Code-1572B6.svg?style=for-the-badge&logo=Visual%20Studio%20Code&logoColor=white">
   <img src="https://img.shields.io/badge/Figma-F24E1E.svg?style=for-the-badge&logo=Figma&logoColor=white">
-    <img src="https://img.shields.io/badge/Sentry-362D59?style=for-the-badge&logo=sentry&logoColor=white">
+  <img src="https://img.shields.io/badge/Sentry-362D59?style=for-the-badge&logo=sentry&logoColor=white">
 </p>
 
 ---
@@ -167,10 +167,10 @@
      <th>메인</th>
   </tr>
   <tr>
-    <td><img src="https://velog.velcdn.com/images/lcln/post/8c4e2955-32d0-41f3-b131-3dffbc28c860/image.png" width="250" height="500"/></td>
-    <td><img src="https://velog.velcdn.com/images/lcln/post/8c4e2955-32d0-41f3-b131-3dffbc28c860/image.png" width="250" height="500"/></td>
+    <td><img src="https://velog.velcdn.com/images/kub938/post/5d9b7631-00ef-44af-a3b3-9579b9ae1ae9/image.gif" width="250" height="500"/></td>
+    <td><img src="https://velog.velcdn.com/images/kub938/post/e24a6734-f6dc-44c2-8c8a-96ad3d9d0d37/image.gif" width="250" height="500"/></td>
     <td>
-    <img src="https://velog.velcdn.com/images/lcln/post/8c4e2955-32d0-41f3-b131-3dffbc28c860/image.png" width="250" height="500"/>
+    <img src="https://velog.velcdn.com/images/kub938/post/8e134af9-784b-4127-8e5c-e2c2531f54b1/image.png" width="250" height="500"/>
     </td>
 
   </tr>
@@ -185,9 +185,9 @@
     <th>업로드</th>
   </tr>
   <tr>
-    <td><img src="" width="250" height="480"/></td>
-    <td><img src="" width="250" height="480"/></td>
-    <td><img src="" width="250" height="480"/></td>
+    <td><img src="https://velog.velcdn.com/images/kub938/post/d87e9da8-f34d-4a36-b8f4-1a20250bd4ce/image.gif" width="250" height="500"/></td>
+    <td><img src="https://velog.velcdn.com/images/kub938/post/afaacbf0-d3f7-4d88-8554-03a67fa103a7/image.gif" width="250" height="500"/></td>
+    <td><img src="https://velog.velcdn.com/images/kub938/post/b01a2a78-0c8e-49b0-93dd-649f6960920e/image.gif" width="250" height="500"/></td>
   </tr>
 </table>
 
@@ -199,8 +199,8 @@
     <th>아레나</th>
   </tr>
   <tr>
-    <td><img src="" width="250" height="480"/></td>
-    <td><img src="" width="250" height="480"/></td>
+    <td><img src="https://velog.velcdn.com/images/kub938/post/d7a2762b-04b8-43e6-8671-e9d282dbf0b4/image.gif" width="250" height="500"/></td>
+    <td><img src="https://velog.velcdn.com/images/kub938/post/3510ed3e-0c8a-46b0-9ebc-01b650d31f88/image.gif" width="250" height="500"/></td>
   </tr>
 </table>
 
@@ -210,38 +210,29 @@
   <tr>
     <th>전체 목록</th>
     <th>게시글</th>
-    <th>사진 분석 결과/피드백</th>
+    <th>친구/게시글 검색</th>
   </tr>
   <tr>
-    <td><img src="" width="250" height="480"/></td>
-    <td><img src="" width="250" height="480"/></td>
-    <td><img src="" width="250" height="480"/></td>
-  </tr>
-</table>
-
-## 4. 혼잡도 보기
-
-<table>
-  <tr>
-    <th>혼잡도 보기</th>
-  </tr>
-  <tr>
-    <td><img src="" width="250" height="480"/></td>
+    <td><img src="https://velog.velcdn.com/images/kub938/post/9d6ce850-f53f-4a16-9252-f1b8410492c8/image.gif" width="250" height="500"/></td>
+    <td><img src="https://velog.velcdn.com/images/kub938/post/662c61d3-aee2-4f26-b2d7-84bd49693998/image.gif" width="250" height="500"/></td>
+    <td><img src="https://velog.velcdn.com/images/kub938/post/2e65cdd8-f8da-46cf-a9fd-a9a3c0b979ad/image.gif" width="250" height="500"/></td>
   </tr>
 </table>
 
-## 5. 마이페이지
+## 4. 마이페이지
 
 <table>
   <tr>
-    <th>시야 후기 조회 및 삭제</th>
-    <th>스크랩한 나눔 게시글</th>
-    <th>나의 티켓팅 기록</th>
+    <th align="center">마이페이지 메인</th>
+    <th align="center">팔로우/팔로워</th>
+    <th align="center">업적</th>
+    <th align="center">정보 수정</th>
   </tr>
   <tr>
-    <td><img src="" width="250" height="480"/></td>
-    <td><img src="" width="250" height="480"/></td>
-    <td><img src="" width="250" height="480"/></td>
+    <td align="center" width="25%"><img src="https://velog.velcdn.com/images/kub938/post/da0d9d76-ec29-45d9-9d51-e3fb8918bd72/image.png" width="100%"></td>
+    <td align="center" width="25%"><img src="https://velog.velcdn.com/images/kub938/post/9e844c4f-fb6e-4872-a5df-1a3d291cebd0/image.gif" width="100%"></td>
+    <td align="center" width="25%"><img src="https://velog.velcdn.com/images/kub938/post/4681fce1-fefc-419d-b951-93c5b2d2e1ff/image.gif" width="100%"></td>
+    <td align="center" width="25%"><img src="https://velog.velcdn.com/images/kub938/post/194d9d6c-6f58-409b-91f8-f0a532b90e5c/image.gif" width="100%"></td>
   </tr>
 </table>
 
@@ -251,6 +242,10 @@
 
 ## 사진 분석
 
+[FE]
+
+- 분석 데이터 그래프 시각화
+
 [BE]
 
 - LLaVA 모델 기반 사진 분석 처리
@@ -258,7 +253,7 @@
   - 점수 산정 및 시각화 데이터 제공
   - 지표별 피드백 메시지 생성
 
-## Spring Security
+## 로그인
 
 [FE]
 
@@ -352,11 +347,11 @@
 
 # 📕 아키텍쳐
 
-<img src="" width="800" height="500"/>
+<img src="https://velog.velcdn.com/images/kub938/post/0c28a778-df8a-4eeb-ac3d-976acb43e362/image.png" width="800" height="500"/>
 
-# 깃 컨벤션
+# 🖤 깃 컨벤션
 
-## 🖤 커밋 메시지 컨벤션
+## 커밋 메시지 컨벤션
 
 <aside>
 
